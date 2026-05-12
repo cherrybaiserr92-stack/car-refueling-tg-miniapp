@@ -29,16 +29,12 @@
         </div>
     </div>
 
-    <!-- Нижний таббар -->
-    <div class="tabbar">
-        <button class="tab-btn active" data-view="mapView">
-            <span class="tab-icon">🗺️</span>
-            <span class="tab-label">Карта</span>
-        </button>
-        <button class="tab-btn" data-view="listView">
-            <span class="tab-icon">📋</span>
-            <span class="tab-label">Заявки</span>
-        </button>
+    <!-- Новая нижняя панель с выпуклыми кнопками -->
+    <div class="segmented-panel">
+        <div class="segmented-control">
+            <button class="seg-btn active" data-view="mapView">Карта</button>
+            <button class="seg-btn" data-view="listView">Заявки</button>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

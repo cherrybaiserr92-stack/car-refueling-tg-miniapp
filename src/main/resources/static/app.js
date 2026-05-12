@@ -2,14 +2,14 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение вкладок
-const tabButtons = document.querySelectorAll('.tab-btn');
+// Логика переключения видов (новые кнопки)
+const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 
-tabButtons.forEach(btn => {
+segBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const viewId = btn.dataset.view;
-        tabButtons.forEach(b => b.classList.remove('active'));
+        segBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         views.forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
@@ -36,6 +36,7 @@ let allRequests = [];
 let markers = [];
 let currentFilter = 'all';
 
+// Фильтры
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentFilter = btn.dataset.filter;
@@ -55,29 +56,40 @@ function markerColor(fuelLevel) {
     return '#34c759';
 }
 
+function lightenColor(hex, factor) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    const to = (c) => Math.min(255, Math.floor(c + (255 - c) * factor));
+    return `rgb(${to(r)}, ${to(g)}, ${to(b)})`;
+}
+
 function createMarkerIcon(req) {
     const color = markerColor(req.fuelLevel);
+    const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color, 0.4)}, ${color})`;
     return L.divIcon({
-        html: `<div style="background:${color}; width:28px; height:28px; border-radius:50%; box-shadow: 0 2px 10px rgba(0,0,0,0.5);"></div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        html: `<div style="background:${gradient}; width:20px; height:20px; border-radius:50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
         className: ''
     });
 }
 
-// Функция создания контента попапа с кнопками
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.style.minWidth = '160px';
     container.style.fontSize = '14px';
     container.style.lineHeight = '1.5';
-    container.innerHTML = `
+
+    const infoBlock = document.createElement('div');
+    infoBlock.style.marginBottom = '12px';
+    infoBlock.innerHTML = `
         <b>${req.carModel}</b><br>
         <span style="font-weight:700; font-size:16px;">${req.licensePlate}</span><br>
-        <span style="color:${markerColor(req.fuelLevel)}">Топливо: ${req.fuelLevel}%</span><br>
+        <span style="color:${markerColor(req.fuelLevel)}">Топливо: ${req.fuelLevel}%</span>
     `;
+
     const btnGroup = document.createElement('div');
-    btnGroup.style.marginTop = '8px';
     btnGroup.style.display = 'flex';
     btnGroup.style.gap = '6px';
 
@@ -104,7 +116,9 @@ function createPopupContent(req) {
 
     btnGroup.appendChild(acceptBtn);
     btnGroup.appendChild(routeBtn);
+    container.appendChild(infoBlock);
     container.appendChild(btnGroup);
+
     return container;
 }
 
@@ -112,8 +126,7 @@ function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
-        const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) })
-            .addTo(map);
+        const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
         marker.bindPopup(createPopupContent(req));
         markers.push(marker);
     });
@@ -141,7 +154,8 @@ function renderList(requests) {
 
     document.querySelectorAll('.request-card').forEach(card => {
         card.addEventListener('click', () => {
-            document.querySelector('.tab-btn[data-view="mapView"]').click();
+            // Переключаемся на вид карты
+            document.querySelector('.seg-btn[data-view="mapView"]').click();
             const lat = parseFloat(card.dataset.lat);
             const lng = parseFloat(card.dataset.lng);
             const marker = markers.find(m => {
@@ -176,7 +190,7 @@ async function loadRequests() {
 
 loadRequests();
 
-// Дополнительные стили для кнопок (на всякий случай, если не подгрузились из style.css)
+// Дополнительные стили для попапов (на случай, если не загрузились)
 const style = document.createElement('style');
 style.textContent = `
     .popup-btn {
