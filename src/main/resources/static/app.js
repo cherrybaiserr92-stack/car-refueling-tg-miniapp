@@ -5,9 +5,15 @@ tg.expand();
 // Переключение видов (Карта / Заявки)
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
+const mapView = document.getElementById('mapView');
+const listView = document.getElementById('listView');
+const workBtn = document.getElementById('workBtn');
+let currentTaskRequest = null; // активная заявка
+
 segBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
         const viewId = btn.dataset.view;
+        if (!viewId) return; // у кнопки "В работе" нет data-view
         segBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         views.forEach(v => v.classList.remove('active'));
@@ -22,7 +28,7 @@ segBtns.forEach(btn => {
     });
 });
 
-// Карта – Google Maps (неофициальные тайлы)
+// Карта
 const map = L.map('map', {
     center: [59.9343, 30.3351],
     zoom: 13,
@@ -30,25 +36,17 @@ const map = L.map('map', {
     attributionControl: false
 });
 
-// Стандартный слой Google Maps (дороги)
 L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
     attribution: 'Google'
 }).addTo(map);
-
-// Другие варианты (раскомментируйте нужный):
-// Спутник:
-// L.tileLayer('https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
-// Гибрид (спутник + подписи):
-// L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
-
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 let allRequests = [];
 let markers = [];
 let currentFilter = 'all';
 
-// Фильтры (кнопки в списке)
+// Фильтры
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentFilter = btn.dataset.filter;
@@ -67,7 +65,6 @@ function markerColor(fuelLevel) {
     if (fuelLevel <= 50) return '#ff9500';
     return '#34c759';
 }
-
 function lightenColor(hex, factor) {
     const r = parseInt(hex.slice(1,3), 16);
     const g = parseInt(hex.slice(3,5), 16);
@@ -97,16 +94,15 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий (всплывает над кнопками "Карта"/"Заявки")
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 
 function showActionPanel(req) {
-    activeRequestId = req.id;
     actionPanel.classList.remove('hidden');
     acceptBtn.onclick = () => {
-        tg.showAlert(`Заявка #${req.id} принята в работу`);
+        startTask(req);
     };
     routeBtn.onclick = () => {
         const coords = `${req.lat}, ${req.lng}`;
@@ -121,13 +117,72 @@ function showActionPanel(req) {
 }
 
 function hideActionPanel() {
-    activeRequestId = null;
     actionPanel.classList.add('hidden');
     acceptBtn.onclick = null;
     routeBtn.onclick = null;
 }
 
-// Рендер маркеров на карте
+// Модальное окно заявки
+const taskModal = document.getElementById('taskModal');
+const photoBeforeBtn = document.getElementById('photoBeforeBtn');
+const photoAfterBtn = document.getElementById('photoAfterBtn');
+const photoBeforeInput = document.getElementById('photoBeforeInput');
+const photoAfterInput = document.getElementById('photoAfterInput');
+const litersInput = document.getElementById('litersInput');
+const openDoorsBtn = document.getElementById('openDoorsBtn');
+const closeDoorsBtn = document.getElementById('closeDoorsBtn');
+const closeTaskBtn = document.getElementById('closeTaskBtn');
+
+photoBeforeBtn.addEventListener('click', () => photoBeforeInput.click());
+photoAfterBtn.addEventListener('click', () => photoAfterInput.click());
+
+// Обработчики загрузки фото (просто показываем уведомление)
+photoBeforeInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) tg.showAlert('Фото "ДО" загружено');
+});
+photoAfterInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) tg.showAlert('Фото "ПОСЛЕ" загружено');
+});
+
+// Управление дверьми (заглушка)
+openDoorsBtn.addEventListener('click', () => {
+    tg.showAlert('Двери открыты');
+});
+closeDoorsBtn.addEventListener('click', () => {
+    tg.showAlert('Двери закрыты');
+});
+
+// Закрытие заявки
+closeTaskBtn.addEventListener('click', () => {
+    taskModal.classList.add('hidden');
+    workBtn.classList.remove('visible');
+    // Сброс активной заявки
+    currentTaskRequest = null;
+    // Если активна карта, закрываем попап
+    if (mapView.classList.contains('active')) {
+        map.closePopup();
+    }
+});
+
+// Запуск выполнения заявки
+function startTask(req) {
+    currentTaskRequest = req;
+    // Показываем модальное окно
+    taskModal.classList.remove('hidden');
+    // Показываем кнопку "В работе"
+    workBtn.classList.add('visible');
+    // Скрываем панель действий
+    hideActionPanel();
+    // Закрываем попап маркера
+    map.closePopup();
+    // Сбрасываем поля
+    litersInput.value = '';
+    photoBeforeInput.value = '';
+    photoAfterInput.value = '';
+    tg.showAlert(`Заявка #${req.id} принята в работу`);
+}
+
+// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -140,7 +195,7 @@ function renderMarkers(requests) {
     });
 }
 
-// Рендер списка заявок
+// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -198,7 +253,7 @@ async function loadRequests() {
 
 loadRequests();
 
-// Стилизация попапа (подстраховка)
+// Дополнительные стили попапа (подстраховка)
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
@@ -211,7 +266,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Закрываем панель действий при клике на карту (вне маркера)
+// Закрываем панель действий при клике на карту
 map.on('click', () => {
     hideActionPanel();
 });

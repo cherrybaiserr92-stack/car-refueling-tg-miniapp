@@ -177,12 +177,13 @@ body {
     display: flex;
     width: 100%;
     max-width: 400px;
-    background: rgba(30,30,32,0.35);  /* стало прозрачнее */
+    background: rgba(30,30,32,0.35);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 20px;
     padding: 6px;
     box-shadow: 0 -4px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+    transition: all 0.3s ease;
 }
 .seg-btn {
     flex: 1;
@@ -190,20 +191,35 @@ body {
     border: none;
     background: transparent;
     color: var(--tg-hint);
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.3px;
     border-radius: 16px;
     transition: all 0.25s ease;
     position: relative;
     outline: none;
+    white-space: nowrap;
+    transform-origin: center;
 }
 .seg-btn.active {
-    background: rgba(255,255,255,0.15); /* активная кнопка тоже прозрачнее */
+    background: rgba(255,255,255,0.15);
     color: white;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
+}
+/* Кнопка "В работе" */
+.work-btn {
+    /* изначально скрыта */
+    display: none;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.work-btn.visible {
+    display: block;
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Панель действий (над нижними кнопками) */
@@ -230,7 +246,7 @@ body {
 }
 .action-buttons {
     display: flex;
-    flex-direction: column;  /* вертикально */
+    flex-direction: column;
     gap: 6px;
     background: rgba(30,30,32,0.55);
     backdrop-filter: blur(20px);
@@ -241,7 +257,7 @@ body {
     max-width: 90vw;
 }
 .action-btn {
-    width: 100%;  /* растянуть на всю ширину панели */
+    width: 100%;
     padding: 10px 14px;
     border: none;
     border-radius: 12px;
@@ -254,6 +270,118 @@ body {
 }
 .accept-btn { background: var(--tg-accent, #007aff); }
 .route-btn { background: rgba(255,255,255,0.15); }
+
+/* Модальное окно выполнения заявки */
+.task-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 998; /* ниже панели действий, но выше карты */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+}
+.task-modal.hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    pointer-events: none;
+}
+.task-modal:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.task-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(4px);
+}
+.task-content {
+    position: relative;
+    background: rgba(30,30,32,0.9);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 20px;
+    padding: 20px;
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.task-title {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+}
+.task-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.task-field label {
+    font-size: 13px;
+    color: var(--tg-hint);
+}
+.photo-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.photo-btn:active {
+    background: rgba(255,255,255,0.2);
+}
+.liters-input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+.task-actions {
+    display: flex;
+    gap: 8px;
+}
+.door-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    color: white;
+    cursor: pointer;
+    background: rgba(255,255,255,0.15);
+}
+.door-btn:active {
+    background: rgba(255,255,255,0.25);
+}
+.close-task-btn {
+    background: var(--tg-accent);
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+}
 
 /* Попап маркера */
 .leaflet-popup-content-wrapper {
