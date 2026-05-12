@@ -6,14 +6,17 @@
     --tg-hint: var(--tg-theme-hint-color, #aaaaaa);
     --tg-accent: var(--tg-theme-button-color, #2ea6ff);
     --tg-secondary: var(--tg-theme-secondary-bg-color, #2c2c2e);
+    --card-radius: 16px;
+    --blur: 20px;
 }
 
 body {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--tg-bg);
     color: var(--tg-text);
     height: 100vh;
     overflow: hidden;
+    font-size: 14px;
 }
 
 .app-container {
@@ -22,108 +25,154 @@ body {
     height: 100%;
 }
 
+/* Шапка */
 .app-header {
-    padding: 16px 20px;
-    background: rgba(255,255,255,0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     display: flex;
     align-items: center;
     z-index: 10;
+    transition: 0.3s;
 }
-
 .header-icon {
     font-size: 24px;
     margin-right: 12px;
 }
-
 .app-header h1 {
     flex: 1;
     font-size: 18px;
     font-weight: 600;
+    letter-spacing: -0.3px;
 }
-
 .header-city {
-    font-size: 14px;
-    color: var(--tg-hint);
+    font-size: 13px;
+    background: var(--tg-accent);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
 }
 
+/* Карта */
 #map {
     flex: 1;
     width: 100%;
 }
 
+/* Нижняя панель */
 .bottom-panel {
-    background: rgba(255,255,255,0.04);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     border-top: 1px solid rgba(255,255,255,0.08);
-    padding: 16px 20px;
-    max-height: 35%;
-    overflow-y: auto;
+    padding: 16px 16px 20px;
+    max-height: 42%;
+    display: flex;
+    flex-direction: column;
     z-index: 10;
 }
 
 .panel-header {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    opacity: 0.8;
-}
-
-.request-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--tg-secondary);
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin-bottom: 8px;
-    transition: 0.2s;
+    margin-bottom: 14px;
+    font-weight: 600;
 }
 
-.request-card:last-child { margin-bottom: 0; }
+.filter-buttons {
+    display: flex;
+    gap: 6px;
+}
+.filter-btn {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+    color: var(--tg-hint);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    transition: 0.2s;
+    outline: none;
+}
+.filter-btn.active {
+    background: var(--tg-accent);
+    border-color: var(--tg-accent);
+    color: white;
+}
 
+.request-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Карточка */
+.request-card {
+    background: var(--tg-secondary);
+    border-radius: var(--card-radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.request-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
 .request-info {
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
-
 .car-name {
     font-weight: 600;
     font-size: 15px;
+    margin-bottom: 3px;
 }
-
 .address {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--tg-hint);
-    margin-top: 4px;
+    margin-bottom: 8px;
+}
+.fuel-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.fuel-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.5s ease;
+    background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759);
 }
 
 .status-badge {
     padding: 6px 10px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
+    margin-left: 10px;
 }
-
 .status-active { background: #ff3b30; color: white; }
 .status-in_progress { background: #ff9500; color: white; }
 .status-done { background: #34c759; color: white; }
 
-.fuel-bar {
-    width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    margin-top: 6px;
+/* Анимация появления карточек */
+.request-card {
+    animation: fadeInUp 0.3s ease both;
 }
-
-.fuel-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759);
-    width: 0%;
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

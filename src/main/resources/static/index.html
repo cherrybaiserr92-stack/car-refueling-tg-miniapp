@@ -12,13 +12,22 @@
     <div class="app-container">
         <header class="app-header">
             <span class="header-icon">⛽</span>
-            <h1>Заявки на заправку</h1>
-            <span class="header-city">Санкт-Петербург</span>
+            <h1>Заправки СПб</h1>
+            <span class="header-city">Ситидрайв</span>
         </header>
+
         <div id="map"></div>
+
         <div class="bottom-panel" id="panel">
-            <div class="panel-header">Текущие заявки</div>
-            <div id="request-list"></div>
+            <div class="panel-header">
+                <span>Заявки</span>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Все</button>
+                    <button class="filter-btn" data-filter="active">Низкий бак</button>
+                    <button class="filter-btn" data-filter="in_progress">В работе</button>
+                </div>
+            </div>
+            <div class="request-list" id="request-list"></div>
         </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
