@@ -8,7 +8,7 @@
     --tg-secondary: var(--tg-theme-secondary-bg-color, #2c2c2e);
     --card-radius: 16px;
     --blur: 25px;
-    --handle-color: rgba(255,255,255,0.3);
+    --tab-height: 64px;
 }
 
 body {
@@ -21,66 +21,54 @@ body {
     user-select: none;
     -webkit-user-select: none;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.view {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.view.active {
+    display: block;
+}
+
+#mapView {
+    height: calc(100vh - var(--tab-height));
 }
 
 #map {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
 }
 
-/* Скользящая нижняя панель */
-.sheet {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    background: rgba(30, 30, 32, 0.85);
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
-    max-height: 50%;
-    display: flex;
-    flex-direction: column;
-    transform: translateY(0);
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    will-change: transform;
-}
-
-.sheet.collapsed {
-    transform: translateY(calc(100% - 32px)); /* оставляем только ручку */
-}
-
-.sheet-handle {
-    width: 36px;
-    height: 6px;
-    background: var(--handle-color);
-    border-radius: 3px;
-    margin: 8px auto 0;
-    cursor: pointer;
-}
-
-.sheet-content {
-    padding: 12px 16px 20px;
+/* Список */
+#listView {
+    background: var(--tg-bg);
+    height: calc(100vh - var(--tab-height));
     overflow-y: auto;
-    flex: 1;
+}
+
+.list-container {
+    padding: 16px;
+    height: 100%;
 }
 
 .panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .sheet-title {
     font-weight: 600;
-    font-size: 17px;
+    font-size: 20px;
     letter-spacing: -0.3px;
 }
 
@@ -93,7 +81,7 @@ body {
     border: 1px solid rgba(255,255,255,0.12);
     background: transparent;
     color: var(--tg-hint);
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
@@ -111,20 +99,21 @@ body {
 .request-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding-bottom: 20px;
 }
 
 .request-card {
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: var(--card-radius);
-    padding: 12px 14px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     transition: transform 0.15s, box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .request-card:active {
@@ -145,7 +134,6 @@ body {
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    color: var(--tg-text);
     margin-bottom: 8px;
 }
 
@@ -177,7 +165,7 @@ body {
 .status-in_progress { background: #ff9500; color: white; }
 .status-done { background: #34c759; color: white; }
 
-/* Анимация появления карточек */
+/* Анимация появления */
 .request-card {
     animation: fadeInUp 0.3s ease both;
 }
@@ -185,3 +173,61 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Таббар */
+.tabbar {
+    height: var(--tab-height);
+    background: rgba(30,30,32,0.9);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--tg-hint);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 500;
+    transition: color 0.2s;
+    outline: none;
+    padding: 8px 0;
+}
+
+.tab-btn.active {
+    color: var(--tg-accent);
+}
+
+.tab-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+/* Стили для попапа */
+.popup-btn {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    color: white;
+    text-align: center;
+}
+.accept-btn { background: var(--tg-accent, #007aff); }
+.route-btn { background: rgba(255,255,255,0.15); }
+.leaflet-popup-content-wrapper {
+    background: rgba(30,30,32,0.95) !important;
+    backdrop-filter: blur(15px);
+    color: white;
+    border-radius: 12px;
+}
+.leaflet-popup-tip { background: rgba(30,30,32,0.95) !important; }
