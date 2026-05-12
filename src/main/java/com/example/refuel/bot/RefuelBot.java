@@ -18,10 +18,11 @@ public class RefuelBot extends TelegramLongPollingBot {
     private final String webAppUrl;
 
     public RefuelBot(@Value("${telegram.bot.token}") String token,
-                     @Value("${telegram.bot.name}") String botName) {
+                     @Value("${telegram.bot.name}") String botName,
+                     @Value("${app.webapp.url}") String webAppUrl) {
         this.token = token;
         this.botName = botName;
-        this.webAppUrl = "https://ВАШ_ДОМЕН";  // замените после деплоя
+        this.webAppUrl = webAppUrl;
     }
 
     @Override
