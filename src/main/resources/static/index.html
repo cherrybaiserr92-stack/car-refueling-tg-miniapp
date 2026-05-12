@@ -9,12 +9,10 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Вид карты -->
     <div id="mapView" class="view active">
         <div id="map"></div>
     </div>
 
-    <!-- Вид списка заявок -->
     <div id="listView" class="view">
         <div class="list-container">
             <div class="panel-header">
@@ -29,7 +27,15 @@
         </div>
     </div>
 
-    <!-- Нижняя панель с кнопками (всегда сверху) -->
+    <!-- Панель действий (появляется над нижними кнопками) -->
+    <div id="actionPanel" class="action-panel hidden">
+        <div class="action-buttons">
+            <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
+            <button id="routeBtn" class="action-btn route-btn">Скопировать координаты</button>
+        </div>
+    </div>
+
+    <!-- Нижняя сегментированная панель -->
     <div class="segmented-panel">
         <div class="segmented-control">
             <button class="seg-btn active" data-view="mapView">Карта</button>

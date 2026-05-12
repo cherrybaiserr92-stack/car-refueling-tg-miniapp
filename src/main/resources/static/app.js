@@ -2,10 +2,9 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Логика переключения видов (новые кнопки)
+// Переключение видов
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
-
 segBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const viewId = btn.dataset.view;
@@ -15,6 +14,11 @@ segBtns.forEach(btn => {
         document.getElementById(viewId).classList.add('active');
         if (viewId === 'mapView') {
             setTimeout(() => map.invalidateSize(), 100);
+        }
+        // При уходе с карты закрываем попап и панель действий
+        if (viewId !== 'mapView') {
+            map.closePopup();
+            hideActionPanel();
         }
     });
 });
@@ -26,7 +30,6 @@ const map = L.map('map', {
     zoomControl: false,
     attributionControl: false
 });
-
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19
 }).addTo(map);
@@ -35,6 +38,7 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 let allRequests = [];
 let markers = [];
 let currentFilter = 'all';
+let activeRequestId = null;
 
 // Фильтры
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -55,7 +59,6 @@ function markerColor(fuelLevel) {
     if (fuelLevel <= 50) return '#ff9500';
     return '#34c759';
 }
-
 function lightenColor(hex, factor) {
     const r = parseInt(hex.slice(1,3), 16);
     const g = parseInt(hex.slice(3,5), 16);
@@ -77,33 +80,27 @@ function createMarkerIcon(req) {
 
 function createPopupContent(req) {
     const container = document.createElement('div');
-    container.style.minWidth = '160px';
-    container.style.fontSize = '14px';
-    container.style.lineHeight = '1.5';
-
-    const infoBlock = document.createElement('div');
-    infoBlock.style.marginBottom = '12px';
-    infoBlock.innerHTML = `
-        <b>${req.carModel}</b><br>
-        <span style="font-weight:700; font-size:16px;">${req.licensePlate}</span><br>
-        <span style="color:${markerColor(req.fuelLevel)}">Топливо: ${req.fuelLevel}%</span>
+    container.className = 'popup-info';
+    container.innerHTML = `
+        <div class="car-line">${req.carModel} · ${req.licensePlate}</div>
+        <div class="fuel-line" style="color:${markerColor(req.fuelLevel)}">Топливо: ${req.fuelLevel}%</div>
     `;
+    return container;
+}
 
-    const btnGroup = document.createElement('div');
-    btnGroup.style.display = 'flex';
-    btnGroup.style.gap = '6px';
+// Управление панелью действий
+const actionPanel = document.getElementById('actionPanel');
+const acceptBtn = document.getElementById('acceptBtn');
+const routeBtn = document.getElementById('routeBtn');
 
-    const acceptBtn = document.createElement('button');
-    acceptBtn.className = 'popup-btn accept-btn';
-    acceptBtn.textContent = 'Взять в работу';
-    acceptBtn.addEventListener('click', () => {
+function showActionPanel(req) {
+    activeRequestId = req.id;
+    actionPanel.classList.remove('hidden');
+    // Назначаем обработчики (каждый раз новые, чтобы избежать дублирования)
+    acceptBtn.onclick = () => {
         tg.showAlert(`Заявка #${req.id} принята в работу`);
-    });
-
-    const routeBtn = document.createElement('button');
-    routeBtn.className = 'popup-btn route-btn';
-    routeBtn.textContent = 'Скопировать координаты';
-    routeBtn.addEventListener('click', () => {
+    };
+    routeBtn.onclick = () => {
         const coords = `${req.lat}, ${req.lng}`;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(coords).then(() => {
@@ -112,26 +109,36 @@ function createPopupContent(req) {
         } else {
             tg.showAlert(`Координаты: ${coords}`);
         }
-    });
-
-    btnGroup.appendChild(acceptBtn);
-    btnGroup.appendChild(routeBtn);
-    container.appendChild(infoBlock);
-    container.appendChild(btnGroup);
-
-    return container;
+    };
 }
 
+function hideActionPanel() {
+    activeRequestId = null;
+    actionPanel.classList.add('hidden');
+    acceptBtn.onclick = null;
+    routeBtn.onclick = null;
+}
+
+// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
         const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
         marker.bindPopup(createPopupContent(req));
+        
+        marker.on('popupopen', () => {
+            showActionPanel(req);
+        });
+        marker.on('popupclose', () => {
+            hideActionPanel();
+        });
+        
         markers.push(marker);
     });
 }
 
+// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -154,7 +161,6 @@ function renderList(requests) {
 
     document.querySelectorAll('.request-card').forEach(card => {
         card.addEventListener('click', () => {
-            // Переключаемся на вид карты
             document.querySelector('.seg-btn[data-view="mapView"]').click();
             const lat = parseFloat(card.dataset.lat);
             const lng = parseFloat(card.dataset.lng);
@@ -190,28 +196,20 @@ async function loadRequests() {
 
 loadRequests();
 
-// Дополнительные стили для попапов (на случай, если не загрузились)
+// Стилизация попапов (дополнительно, если не подхватилось)
 const style = document.createElement('style');
 style.textContent = `
-    .popup-btn {
-        flex: 1;
-        padding: 8px 10px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 12px;
-        cursor: pointer;
-        color: white;
-        text-align: center;
-    }
-    .accept-btn { background: var(--tg-accent, #007aff); }
-    .route-btn { background: rgba(255,255,255,0.15); }
     .leaflet-popup-content-wrapper {
-        background: rgba(30,30,32,0.95) !important;
-        backdrop-filter: blur(15px);
-        color: white;
-        border-radius: 12px;
+        background: rgba(30,30,32,0.7) !important;
+        backdrop-filter: blur(20px);
     }
-    .leaflet-popup-tip { background: rgba(30,30,32,0.95) !important; }
+    .leaflet-popup-tip {
+        background: rgba(30,30,32,0.7) !important;
+    }
 `;
 document.head.appendChild(style);
+
+// Закрываем панель действий при клике на карту (вне попапа)
+map.on('click', () => {
+    hideActionPanel();
+});
