@@ -15,7 +15,6 @@ segBtns.forEach(btn => {
         if (viewId === 'mapView') {
             setTimeout(() => map.invalidateSize(), 100);
         }
-        // При уходе с карты закрываем попап и панель действий
         if (viewId !== 'mapView') {
             map.closePopup();
             hideActionPanel();
@@ -23,7 +22,6 @@ segBtns.forEach(btn => {
     });
 });
 
-// Карта
 const map = L.map('map', {
     center: [59.9343, 30.3351],
     zoom: 13,
@@ -40,7 +38,6 @@ let markers = [];
 let currentFilter = 'all';
 let activeRequestId = null;
 
-// Фильтры
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentFilter = btn.dataset.filter;
@@ -88,7 +85,6 @@ function createPopupContent(req) {
     return container;
 }
 
-// Управление панелью действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -96,7 +92,6 @@ const routeBtn = document.getElementById('routeBtn');
 function showActionPanel(req) {
     activeRequestId = req.id;
     actionPanel.classList.remove('hidden');
-    // Назначаем обработчики (каждый раз новые, чтобы избежать дублирования)
     acceptBtn.onclick = () => {
         tg.showAlert(`Заявка #${req.id} принята в работу`);
     };
@@ -119,26 +114,18 @@ function hideActionPanel() {
     routeBtn.onclick = null;
 }
 
-// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
         const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
         marker.bindPopup(createPopupContent(req));
-        
-        marker.on('popupopen', () => {
-            showActionPanel(req);
-        });
-        marker.on('popupclose', () => {
-            hideActionPanel();
-        });
-        
+        marker.on('popupopen', () => showActionPanel(req));
+        marker.on('popupclose', () => hideActionPanel());
         markers.push(marker);
     });
 }
 
-// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -196,7 +183,6 @@ async function loadRequests() {
 
 loadRequests();
 
-// Стилизация попапов (дополнительно, если не подхватилось)
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
@@ -209,7 +195,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Закрываем панель действий при клике на карту (вне попапа)
 map.on('click', () => {
     hideActionPanel();
 });
