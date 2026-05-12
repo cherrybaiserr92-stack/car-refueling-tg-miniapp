@@ -2,7 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов
+// Переключение видов (Карта / Заявки)
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 segBtns.forEach(btn => {
@@ -22,22 +22,33 @@ segBtns.forEach(btn => {
     });
 });
 
+// Карта – Google Maps (неофициальные тайлы)
 const map = L.map('map', {
     center: [59.9343, 30.3351],
     zoom: 13,
     zoomControl: false,
     attributionControl: false
 });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19
+
+// Стандартный слой Google Maps (дороги)
+L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    attribution: 'Google'
 }).addTo(map);
+
+// Другие варианты (раскомментируйте нужный):
+// Спутник:
+// L.tileLayer('https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
+// Гибрид (спутник + подписи):
+// L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
+
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 let allRequests = [];
 let markers = [];
 let currentFilter = 'all';
-let activeRequestId = null;
 
+// Фильтры (кнопки в списке)
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentFilter = btn.dataset.filter;
@@ -56,6 +67,7 @@ function markerColor(fuelLevel) {
     if (fuelLevel <= 50) return '#ff9500';
     return '#34c759';
 }
+
 function lightenColor(hex, factor) {
     const r = parseInt(hex.slice(1,3), 16);
     const g = parseInt(hex.slice(3,5), 16);
@@ -85,6 +97,7 @@ function createPopupContent(req) {
     return container;
 }
 
+// Панель действий (всплывает над кнопками "Карта"/"Заявки")
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -114,6 +127,7 @@ function hideActionPanel() {
     routeBtn.onclick = null;
 }
 
+// Рендер маркеров на карте
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -126,6 +140,7 @@ function renderMarkers(requests) {
     });
 }
 
+// Рендер списка заявок
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -183,6 +198,7 @@ async function loadRequests() {
 
 loadRequests();
 
+// Стилизация попапа (подстраховка)
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
@@ -195,6 +211,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Закрываем панель действий при клике на карту (вне маркера)
 map.on('click', () => {
     hideActionPanel();
 });
