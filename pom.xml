@@ -1,10 +1,34 @@
-nano pom.xml          # в корне проекта
-nano src/main/java/com/example/refuel/CarSharingApp.java
-nano src/main/java/com/example/refuel/model/RefuelRequest.java
-nano src/main/java/com/example/refuel/controller/RequestController.java
-nano src/main/java/com/example/refuel/bot/RefuelBot.java
-nano src/main/resources/application.properties
-nano src/main/resources/static/index.html
-nano src/main/resources/static/style.css
-nano src/main/resources/static/app.js
+<project>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>car-refueling-miniapp</artifactId>
+    <version>1.0.0</version>
+    <properties>
+        <java.version>17</java.version>
+    </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots-spring-boot-starter</artifactId>
+            <version>6.8.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
