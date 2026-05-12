@@ -1,4 +1,4 @@
-EOFconst tg = window.Telegram.WebApp;
+const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
@@ -201,4 +201,3 @@ style.textContent = `
     .leaflet-popup-tip { background: rgba(30,30,32,0.95) !important; }
 `;
 document.head.appendChild(style);
-
