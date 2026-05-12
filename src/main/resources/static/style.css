@@ -4,10 +4,11 @@
     --tg-bg: var(--tg-theme-bg-color, #1c1c1e);
     --tg-text: var(--tg-theme-text-color, #f5f5f5);
     --tg-hint: var(--tg-theme-hint-color, #aaaaaa);
-    --tg-accent: var(--tg-theme-button-color, #2ea6ff);
+    --tg-accent: var(--tg-theme-button-color, #007aff);
     --tg-secondary: var(--tg-theme-secondary-bg-color, #2c2c2e);
     --card-radius: 16px;
-    --blur: 20px;
+    --blur: 25px;
+    --handle-color: rgba(255,255,255,0.3);
 }
 
 body {
@@ -17,62 +18,57 @@ body {
     height: 100vh;
     overflow: hidden;
     font-size: 14px;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 0;
 }
 
-.app-container {
-    display: flex;
-    flex-direction: column;
+#map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
+    z-index: 1;
 }
 
-/* Шапка */
-.app-header {
-    padding: 14px 20px;
-    background: rgba(255,255,255,0.04);
+/* Скользящая нижняя панель */
+.sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: rgba(30, 30, 32, 0.85);
     backdrop-filter: blur(var(--blur));
     -webkit-backdrop-filter: blur(var(--blur));
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    display: flex;
-    align-items: center;
-    z-index: 10;
-    transition: 0.3s;
-}
-.header-icon {
-    font-size: 24px;
-    margin-right: 12px;
-}
-.app-header h1 {
-    flex: 1;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-}
-.header-city {
-    font-size: 13px;
-    background: var(--tg-accent);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 500;
-}
-
-/* Карта */
-#map {
-    flex: 1;
-    width: 100%;
-}
-
-/* Нижняя панель */
-.bottom-panel {
-    background: rgba(255,255,255,0.02);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding: 16px 16px 20px;
-    max-height: 42%;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
+    max-height: 50%;
     display: flex;
     flex-direction: column;
-    z-index: 10;
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    will-change: transform;
+}
+
+.sheet.collapsed {
+    transform: translateY(calc(100% - 32px)); /* оставляем только ручку */
+}
+
+.sheet-handle {
+    width: 36px;
+    height: 6px;
+    background: var(--handle-color);
+    border-radius: 3px;
+    margin: 8px auto 0;
+    cursor: pointer;
+}
+
+.sheet-content {
+    padding: 12px 16px 20px;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .panel-header {
@@ -80,23 +76,32 @@ body {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 14px;
+}
+
+.sheet-title {
     font-weight: 600;
+    font-size: 17px;
+    letter-spacing: -0.3px;
 }
 
 .filter-buttons {
     display: flex;
     gap: 6px;
 }
+
 .filter-btn {
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.12);
     background: transparent;
     color: var(--tg-hint);
     padding: 5px 10px;
     border-radius: 20px;
     font-size: 12px;
-    transition: 0.2s;
+    font-weight: 500;
+    transition: all 0.2s;
     outline: none;
+    white-space: nowrap;
 }
+
 .filter-btn.active {
     background: var(--tg-accent);
     border-color: var(--tg-accent);
@@ -104,43 +109,46 @@ body {
 }
 
 .request-list {
-    overflow-y: auto;
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-/* Карточка */
 .request-card {
-    background: var(--tg-secondary);
+    background: rgba(255,255,255,0.06);
     border-radius: var(--card-radius);
     padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     transition: transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
+
 .request-card:active {
     transform: scale(0.98);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
+
 .request-info {
-    display: flex;
-    flex-direction: column;
     flex: 1;
 }
+
 .car-name {
     font-weight: 600;
     font-size: 15px;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 }
-.address {
-    font-size: 12px;
-    color: var(--tg-hint);
+
+.license-plate {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--tg-text);
     margin-bottom: 8px;
 }
+
 .fuel-bar {
     width: 100%;
     height: 6px;
@@ -148,6 +156,7 @@ body {
     border-radius: 3px;
     overflow: hidden;
 }
+
 .fuel-fill {
     height: 100%;
     border-radius: 3px;
