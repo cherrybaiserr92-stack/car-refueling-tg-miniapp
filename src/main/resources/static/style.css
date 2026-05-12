@@ -8,6 +8,7 @@
     --tg-secondary: var(--tg-theme-secondary-bg-color, #2c2c2e);
     --card-radius: 16px;
     --blur: 25px;
+    --panel-height: 80px; /* высота нижней панели */
 }
 
 body {
@@ -24,7 +25,7 @@ body {
     flex-direction: column;
 }
 
-/* Виды */
+/* Виды – занимают всё пространство над панелью */
 .view {
     display: none;
     flex: 1;
@@ -35,17 +36,19 @@ body {
     display: block;
 }
 #mapView {
-    height: calc(100vh - 80px); /* место под панель */
+    position: relative; /* чтобы карта внутри позиционировалась абсолютно */
 }
 #map {
     width: 100%;
     height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* Список */
 #listView {
     background: var(--tg-bg);
-    height: calc(100vh - 80px);
     overflow-y: auto;
 }
 .list-container {
@@ -158,19 +161,20 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Новая нижняя панель с выпуклыми кнопками */
+/* Нижняя панель – теперь всегда поверх */
 .segmented-panel {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 80px;
+    height: var(--panel-height);
     background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0 16px;
-    z-index: 20;
+    z-index: 1000;         /* главное исправление */
+    pointer-events: auto;   /* клики проходят */
 }
 .segmented-control {
     display: flex;
@@ -181,7 +185,7 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border-radius: 20px;
     padding: 6px;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
 }
 .seg-btn {
     flex: 1;
@@ -200,14 +204,14 @@ body {
 .seg-btn.active {
     background: rgba(255,255,255,0.15);
     color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
 }
-/* легкий ховер (на телефоне не сработает, но для стиля) */
 .seg-btn:not(.active):active {
     background: rgba(255,255,255,0.05);
 }
+
 /* Попап стили */
 .popup-btn {
     flex: 1;
