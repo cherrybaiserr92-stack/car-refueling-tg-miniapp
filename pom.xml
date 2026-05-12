@@ -1,0 +1,10 @@
+nano pom.xml          # в корне проекта
+nano src/main/java/com/example/refuel/CarSharingApp.java
+nano src/main/java/com/example/refuel/model/RefuelRequest.java
+nano src/main/java/com/example/refuel/controller/RequestController.java
+nano src/main/java/com/example/refuel/bot/RefuelBot.java
+nano src/main/resources/application.properties
+nano src/main/resources/static/index.html
+nano src/main/resources/static/style.css
+nano src/main/resources/static/app.js
+
