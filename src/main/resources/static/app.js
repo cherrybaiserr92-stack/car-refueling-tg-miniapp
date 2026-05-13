@@ -177,13 +177,75 @@ function createMarkerIcon(req) {
     });
 }
 
+// ===== НОВЫЙ ПОПАП =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-info';
-    container.innerHTML = `
-        <div class="car-line">${req.carModel} · ${req.licensePlate}</div>
-        <div class="fuel-line" style="color:${markerColor(req.fuelLevel)}">Топливо: ${req.fuelLevel}%</div>
-    `;
+
+    // Строка с моделью и госномером
+    const topRow = document.createElement('div');
+    topRow.className = 'popup-top-row';
+
+    const modelBadge = document.createElement('span');
+    modelBadge.className = 'popup-model';
+    modelBadge.textContent = req.carModel;
+
+    const plateBadge = document.createElement('span');
+    plateBadge.className = 'popup-plate';
+    plateBadge.textContent = req.licensePlate;
+
+    const copyIcon = document.createElement('span');
+    copyIcon.className = 'popup-copy-icon';
+    copyIcon.innerHTML = '📋';
+    copyIcon.title = 'Скопировать госномер';
+    copyIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(req.licensePlate).then(() => {
+            tg.showAlert('Номер скопирован');
+        }).catch(() => {
+            tg.showAlert('Не удалось скопировать');
+        });
+    });
+
+    plateBadge.appendChild(copyIcon);
+    topRow.appendChild(modelBadge);
+    topRow.appendChild(plateBadge);
+
+    // Полоса топлива с кнопкой "Найти по фото"
+    const fuelRow = document.createElement('div');
+    fuelRow.className = 'popup-fuel-row';
+
+    const fuelBarWrapper = document.createElement('div');
+    fuelBarWrapper.className = 'popup-fuel-bar-wrapper';
+
+    const fuelBar = document.createElement('div');
+    fuelBar.className = 'popup-fuel-bar';
+    fuelBar.style.width = req.fuelLevel + '%';
+    fuelBar.style.backgroundColor = markerColor(req.fuelLevel);
+
+    const fuelText = document.createElement('span');
+    fuelText.className = 'popup-fuel-text';
+    fuelText.textContent = req.fuelLevel + '%';
+
+    fuelBarWrapper.appendChild(fuelBar);
+    fuelBarWrapper.appendChild(fuelText);
+
+    const photoBtn = document.createElement('button');
+    photoBtn.className = 'popup-photo-btn';
+    photoBtn.innerHTML = '📷';
+    photoBtn.title = 'Найти по фото';
+    photoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Заглушка: можно открыть Google Images или показать сообщение
+        tg.showAlert('Здесь будет поиск по фото автомобиля');
+    });
+
+    fuelRow.appendChild(fuelBarWrapper);
+    fuelRow.appendChild(photoBtn);
+
+    container.appendChild(topRow);
+    container.appendChild(fuelRow);
+
     return container;
 }
 
@@ -240,12 +302,10 @@ photoAfterInput.addEventListener('change', (e) => {
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
 
-// Закрытие заявки (успешное завершение)
 closeTaskBtn.addEventListener('click', () => {
     completeTask('closed');
 });
 
-// Отмена заявки
 cancelTaskBtn.addEventListener('click', () => {
     if (confirm('Уверены, что хотите отменить заявку?')) {
         completeTask('cancelled');
@@ -253,7 +313,6 @@ cancelTaskBtn.addEventListener('click', () => {
 });
 
 function completeTask(reason) {
-    // Здесь можно отправить данные на сервер (литры, комментарий, статус)
     const liters = litersInput.value;
     const comment = commentInput.value;
     console.log(`Заявка ${currentTaskRequest?.id} завершена: ${reason}, литры: ${liters}, комментарий: ${comment}`);
@@ -263,7 +322,6 @@ function completeTask(reason) {
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
-    // Очистка полей
     litersInput.value = '';
     commentInput.value = '';
     photoBeforeInput.value = '';
@@ -271,7 +329,6 @@ function completeTask(reason) {
     tg.showAlert(reason === 'closed' ? 'Заявка закрыта' : 'Заявка отменена');
 }
 
-// Запуск заявки
 function startTask(req) {
     currentTaskRequest = req;
     workBtn.classList.add('visible');
@@ -284,7 +341,6 @@ function startTask(req) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
-// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -313,7 +369,6 @@ function renderMarkers(requests) {
     });
 }
 
-// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
