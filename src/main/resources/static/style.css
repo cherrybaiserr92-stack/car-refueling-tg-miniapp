@@ -45,6 +45,34 @@ body {
     left: 0;
 }
 
+/* Кнопка компаса */
+.location-btn {
+    position: absolute;
+    bottom: 100px; /* над нижней панелью */
+    left: 16px;
+    z-index: 800;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(30,30,32,0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    outline: none;
+}
+.location-btn:active {
+    transform: scale(0.92);
+    background: rgba(60,60,64,0.8);
+}
+
 #listView {
     background: var(--tg-bg);
     overflow-y: auto;
@@ -190,7 +218,7 @@ body {
     height: 54px;
     border: none;
     background: transparent;
-    color: rgba(255,255,255,0.7);   /* ← стало ярче */
+    color: rgba(255,255,255,0.7);
     font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.3px;

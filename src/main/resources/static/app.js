@@ -46,6 +46,69 @@ L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
 }).addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+// --- Местоположение пользователя ---
+let userMarker = null;
+let accuracyCircle = null;
+let userLocation = null; // {lat, lng}
+
+function createUserMarker(latlng, accuracy) {
+    // Удаляем старые, если есть
+    if (userMarker) map.removeLayer(userMarker);
+    if (accuracyCircle) map.removeLayer(accuracyCircle);
+
+    // Стильный синий маркер
+    userMarker = L.circleMarker(latlng, {
+        radius: 8,
+        fillColor: '#007aff',
+        fillOpacity: 1,
+        color: 'white',
+        weight: 2,
+        opacity: 1
+    }).addTo(map);
+
+    // Круг точности
+    accuracyCircle = L.circle(latlng, {
+        radius: accuracy,
+        fillColor: '#007aff',
+        fillOpacity: 0.15,
+        color: '#007aff',
+        weight: 1,
+        opacity: 0.3
+    }).addTo(map);
+
+    userLocation = latlng;
+}
+
+// Запускаем отслеживание
+if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+        (pos) => {
+            const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+            const accuracy = pos.coords.accuracy;
+            createUserMarker(latlng, accuracy);
+        },
+        (err) => {
+            console.warn('Геолокация недоступна', err.message);
+            // Если ошибка, кнопка компаса будет просто неактивна
+        },
+        {
+            enableHighAccuracy: true,
+            maximumAge: 5000,
+            timeout: 10000
+        }
+    );
+}
+
+// --- Кнопка компаса ---
+document.getElementById('locationBtn').addEventListener('click', () => {
+    if (!userLocation) {
+        tg.showAlert('Местоположение ещё не определено');
+        return;
+    }
+    map.setView(userLocation, map.getZoom(), { animate: true, duration: 0.5 });
+});
+
+// --- Все остальные переменные и функции ---
 let allRequests = [];
 let markers = [];
 let currentFilter = 'all';
@@ -157,11 +220,9 @@ closeDoorsBtn.addEventListener('click', () => {
 closeTaskBtn.addEventListener('click', () => {
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
-    // Возвращаемся на карту
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
-    // Сбрасываем форму
     litersInput.value = '';
     photoBeforeInput.value = '';
     photoAfterInput.value = '';
@@ -170,9 +231,7 @@ closeTaskBtn.addEventListener('click', () => {
 // Запуск заявки
 function startTask(req) {
     currentTaskRequest = req;
-    // Показываем третью кнопку
     workBtn.classList.add('visible');
-    // Переключаемся на вид "В работе"
     switchView('workView');
     segBtns.forEach(b => b.classList.remove('active'));
     workBtn.classList.add('active');
