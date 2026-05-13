@@ -177,12 +177,12 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== НОВЫЙ ПОПАП =====
+// ===== ОБНОВЛЁННЫЙ ПОПАП =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-info';
 
-    // Строка с моделью и госномером
+    // Верхний отступ и строка с моделью и госномером
     const topRow = document.createElement('div');
     topRow.className = 'popup-top-row';
 
@@ -194,9 +194,10 @@ function createPopupContent(req) {
     plateBadge.className = 'popup-plate';
     plateBadge.textContent = req.licensePlate;
 
+    // SVG-иконка "Копировать" (две страницы)
     const copyIcon = document.createElement('span');
     copyIcon.className = 'popup-copy-icon';
-    copyIcon.innerHTML = '📋';
+    copyIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg>`;
     copyIcon.title = 'Скопировать госномер';
     copyIcon.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -232,12 +233,13 @@ function createPopupContent(req) {
 
     const photoBtn = document.createElement('button');
     photoBtn.className = 'popup-photo-btn';
-    photoBtn.innerHTML = '📷';
+    // SVG-иконка "Поиск по фото" (камера + лупа)
+    photoBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 2"/></svg>`;
     photoBtn.title = 'Найти по фото';
     photoBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Заглушка: можно открыть Google Images или показать сообщение
-        tg.showAlert('Здесь будет поиск по фото автомобиля');
+        // Здесь можно открыть поиск по фото
+        tg.showAlert('Функция поиска по фото появится позже');
     });
 
     fuelRow.appendChild(fuelBarWrapper);
