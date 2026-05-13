@@ -45,11 +45,12 @@ body {
     left: 0;
 }
 
-/* Кнопка компаса */
+/* Кнопка компаса – теперь справа по центру */
 .location-btn {
     position: absolute;
-    bottom: 100px; /* над нижней панелью */
-    left: 16px;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
     z-index: 800;
     width: 44px;
     height: 44px;
@@ -69,7 +70,7 @@ body {
     outline: none;
 }
 .location-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.92) translateY(-50%);
     background: rgba(60,60,64,0.8);
 }
 
