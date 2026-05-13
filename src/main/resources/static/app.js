@@ -2,7 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов (Карта / Заявки / В работе)
+// Переключение видов
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const mapView = document.getElementById('mapView');
@@ -19,6 +19,7 @@ function switchView(viewId) {
     if (viewId !== 'mapView') {
         map.closePopup();
         hideActionPanel();
+        clearRoute(); // удаляем маршрут при уходе с карты
     }
 }
 
@@ -49,14 +50,12 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 // --- Местоположение пользователя ---
 let userMarker = null;
 let accuracyCircle = null;
-let userLocation = null; // {lat, lng}
+let userLocation = null; // L.LatLng
 
 function createUserMarker(latlng, accuracy) {
-    // Удаляем старые, если есть
     if (userMarker) map.removeLayer(userMarker);
     if (accuracyCircle) map.removeLayer(accuracyCircle);
 
-    // Стильный синий маркер
     userMarker = L.circleMarker(latlng, {
         radius: 8,
         fillColor: '#007aff',
@@ -66,7 +65,6 @@ function createUserMarker(latlng, accuracy) {
         opacity: 1
     }).addTo(map);
 
-    // Круг точности
     accuracyCircle = L.circle(latlng, {
         radius: accuracy,
         fillColor: '#007aff',
@@ -79,7 +77,6 @@ function createUserMarker(latlng, accuracy) {
     userLocation = latlng;
 }
 
-// Запускаем отслеживание
 if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
         (pos) => {
@@ -89,7 +86,6 @@ if (navigator.geolocation) {
         },
         (err) => {
             console.warn('Геолокация недоступна', err.message);
-            // Если ошибка, кнопка компаса будет просто неактивна
         },
         {
             enableHighAccuracy: true,
@@ -108,12 +104,57 @@ document.getElementById('locationBtn').addEventListener('click', () => {
     map.setView(userLocation, map.getZoom(), { animate: true, duration: 0.5 });
 });
 
-// --- Все остальные переменные и функции ---
+// --- Маршрут OSRM ---
+let currentRouteLayer = null;
+
+function clearRoute() {
+    if (currentRouteLayer) {
+        map.removeLayer(currentRouteLayer);
+        currentRouteLayer = null;
+    }
+}
+
+async function buildRoute(from, to) {
+    // from, to — объекты {lat, lng} (можно и массив)
+    clearRoute();
+
+    if (!from || !to) return;
+
+    const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full`;
+
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+            console.warn('Маршрут не найден');
+            return;
+        }
+        const route = data.routes[0].geometry;
+        const geojson = {
+            type: 'Feature',
+            geometry: route
+        };
+        currentRouteLayer = L.geoJSON(geojson, {
+            style: {
+                color: '#007aff',
+                weight: 5,
+                opacity: 0.8,
+                lineJoin: 'round',
+                lineCap: 'round'
+            }
+        }).addTo(map);
+        // Подгоняем карту под весь маршрут (опционально)
+        // map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
+    } catch (error) {
+        console.error('Ошибка построения маршрута', error);
+    }
+}
+
+// --- Заявки ---
 let allRequests = [];
 let markers = [];
 let currentFilter = 'all';
 
-// Фильтры
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentFilter = btn.dataset.filter;
@@ -161,7 +202,7 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий
+// Панель действий (кнопки под попапом)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -189,7 +230,7 @@ function hideActionPanel() {
     routeBtn.onclick = null;
 }
 
-// Элементы формы заявки
+// Элементы формы выполнения заявки
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -216,7 +257,6 @@ closeDoorsBtn.addEventListener('click', () => {
     tg.showAlert('Двери закрыты');
 });
 
-// Закрытие заявки
 closeTaskBtn.addEventListener('click', () => {
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
@@ -228,7 +268,6 @@ closeTaskBtn.addEventListener('click', () => {
     photoAfterInput.value = '';
 });
 
-// Запуск заявки
 function startTask(req) {
     currentTaskRequest = req;
     workBtn.classList.add('visible');
@@ -237,6 +276,7 @@ function startTask(req) {
     workBtn.classList.add('active');
     hideActionPanel();
     map.closePopup();
+    clearRoute(); // маршрут больше не нужен, когда заявка в работе
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -247,8 +287,25 @@ function renderMarkers(requests) {
     requests.forEach(req => {
         const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
         marker.bindPopup(createPopupContent(req));
-        marker.on('popupopen', () => showActionPanel(req));
-        marker.on('popupclose', () => hideActionPanel());
+
+        marker.on('popupopen', () => {
+            showActionPanel(req);
+            // Строим маршрут от местоположения до заявки
+            if (userLocation) {
+                buildRoute(
+                    { lat: userLocation.lat, lng: userLocation.lng },
+                    { lat: req.lat, lng: req.lng }
+                );
+            } else {
+                tg.showAlert('Местоположение не определено, маршрут не построен');
+            }
+        });
+
+        marker.on('popupclose', () => {
+            hideActionPanel();
+            clearRoute(); // удаляем маршрут при закрытии попапа
+        });
+
         markers.push(marker);
     });
 }
@@ -312,6 +369,7 @@ async function loadRequests() {
 
 loadRequests();
 
+// Стилизация попапов
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
