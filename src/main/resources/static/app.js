@@ -19,7 +19,7 @@ function switchView(viewId) {
     if (viewId !== 'mapView') {
         map.closePopup();
         hideActionPanel();
-        clearRoute(); // удаляем маршрут при уходе с карты
+        clearRoute();
     }
 }
 
@@ -50,7 +50,7 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 // --- Местоположение пользователя ---
 let userMarker = null;
 let accuracyCircle = null;
-let userLocation = null; // L.LatLng
+let userLocation = null;
 
 function createUserMarker(latlng, accuracy) {
     if (userMarker) map.removeLayer(userMarker);
@@ -115,13 +115,9 @@ function clearRoute() {
 }
 
 async function buildRoute(from, to) {
-    // from, to — объекты {lat, lng} (можно и массив)
     clearRoute();
-
     if (!from || !to) return;
-
     const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full`;
-
     try {
         const resp = await fetch(url);
         const data = await resp.json();
@@ -130,21 +126,10 @@ async function buildRoute(from, to) {
             return;
         }
         const route = data.routes[0].geometry;
-        const geojson = {
-            type: 'Feature',
-            geometry: route
-        };
+        const geojson = { type: 'Feature', geometry: route };
         currentRouteLayer = L.geoJSON(geojson, {
-            style: {
-                color: '#007aff',
-                weight: 5,
-                opacity: 0.8,
-                lineJoin: 'round',
-                lineCap: 'round'
-            }
+            style: { color: '#007aff', weight: 5, opacity: 0.8, lineJoin: 'round', lineCap: 'round' }
         }).addTo(map);
-        // Подгоняем карту под весь маршрут (опционально)
-        // map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
     } catch (error) {
         console.error('Ошибка построения маршрута', error);
     }
@@ -181,13 +166,14 @@ function lightenColor(hex, factor) {
     return `rgb(${to(r)}, ${to(g)}, ${to(b)})`;
 }
 
+// Модифицированная иконка: 16x16, чёрная окантовка, градиент
 function createMarkerIcon(req) {
     const color = markerColor(req.fuelLevel);
     const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color, 0.4)}, ${color})`;
     return L.divIcon({
-        html: `<div style="background:${gradient}; width:20px; height:20px; border-radius:50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
+        html: `<div style="background:${gradient}; width:16px; height:16px; border-radius:50%; border: 1.5px solid black; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
         className: ''
     });
 }
@@ -202,7 +188,7 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий (кнопки под попапом)
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -230,7 +216,7 @@ function hideActionPanel() {
     routeBtn.onclick = null;
 }
 
-// Элементы формы выполнения заявки
+// Элементы формы заявки
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -250,12 +236,8 @@ photoAfterInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) tg.showAlert('Фото "ПОСЛЕ" загружено');
 });
 
-openDoorsBtn.addEventListener('click', () => {
-    tg.showAlert('Двери открыты');
-});
-closeDoorsBtn.addEventListener('click', () => {
-    tg.showAlert('Двери закрыты');
-});
+openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
+closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
 
 closeTaskBtn.addEventListener('click', () => {
     currentTaskRequest = null;
@@ -276,11 +258,10 @@ function startTask(req) {
     workBtn.classList.add('active');
     hideActionPanel();
     map.closePopup();
-    clearRoute(); // маршрут больше не нужен, когда заявка в работе
+    clearRoute();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
-// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -290,7 +271,6 @@ function renderMarkers(requests) {
 
         marker.on('popupopen', () => {
             showActionPanel(req);
-            // Строим маршрут от местоположения до заявки
             if (userLocation) {
                 buildRoute(
                     { lat: userLocation.lat, lng: userLocation.lng },
@@ -303,14 +283,13 @@ function renderMarkers(requests) {
 
         marker.on('popupclose', () => {
             hideActionPanel();
-            clearRoute(); // удаляем маршрут при закрытии попапа
+            clearRoute();
         });
 
         markers.push(marker);
     });
 }
 
-// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -369,7 +348,6 @@ async function loadRequests() {
 
 loadRequests();
 
-// Стилизация попапов
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
