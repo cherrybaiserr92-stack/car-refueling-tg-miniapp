@@ -2,29 +2,33 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов (Карта / Заявки)
+// Переключение видов (Карта / Заявки / В работе)
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const mapView = document.getElementById('mapView');
 const listView = document.getElementById('listView');
 const workBtn = document.getElementById('workBtn');
-let currentTaskRequest = null; // активная заявка
+let currentTaskRequest = null;
+
+function switchView(viewId) {
+    views.forEach(v => v.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    if (viewId === 'mapView') {
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+    if (viewId !== 'mapView') {
+        map.closePopup();
+        hideActionPanel();
+    }
+}
 
 segBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
         const viewId = btn.dataset.view;
-        if (!viewId) return; // у кнопки "В работе" нет data-view
+        if (!viewId) return;
         segBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        views.forEach(v => v.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-        if (viewId === 'mapView') {
-            setTimeout(() => map.invalidateSize(), 100);
-        }
-        if (viewId !== 'mapView') {
-            map.closePopup();
-            hideActionPanel();
-        }
+        switchView(viewId);
     });
 });
 
@@ -122,8 +126,7 @@ function hideActionPanel() {
     routeBtn.onclick = null;
 }
 
-// Модальное окно заявки
-const taskModal = document.getElementById('taskModal');
+// Элементы формы заявки
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -136,7 +139,6 @@ const closeTaskBtn = document.getElementById('closeTaskBtn');
 photoBeforeBtn.addEventListener('click', () => photoBeforeInput.click());
 photoAfterBtn.addEventListener('click', () => photoAfterInput.click());
 
-// Обработчики загрузки фото (просто показываем уведомление)
 photoBeforeInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) tg.showAlert('Фото "ДО" загружено');
 });
@@ -144,7 +146,6 @@ photoAfterInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) tg.showAlert('Фото "ПОСЛЕ" загружено');
 });
 
-// Управление дверьми (заглушка)
 openDoorsBtn.addEventListener('click', () => {
     tg.showAlert('Двери открыты');
 });
@@ -154,31 +155,29 @@ closeDoorsBtn.addEventListener('click', () => {
 
 // Закрытие заявки
 closeTaskBtn.addEventListener('click', () => {
-    taskModal.classList.add('hidden');
-    workBtn.classList.remove('visible');
-    // Сброс активной заявки
     currentTaskRequest = null;
-    // Если активна карта, закрываем попап
-    if (mapView.classList.contains('active')) {
-        map.closePopup();
-    }
-});
-
-// Запуск выполнения заявки
-function startTask(req) {
-    currentTaskRequest = req;
-    // Показываем модальное окно
-    taskModal.classList.remove('hidden');
-    // Показываем кнопку "В работе"
-    workBtn.classList.add('visible');
-    // Скрываем панель действий
-    hideActionPanel();
-    // Закрываем попап маркера
-    map.closePopup();
-    // Сбрасываем поля
+    workBtn.classList.remove('visible');
+    // Возвращаемся на карту
+    switchView('mapView');
+    segBtns.forEach(b => b.classList.remove('active'));
+    document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
+    // Сбрасываем форму
     litersInput.value = '';
     photoBeforeInput.value = '';
     photoAfterInput.value = '';
+});
+
+// Запуск заявки
+function startTask(req) {
+    currentTaskRequest = req;
+    // Показываем третью кнопку
+    workBtn.classList.add('visible');
+    // Переключаемся на вид "В работе"
+    switchView('workView');
+    segBtns.forEach(b => b.classList.remove('active'));
+    workBtn.classList.add('active');
+    hideActionPanel();
+    map.closePopup();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -218,7 +217,8 @@ function renderList(requests) {
 
     document.querySelectorAll('.request-card').forEach(card => {
         card.addEventListener('click', () => {
-            document.querySelector('.seg-btn[data-view="mapView"]').click();
+            const mapBtn = document.querySelector('.seg-btn[data-view="mapView"]');
+            if (mapBtn) mapBtn.click();
             const lat = parseFloat(card.dataset.lat);
             const lng = parseFloat(card.dataset.lng);
             const marker = markers.find(m => {
@@ -253,7 +253,6 @@ async function loadRequests() {
 
 loadRequests();
 
-// Дополнительные стили попапа (подстраховка)
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
@@ -266,7 +265,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Закрываем панель действий при клике на карту
 map.on('click', () => {
     hideActionPanel();
 });

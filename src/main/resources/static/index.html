@@ -27,18 +27,8 @@
         </div>
     </div>
 
-    <!-- Панель действий (кнопки появляются при клике на маркер) -->
-    <div id="actionPanel" class="action-panel hidden">
-        <div class="action-buttons">
-            <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
-            <button id="routeBtn" class="action-btn route-btn">Скопировать координаты</button>
-        </div>
-    </div>
-
-    <!-- Модальное окно выполнения заявки -->
-    <div id="taskModal" class="task-modal hidden">
-        <div class="task-overlay"></div>
-        <div class="task-content">
+    <div id="workView" class="view">
+        <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>
             <div class="task-field">
                 <label>Фото госномера ДО</label>
@@ -62,12 +52,18 @@
         </div>
     </div>
 
-    <!-- Нижняя панель с динамическими кнопками -->
+    <div id="actionPanel" class="action-panel hidden">
+        <div class="action-buttons">
+            <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
+            <button id="routeBtn" class="action-btn route-btn">Скопировать координаты</button>
+        </div>
+    </div>
+
     <div class="segmented-panel">
         <div class="segmented-control" id="segmentedControl">
             <button class="seg-btn active" data-view="mapView">Карта</button>
             <button class="seg-btn" data-view="listView">Заявки</button>
-            <button class="seg-btn work-btn hidden" id="workBtn">В работе</button>
+            <button class="seg-btn work-btn hidden" id="workBtn" data-view="workView">В работе</button>
         </div>
     </div>
 
