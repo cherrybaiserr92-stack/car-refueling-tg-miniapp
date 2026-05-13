@@ -166,7 +166,6 @@ function lightenColor(hex, factor) {
     return `rgb(${to(r)}, ${to(g)}, ${to(b)})`;
 }
 
-// Модифицированная иконка: 16x16, чёрная окантовка, градиент
 function createMarkerIcon(req) {
     const color = markerColor(req.fuelLevel);
     const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color, 0.4)}, ${color})`;
@@ -222,9 +221,11 @@ const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
 const photoAfterInput = document.getElementById('photoAfterInput');
 const litersInput = document.getElementById('litersInput');
+const commentInput = document.getElementById('commentInput');
 const openDoorsBtn = document.getElementById('openDoorsBtn');
 const closeDoorsBtn = document.getElementById('closeDoorsBtn');
 const closeTaskBtn = document.getElementById('closeTaskBtn');
+const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
 photoBeforeBtn.addEventListener('click', () => photoBeforeInput.click());
 photoAfterBtn.addEventListener('click', () => photoAfterInput.click());
@@ -239,17 +240,38 @@ photoAfterInput.addEventListener('change', (e) => {
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
 
+// Закрытие заявки (успешное завершение)
 closeTaskBtn.addEventListener('click', () => {
+    completeTask('closed');
+});
+
+// Отмена заявки
+cancelTaskBtn.addEventListener('click', () => {
+    if (confirm('Уверены, что хотите отменить заявку?')) {
+        completeTask('cancelled');
+    }
+});
+
+function completeTask(reason) {
+    // Здесь можно отправить данные на сервер (литры, комментарий, статус)
+    const liters = litersInput.value;
+    const comment = commentInput.value;
+    console.log(`Заявка ${currentTaskRequest?.id} завершена: ${reason}, литры: ${liters}, комментарий: ${comment}`);
+
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
+    // Очистка полей
     litersInput.value = '';
+    commentInput.value = '';
     photoBeforeInput.value = '';
     photoAfterInput.value = '';
-});
+    tg.showAlert(reason === 'closed' ? 'Заявка закрыта' : 'Заявка отменена');
+}
 
+// Запуск заявки
 function startTask(req) {
     currentTaskRequest = req;
     workBtn.classList.add('visible');
@@ -262,6 +284,7 @@ function startTask(req) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
+// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -290,6 +313,7 @@ function renderMarkers(requests) {
     });
 }
 
+// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -348,11 +372,13 @@ async function loadRequests() {
 
 loadRequests();
 
+// Стилизация попапов (подстраховка)
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
         background: rgba(30,30,32,0.7) !important;
         backdrop-filter: blur(20px);
+        padding: 0;
     }
     .leaflet-popup-tip {
         background: rgba(30,30,32,0.7) !important;
