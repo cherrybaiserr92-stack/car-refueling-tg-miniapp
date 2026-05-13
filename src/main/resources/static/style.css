@@ -190,7 +190,7 @@ body {
     height: 54px;
     border: none;
     background: transparent;
-    color: var(--tg-hint);
+    color: rgba(255,255,255,0.7);   /* ← стало ярче */
     font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.3px;
