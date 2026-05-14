@@ -55,7 +55,6 @@ let userLocation = null;
 function createUserMarker(latlng, accuracy) {
     if (userMarker) map.removeLayer(userMarker);
     if (accuracyCircle) map.removeLayer(accuracyCircle);
-
     userMarker = L.circleMarker(latlng, {
         radius: 8,
         fillColor: '#007aff',
@@ -64,7 +63,6 @@ function createUserMarker(latlng, accuracy) {
         weight: 2,
         opacity: 1
     }).addTo(map);
-
     accuracyCircle = L.circle(latlng, {
         radius: accuracy,
         fillColor: '#007aff',
@@ -73,7 +71,6 @@ function createUserMarker(latlng, accuracy) {
         weight: 1,
         opacity: 0.3
     }).addTo(map);
-
     userLocation = latlng;
 }
 
@@ -84,14 +81,8 @@ if (navigator.geolocation) {
             const accuracy = pos.coords.accuracy;
             createUserMarker(latlng, accuracy);
         },
-        (err) => {
-            console.warn('Геолокация недоступна', err.message);
-        },
-        {
-            enableHighAccuracy: true,
-            maximumAge: 5000,
-            timeout: 10000
-        }
+        (err) => console.warn('Геолокация недоступна', err.message),
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     );
 }
 
@@ -106,14 +97,12 @@ document.getElementById('locationBtn').addEventListener('click', () => {
 
 // --- Маршрут OSRM ---
 let currentRouteLayer = null;
-
 function clearRoute() {
     if (currentRouteLayer) {
         map.removeLayer(currentRouteLayer);
         currentRouteLayer = null;
     }
 }
-
 async function buildRoute(from, to) {
     clearRoute();
     if (!from || !to) return;
@@ -121,10 +110,7 @@ async function buildRoute(from, to) {
     try {
         const resp = await fetch(url);
         const data = await resp.json();
-        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-            console.warn('Маршрут не найден');
-            return;
-        }
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) return;
         const route = data.routes[0].geometry;
         const geojson = { type: 'Feature', geometry: route };
         currentRouteLayer = L.geoJSON(geojson, {
@@ -152,7 +138,6 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 function getStatusText(status) {
     return status === 'active' ? 'Срочно' : status === 'in_progress' ? 'В работе' : 'Готово';
 }
-
 function markerColor(fuelLevel) {
     if (fuelLevel < 25) return '#ff3b30';
     if (fuelLevel <= 50) return '#ff9500';
@@ -166,110 +151,82 @@ function lightenColor(hex, factor) {
     return `rgb(${to(r)}, ${to(g)}, ${to(b)})`;
 }
 
+// Значки заявок с белым объёмным обрамлением
 function createMarkerIcon(req) {
     const color = markerColor(req.fuelLevel);
     const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color, 0.4)}, ${color})`;
     return L.divIcon({
-        html: `<div style="background:${gradient}; width:16px; height:16px; border-radius:50%; border: 1.5px solid black; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        html: `<div style="
+            background:${gradient};
+            width:18px; height:18px;
+            border-radius:50%;
+            border: 2px solid white;
+            box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.3);
+        "></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
         className: ''
     });
 }
 
-// ===== ОБНОВЛЁННЫЙ ПОПАП =====
+// ===== КОМПАКТНЫЙ ПОПАП =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-info';
 
-    // Верхний отступ и строка с моделью и госномером
-    const topRow = document.createElement('div');
-    topRow.className = 'popup-top-row';
+    // Марка / модель
+    const modelLine = document.createElement('div');
+    modelLine.className = 'popup-model-line';
+    modelLine.textContent = req.carModel;
 
-    const modelBadge = document.createElement('span');
-    modelBadge.className = 'popup-model';
-    modelBadge.textContent = req.carModel;
+    // Госномер
+    const plateLine = document.createElement('div');
+    plateLine.className = 'popup-plate-line';
+    plateLine.textContent = req.licensePlate;
 
-    const plateBadge = document.createElement('span');
-    plateBadge.className = 'popup-plate';
-    plateBadge.textContent = req.licensePlate;
+    // Полоса топлива с анимацией
+    const fuelWrapper = document.createElement('div');
+    fuelWrapper.className = 'popup-fuel-wrapper';
 
-    // SVG-иконка "Копировать" (две страницы)
-    const copyIcon = document.createElement('span');
-    copyIcon.className = 'popup-copy-icon';
-    copyIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg>`;
-    copyIcon.title = 'Скопировать госномер';
-    copyIcon.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(req.licensePlate).then(() => {
-            tg.showAlert('Номер скопирован');
-        }).catch(() => {
-            tg.showAlert('Не удалось скопировать');
-        });
-    });
-
-    plateBadge.appendChild(copyIcon);
-    topRow.appendChild(modelBadge);
-    topRow.appendChild(plateBadge);
-
-    // Полоса топлива с кнопкой "Найти по фото"
-    const fuelRow = document.createElement('div');
-    fuelRow.className = 'popup-fuel-row';
-
-    const fuelBarWrapper = document.createElement('div');
-    fuelBarWrapper.className = 'popup-fuel-bar-wrapper';
-
-    const fuelBar = document.createElement('div');
-    fuelBar.className = 'popup-fuel-bar';
-    fuelBar.style.width = req.fuelLevel + '%';
-    fuelBar.style.backgroundColor = markerColor(req.fuelLevel);
+    const fuelFill = document.createElement('div');
+    fuelFill.className = 'popup-fuel-fill';
+    fuelFill.style.width = req.fuelLevel + '%';
+    fuelFill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
 
     const fuelText = document.createElement('span');
     fuelText.className = 'popup-fuel-text';
     fuelText.textContent = req.fuelLevel + '%';
 
-    fuelBarWrapper.appendChild(fuelBar);
-    fuelBarWrapper.appendChild(fuelText);
+    fuelWrapper.appendChild(fuelFill);
+    fuelWrapper.appendChild(fuelText);
 
-    const photoBtn = document.createElement('button');
-    photoBtn.className = 'popup-photo-btn';
-    // SVG-иконка "Поиск по фото" (камера + лупа)
-    photoBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 2"/></svg>`;
-    photoBtn.title = 'Найти по фото';
-    photoBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Здесь можно открыть поиск по фото
-        tg.showAlert('Функция поиска по фото появится позже');
-    });
-
-    fuelRow.appendChild(fuelBarWrapper);
-    fuelRow.appendChild(photoBtn);
-
-    container.appendChild(topRow);
-    container.appendChild(fuelRow);
+    container.appendChild(modelLine);
+    container.appendChild(plateLine);
+    container.appendChild(fuelWrapper);
 
     return container;
 }
 
-// Панель действий
+// Панель действий с дополнительной кнопкой "Найти по фото"
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
+const photoSearchBtn = document.getElementById('photoSearchBtn');
 
 function showActionPanel(req) {
     actionPanel.classList.remove('hidden');
-    acceptBtn.onclick = () => {
-        startTask(req);
-    };
+    acceptBtn.onclick = () => startTask(req);
     routeBtn.onclick = () => {
         const coords = `${req.lat}, ${req.lng}`;
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(coords).then(() => {
-                tg.showAlert('Координаты скопированы');
-            });
+            navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
         } else {
             tg.showAlert(`Координаты: ${coords}`);
         }
+    };
+    photoSearchBtn.onclick = () => {
+        // Заглушка: можно открыть Google Images с моделью авто
+        tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
     };
 }
 
@@ -277,6 +234,7 @@ function hideActionPanel() {
     actionPanel.classList.add('hidden');
     acceptBtn.onclick = null;
     routeBtn.onclick = null;
+    photoSearchBtn.onclick = null;
 }
 
 // Элементы формы заявки
@@ -291,34 +249,43 @@ const closeDoorsBtn = document.getElementById('closeDoorsBtn');
 const closeTaskBtn = document.getElementById('closeTaskBtn');
 const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
-photoBeforeBtn.addEventListener('click', () => photoBeforeInput.click());
-photoAfterBtn.addEventListener('click', () => photoAfterInput.click());
-
-photoBeforeInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) tg.showAlert('Фото "ДО" загружено');
-});
-photoAfterInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) tg.showAlert('Фото "ПОСЛЕ" загружено');
-});
+// Открытие камеры с геометкой
+function setupPhotoButton(btn, input) {
+    btn.addEventListener('click', () => input.click());
+    input.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            // Запрашиваем геолокацию для геометки
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude.toFixed(6);
+                        const lng = pos.coords.longitude.toFixed(6);
+                        const time = new Date(pos.timestamp).toLocaleString();
+                        tg.showAlert(`Геометка: ${lat}, ${lng}\nВремя: ${time}`);
+                        // Здесь можно сохранить координаты в скрытое поле или добавить к комментарию
+                    },
+                    () => tg.showAlert('Не удалось получить координаты')
+                );
+            }
+            tg.showAlert('Фото выбрано');
+        }
+    });
+}
+setupPhotoButton(photoBeforeBtn, photoBeforeInput);
+setupPhotoButton(photoAfterBtn, photoAfterInput);
 
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
 
-closeTaskBtn.addEventListener('click', () => {
-    completeTask('closed');
-});
-
+closeTaskBtn.addEventListener('click', () => completeTask('closed'));
 cancelTaskBtn.addEventListener('click', () => {
-    if (confirm('Уверены, что хотите отменить заявку?')) {
-        completeTask('cancelled');
-    }
+    if (confirm('Уверены, что хотите отменить заявку?')) completeTask('cancelled');
 });
 
 function completeTask(reason) {
     const liters = litersInput.value;
     const comment = commentInput.value;
     console.log(`Заявка ${currentTaskRequest?.id} завершена: ${reason}, литры: ${liters}, комментарий: ${comment}`);
-
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     switchView('mapView');
@@ -343,13 +310,13 @@ function startTask(req) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
+// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
         const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
         marker.bindPopup(createPopupContent(req));
-
         marker.on('popupopen', () => {
             showActionPanel(req);
             if (userLocation) {
@@ -357,20 +324,17 @@ function renderMarkers(requests) {
                     { lat: userLocation.lat, lng: userLocation.lng },
                     { lat: req.lat, lng: req.lng }
                 );
-            } else {
-                tg.showAlert('Местоположение не определено, маршрут не построен');
             }
         });
-
         marker.on('popupclose', () => {
             hideActionPanel();
             clearRoute();
         });
-
         markers.push(marker);
     });
 }
 
+// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -426,23 +390,20 @@ async function loadRequests() {
         if (list) list.innerHTML = 'Ошибка загрузки';
     }
 }
-
 loadRequests();
 
-// Стилизация попапов (подстраховка)
+// Подстраховка стилей
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
-        background: rgba(30,30,32,0.7) !important;
-        backdrop-filter: blur(20px);
+        background: rgba(30,30,32,0.75) !important;
+        backdrop-filter: blur(30px);
         padding: 0;
     }
     .leaflet-popup-tip {
-        background: rgba(30,30,32,0.7) !important;
+        background: rgba(30,30,32,0.75) !important;
     }
 `;
 document.head.appendChild(style);
 
-map.on('click', () => {
-    hideActionPanel();
-});
+map.on('click', () => hideActionPanel());

@@ -31,6 +31,11 @@
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>
+            <!-- Двери перенесены наверх -->
+            <div class="task-actions">
+                <button id="openDoorsBtn" class="door-btn">Открыть двери</button>
+                <button id="closeDoorsBtn" class="door-btn">Закрыть двери</button>
+            </div>
             <div class="task-field">
                 <label>Фото госномера ДО</label>
                 <button id="photoBeforeBtn" class="photo-btn">Выбрать фото</button>
@@ -49,19 +54,17 @@
                 <label>Комментарий (тех. состояние и др.)</label>
                 <textarea id="commentInput" class="comment-input" rows="3" placeholder="Необязательно"></textarea>
             </div>
-            <div class="task-actions">
-                <button id="openDoorsBtn" class="door-btn">Открыть двери</button>
-                <button id="closeDoorsBtn" class="door-btn">Закрыть двери</button>
-            </div>
             <button id="closeTaskBtn" class="close-task-btn">Закрыть заявку</button>
             <button id="cancelTaskBtn" class="cancel-task-btn">Отменить заявку</button>
         </div>
     </div>
 
+    <!-- Панель действий теперь содержит три кнопки: Взять в работу, Скопировать координаты, Найти по фото -->
     <div id="actionPanel" class="action-panel hidden">
         <div class="action-buttons">
             <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
             <button id="routeBtn" class="action-btn route-btn">Скопировать координаты</button>
+            <button id="photoSearchBtn" class="action-btn photo-search-btn">Найти по фото</button>
         </div>
     </div>
 
