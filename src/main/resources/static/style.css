@@ -28,22 +28,14 @@ body {
 .view { display: none; flex: 1; overflow: hidden; position: relative; }
 .view.active { display: block; }
 #mapView { position: relative; }
-#map {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
+#map { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
 
 .location-btn {
     position: absolute;
-    top: 50%;
-    right: 16px;
+    top: 50%; right: 16px;
     transform: translateY(-50%);
     z-index: 800;
-    width: 44px;
-    height: 44px;
+    width: 44px; height: 44px;
     border-radius: 50%;
     background: rgba(30,30,32,0.7);
     backdrop-filter: blur(15px);
@@ -285,49 +277,108 @@ body {
     margin-top: 8px;
 }
 
-/* ===== ПОПАП В ФОРМЕ КАПЛИ ===== */
+/* ========== ПОПАП-КАПЛЯ ========== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     padding: 0 !important;
-    border-radius: 0 !important;
     overflow: visible !important;
 }
 .leaflet-popup-content {
     margin: 0 !important;
     width: auto !important;
-    line-height: 1.3;
 }
+.leaflet-popup-tip { display: none; }
 
-/* Контейнер капли */
 .popup-drop {
     position: relative;
-    width: 160px;
-    height: 180px;              /* достаточно для вертикальной шкалы */
+    width: 150px;
+    height: 170px;
     filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
-    margin-bottom: 10px;        /* место для острия */
+    margin-bottom: 0;
 }
 
-/* Тело капли */
 .popup-drop-body {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 30px;               /* оставляем место для острия */
+    top: 0; left: 0; right: 0; bottom: 12px; /* место под остриё */
     background: rgba(20,20,22,0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: 50% 50% 10px 10px / 70% 70% 5px 5px;
-    /* форма капли: округлый верх, слегка сужающийся низ */
+    border-radius: 50% 50% 20% 20% / 60% 60% 30% 30%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px 10px;
     color: white;
     text-align: center;
+    padding: 10px;
+}
+
+.popup-drop-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--fuel-color, #34c759);
+    transition: height 0.5s ease;
+    border-radius: 0 0 20% 20% / 0 0 30% 30%;
+    z-index: 0;
+}
+
+/* Пузырьки только внутри заполненной области */
+.popup-bubbles {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.popup-bubble {
+    position: absolute;
+    background: rgba(255,255,255,0.7);
+    border-radius: 50%;
+    animation: floatBubble 2.5s infinite ease-in-out;
+}
+.popup-bubble:nth-child(1) { width: 4px; height: 4px; left: 25%; bottom: 20%; animation-delay: 0s; }
+.popup-bubble:nth-child(2) { width: 3px; height: 3px; left: 55%; bottom: 35%; animation-delay: 0.6s; }
+.popup-bubble:nth-child(3) { width: 3.5px; height: 3.5px; left: 75%; bottom: 15%; animation-delay: 1.2s; }
+.popup-bubble:nth-child(4) { width: 2.5px; height: 2.5px; left: 45%; bottom: 50%; animation-delay: 1.8s; }
+
+@keyframes floatBubble {
+    0% { transform: translateY(0) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-8px) scale(1.3); opacity: 1; }
+    100% { transform: translateY(-16px) scale(0.9); opacity: 0; }
+}
+
+/* Текст поверх шкалы */
+.popup-model {
+    position: relative;
+    z-index: 2;
+    font-weight: 700;
+    font-size: 12px;
+    margin-bottom: 2px;
+    text-shadow: 0 1px 3px black;
+}
+.popup-plate {
+    position: relative;
+    z-index: 2;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+    text-shadow: 0 1px 3px black;
+}
+.popup-percent {
+    position: relative;
+    z-index: 2;
+    font-weight: 700;
+    font-size: 13px;
+    text-shadow: 0 1px 3px black;
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 8px;
 }
 
 /* Остриё капли */
@@ -335,80 +386,11 @@ body {
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 30px solid rgba(20,20,22,0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-/* Вертикальная шкала топлива */
-.vertical-fuel {
-    position: relative;
-    width: 24px;
-    height: 100px;              /* высота колбы */
-    background: rgba(0,0,0,0.4);
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 8px 0;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-}
-
-.vertical-fuel-fill {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: var(--fuel-color, #34c759);
-    border-radius: 0 0 12px 12px;
-    transition: height 0.5s ease;
-    z-index: 1;
-}
-
-.vertical-fuel-bubbles {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.vertical-fuel-bubble {
-    position: absolute;
-    background: rgba(255,255,255,0.6);
-    border-radius: 50%;
-    animation: vertBubble 2s infinite ease-in;
-}
-.vertical-fuel-bubble:nth-child(1) { width: 3px; height: 3px; left: 30%; bottom: 20%; animation-delay: 0s; }
-.vertical-fuel-bubble:nth-child(2) { width: 2px; height: 2px; left: 60%; bottom: 40%; animation-delay: 0.5s; }
-.vertical-fuel-bubble:nth-child(3) { width: 2.5px; height: 2.5px; left: 40%; bottom: 60%; animation-delay: 1s; }
-.vertical-fuel-bubble:nth-child(4) { width: 1.5px; height: 1.5px; left: 70%; bottom: 80%; animation-delay: 1.5s; }
-
-@keyframes vertBubble {
-    0% { transform: translateY(0) scale(1); opacity: 0.8; }
-    50% { transform: translateY(-8px) scale(1.2); opacity: 1; }
-    100% { transform: translateY(-16px) scale(0.8); opacity: 0; }
-}
-
-.vertical-fuel-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 12px;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 1px 3px black;
-    z-index: 3;
-}
-
-/* Текст внутри капли */
-.popup-model { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
-.popup-plate { font-weight: 800; font-size: 17px; letter-spacing: 0.5px; margin-bottom: 4px; }
-
-/* Прячем стандартный треугольник Leaflet */
-.leaflet-popup-tip {
-    display: none !important;
+    transform: translateX(-50%) rotate(45deg);
+    width: 14px;
+    height: 14px;
+    background: rgba(20,20,22,0.8);
+    border-radius: 3px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    z-index: -1;
 }

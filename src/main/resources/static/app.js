@@ -2,7 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов (остаётся без изменений)
+// Переключение видов
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const mapView = document.getElementById('mapView');
@@ -119,6 +119,22 @@ function createPopupContent(req) {
     const body = document.createElement('div');
     body.className = 'popup-drop-body';
 
+    // Заполнитель шкалы (абсолютный, снизу)
+    const fill = document.createElement('div');
+    fill.className = 'popup-drop-fill';
+    fill.style.height = req.fuelLevel + '%';
+    fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
+
+    // Пузырьки (внутри тела)
+    const bubbles = document.createElement('div');
+    bubbles.className = 'popup-bubbles';
+    for (let i = 0; i < 4; i++) {
+        const b = document.createElement('div');
+        b.className = 'popup-bubble';
+        bubbles.appendChild(b);
+    }
+
+    // Текст
     const model = document.createElement('div');
     model.className = 'popup-model';
     model.textContent = req.carModel;
@@ -127,34 +143,15 @@ function createPopupContent(req) {
     plate.className = 'popup-plate';
     plate.textContent = req.licensePlate;
 
-    // Вертикальная шкала топлива
-    const fuelTank = document.createElement('div');
-    fuelTank.className = 'vertical-fuel';
+    const percent = document.createElement('div');
+    percent.className = 'popup-percent';
+    percent.textContent = req.fuelLevel + '%';
 
-    const fill = document.createElement('div');
-    fill.className = 'vertical-fuel-fill';
-    fill.style.height = req.fuelLevel + '%';
-    fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
-
-    const bubbles = document.createElement('div');
-    bubbles.className = 'vertical-fuel-bubbles';
-    for (let i = 0; i < 4; i++) {
-        const b = document.createElement('div');
-        b.className = 'vertical-fuel-bubble';
-        bubbles.appendChild(b);
-    }
-
-    const text = document.createElement('span');
-    text.className = 'vertical-fuel-text';
-    text.textContent = req.fuelLevel + '%';
-
-    fuelTank.appendChild(fill);
-    fuelTank.appendChild(bubbles);
-    fuelTank.appendChild(text);
-
+    body.appendChild(fill);
+    body.appendChild(bubbles);
     body.appendChild(model);
     body.appendChild(plate);
-    body.appendChild(fuelTank);
+    body.appendChild(percent);
 
     // Остриё
     const tip = document.createElement('div');
@@ -166,7 +163,7 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий (как раньше)
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -186,7 +183,7 @@ function hideActionPanel() {
     acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null;
 }
 
-// Элементы формы заявки (без изменений)
+// Элементы формы
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -301,7 +298,7 @@ async function loadRequests() {
 }
 loadRequests();
 
-// Стили попапа (поддержка прозрачности)
+// Стили для прозрачного попапа
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
