@@ -31,12 +31,8 @@ body {
     overflow: hidden;
     position: relative;
 }
-.view.active {
-    display: block;
-}
-#mapView {
-    position: relative;
-}
+.view.active { display: block; }
+#mapView { position: relative; }
 #map {
     width: 100%;
     height: 100%;
@@ -73,14 +69,8 @@ body {
     background: rgba(60,60,64,0.8);
 }
 
-#listView {
-    background: var(--tg-bg);
-    overflow-y: auto;
-}
-.list-container {
-    padding: 16px;
-    height: 100%;
-}
+#listView { background: var(--tg-bg); overflow-y: auto; }
+.list-container { padding: 16px; height: 100%; }
 
 .panel-header {
     display: flex;
@@ -90,15 +80,8 @@ body {
     flex-wrap: wrap;
     gap: 8px;
 }
-.sheet-title {
-    font-weight: 600;
-    font-size: 20px;
-    letter-spacing: -0.3px;
-}
-.filter-buttons {
-    display: flex;
-    gap: 6px;
-}
+.sheet-title { font-weight: 600; font-size: 20px; letter-spacing: -0.3px; }
+.filter-buttons { display: flex; gap: 6px; }
 .filter-btn {
     border: 1px solid rgba(255,255,255,0.12);
     background: transparent;
@@ -135,12 +118,8 @@ body {
     transition: transform 0.15s, box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-.request-card:active {
-    transform: scale(0.98);
-}
-.request-info {
-    flex: 1;
-}
+.request-card:active { transform: scale(0.98); }
+.request-info { flex: 1; }
 .car-name {
     font-weight: 600;
     font-size: 15px;
@@ -178,9 +157,7 @@ body {
 .status-in_progress { background: #ff9500; color: white; }
 .status-done { background: #34c759; color: white; }
 
-.request-card {
-    animation: fadeInUp 0.3s ease both;
-}
+.request-card { animation: fadeInUp 0.3s ease both; }
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -248,7 +225,7 @@ body {
     transform: scale(1);
 }
 
-/* Панель действий – полностью без фона, только кнопки */
+/* Панель действий – кнопки стали темнее для контраста */
 .action-panel {
     position: fixed;
     bottom: calc(var(--panel-height) + 12px);
@@ -274,7 +251,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    /* фон убран */
 }
 .action-btn {
     padding: 10px 14px;
@@ -285,14 +261,13 @@ body {
     color: white;
     cursor: pointer;
     white-space: nowrap;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: background 0.2s;
+    text-shadow: 0 0 4px rgba(0,0,0,0.5);
     backdrop-filter: blur(10px);
-    background: rgba(0,0,0,0.25); /* лёгкая тень, но не сплошной фон */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .accept-btn { background: var(--tg-accent, #007aff); }
-.route-btn { background: rgba(255,255,255,0.15); }
-.photo-search-btn { background: rgba(255,255,255,0.2); }
+.route-btn { background: rgba(0,0,0,0.55); }
+.photo-search-btn { background: rgba(0,0,0,0.65); }
 
 /* Вид работы */
 #workView {
@@ -301,9 +276,7 @@ body {
     align-items: center;
     justify-content: center;
 }
-#workView.active {
-    display: flex;
-}
+#workView.active { display: flex; }
 .task-container {
     background: rgba(30,30,32,0.5);
     backdrop-filter: blur(25px);
@@ -324,15 +297,8 @@ body {
     text-align: center;
     margin-bottom: 8px;
 }
-.task-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.task-field label {
-    font-size: 13px;
-    color: var(--tg-hint);
-}
+.task-field { display: flex; flex-direction: column; gap: 6px; }
+.task-field label { font-size: 13px; color: var(--tg-hint); }
 .photo-btn {
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
@@ -342,9 +308,7 @@ body {
     font-weight: 500;
     cursor: pointer;
 }
-.photo-btn:active {
-    background: rgba(255,255,255,0.2);
-}
+.photo-btn:active { background: rgba(255,255,255,0.2); }
 .liters-input {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.2);
@@ -365,10 +329,7 @@ body {
     outline: none;
     font-family: inherit;
 }
-.task-actions {
-    display: flex;
-    gap: 8px;
-}
+.task-actions { display: flex; gap: 8px; }
 .door-btn {
     flex: 1;
     padding: 10px;
@@ -380,9 +341,7 @@ body {
     cursor: pointer;
     background: rgba(255,255,255,0.15);
 }
-.door-btn:active {
-    background: rgba(255,255,255,0.25);
-}
+.door-btn:active { background: rgba(255,255,255,0.25); }
 .close-task-btn {
     background: var(--tg-accent);
     border: none;
@@ -403,12 +362,11 @@ body {
     margin-top: 8px;
 }
 
-/* ========== ПОПАП (совсем прозрачный фон) ========== */
+/* ===== ПОПАП С ПРОГРЕСС‑БАРОМ ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
-    border-radius: 0 !important;
     padding: 0 !important;
     color: white;
 }
@@ -417,104 +375,79 @@ body {
     line-height: 1.3;
     text-align: center;
 }
-.leaflet-popup-tip {
-    display: none; /* без фона стрелка не нужна */
-}
+.leaflet-popup-tip { display: none; }
 
-.popup-info {
+.popup-card {
+    position: relative;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(15px);
+    border-radius: 18px;
+    overflow: hidden;
+    min-width: 180px;
+    max-width: 220px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    background: transparent;
-    padding: 0;
+    padding: 10px 12px;
+    gap: 4px;
 }
 
-/* Единая строка: марка-модель и госномер с иконкой копирования */
-.popup-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(15px);
-    border-radius: 14px;
-    padding: 8px 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-.popup-model {
-    font-weight: 700;
-    font-size: 15px;
-    flex: 1;
-    text-align: left;
-}
-.popup-plate {
-    font-weight: 800;
-    font-size: 17px;
-    letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.popup-copy-icon {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,0.2);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.popup-copy-icon:active {
-    background: rgba(255,255,255,0.4);
-    transform: scale(0.9);
-}
-
-/* Живая колба топлива */
-.popup-fuel-tank {
-    position: relative;
-    width: 100%;
-    height: 14px; /* тоньше */
-    background: rgba(0,0,0,0.5);
-    border-radius: 7px;
-    overflow: hidden;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-}
-
-.popup-fuel-liquid {
+/* Прогресс-бар на фоне */
+.popup-progress-bg {
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
-    border-radius: 7px 0 0 7px;
+    border-radius: 18px 0 0 18px;
     background: var(--fuel-color, #34c759);
     transition: width 0.5s ease;
+    z-index: 0;
+}
+
+/* Контент поверх прогресса */
+.popup-model,
+.popup-plate-percent {
+    position: relative;
     z-index: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    font-weight: 600;
+}
+.popup-model {
+    font-size: 14px;
+    text-align: left;
+}
+.popup-plate-percent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+}
+.popup-plate {
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+.popup-percent {
+    font-weight: 700;
+    font-size: 14px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    padding: 2px 8px;
 }
 
-/* Волна на поверхности жидкости */
-.popup-fuel-wave {
+/* Пузырьки в прогресс-баре */
+.popup-fuel-bubbles {
     position: absolute;
-    top: -2px;
+    top: 0;
     left: 0;
-    width: 200%;
-    height: 6px;
-    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0px, rgba(255,255,255,0.3) 8px, transparent 8px, transparent 16px);
-    animation: waveMove 1s infinite linear;
-    z-index: 2;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
 }
-@keyframes waveMove {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-16px); }
-}
-
-/* Пузырьки */
 .popup-fuel-bubble {
     position: absolute;
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.6);
     border-radius: 50%;
-    z-index: 2;
     animation: bubbleUp 2s infinite ease-in;
 }
 .popup-fuel-bubble:nth-child(1) { width: 3px; height: 3px; left: 20%; bottom: 4px; animation-delay: 0s; }
@@ -526,16 +459,4 @@ body {
     0% { transform: translateY(0) scale(1); opacity: 0.8; }
     50% { transform: translateY(-6px) scale(1.2); opacity: 1; }
     100% { transform: translateY(-12px) scale(0.8); opacity: 0; }
-}
-
-.popup-fuel-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 11px;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 1px 3px black;
-    z-index: 3;
 }

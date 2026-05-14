@@ -13,9 +13,7 @@ let currentTaskRequest = null;
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-    if (viewId === 'mapView') {
-        setTimeout(() => map.invalidateSize(), 100);
-    }
+    if (viewId === 'mapView') setTimeout(() => map.invalidateSize(), 100);
     if (viewId !== 'mapView') {
         map.closePopup();
         hideActionPanel();
@@ -168,68 +166,49 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== НОВЫЙ ПОПАП С ЖИВОЙ КОЛБОЙ =====
+// ===== ПОПАП: единый блок с прогресс-баром =====
 function createPopupContent(req) {
     const container = document.createElement('div');
-    container.className = 'popup-info';
+    container.className = 'popup-card';
 
-    // Единая строка: модель + госномер с копированием
-    const header = document.createElement('div');
-    header.className = 'popup-header';
+    // Прогресс-бар на фоне
+    const progressBg = document.createElement('div');
+    progressBg.className = 'popup-progress-bg';
+    progressBg.style.width = req.fuelLevel + '%';
+    progressBg.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
 
-    const modelSpan = document.createElement('span');
-    modelSpan.className = 'popup-model';
-    modelSpan.textContent = req.carModel;
+    // Текст поверх: модель и строка с номером + проценты
+    const modelDiv = document.createElement('div');
+    modelDiv.className = 'popup-model';
+    modelDiv.textContent = req.carModel;
+
+    const platePercentDiv = document.createElement('div');
+    platePercentDiv.className = 'popup-plate-percent';
 
     const plateSpan = document.createElement('span');
     plateSpan.className = 'popup-plate';
     plateSpan.textContent = req.licensePlate;
 
-    const copyIcon = document.createElement('span');
-    copyIcon.className = 'popup-copy-icon';
-    copyIcon.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg>';
-    copyIcon.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(req.licensePlate).then(() => {
-            tg.showAlert('Номер скопирован');
-        }).catch(() => {
-            tg.showAlert('Не удалось скопировать');
-        });
-    });
+    const percentSpan = document.createElement('span');
+    percentSpan.className = 'popup-percent';
+    percentSpan.textContent = req.fuelLevel + '%';
 
-    plateSpan.appendChild(copyIcon);
-    header.appendChild(modelSpan);
-    header.appendChild(plateSpan);
+    platePercentDiv.appendChild(plateSpan);
+    platePercentDiv.appendChild(percentSpan);
 
-    // Живая колба
-    const tank = document.createElement('div');
-    tank.className = 'popup-fuel-tank';
-
-    const liquid = document.createElement('div');
-    liquid.className = 'popup-fuel-liquid';
-    liquid.style.width = req.fuelLevel + '%';
-    liquid.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
-
-    const wave = document.createElement('div');
-    wave.className = 'popup-fuel-wave';
-
-    // Пузырьки
+    // Пузырьки внутри прогресс-бара
+    const bubblesContainer = document.createElement('div');
+    bubblesContainer.className = 'popup-fuel-bubbles';
     for (let i = 0; i < 4; i++) {
         const bubble = document.createElement('div');
         bubble.className = 'popup-fuel-bubble';
-        tank.appendChild(bubble);
+        bubblesContainer.appendChild(bubble);
     }
 
-    const fuelText = document.createElement('span');
-    fuelText.className = 'popup-fuel-text';
-    fuelText.textContent = req.fuelLevel + '%';
-
-    tank.appendChild(liquid);
-    tank.appendChild(wave);
-    tank.appendChild(fuelText);
-
-    container.appendChild(header);
-    container.appendChild(tank);
+    container.appendChild(progressBg);
+    container.appendChild(bubblesContainer);
+    container.appendChild(modelDiv);
+    container.appendChild(platePercentDiv);
 
     return container;
 }
@@ -413,7 +392,7 @@ async function loadRequests() {
 }
 loadRequests();
 
-// Поддержка стилей
+// Стилизация попапа
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
@@ -421,9 +400,7 @@ style.textContent = `
         box-shadow: none !important;
         backdrop-filter: none !important;
     }
-    .leaflet-popup-tip {
-        display: none;
-    }
+    .leaflet-popup-tip { display: none; }
 `;
 document.head.appendChild(style);
 
