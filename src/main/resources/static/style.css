@@ -277,7 +277,7 @@ body {
     margin-top: 8px;
 }
 
-/* ===== ПОПАП-КАПЛЯ (исправленная форма) ===== */
+/* ===== ПОПАП В ФОРМЕ МАРКЕРА (PIN) ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -291,24 +291,22 @@ body {
 }
 .leaflet-popup-tip { display: none; }
 
-.popup-drop {
+.popup-pin {
     position: relative;
-    width: 100px;           /* ещё компактнее */
-    height: 120px;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+    width: 100px;
+    height: auto;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+    margin-bottom: 0;
 }
 
-.popup-drop-body {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 14px;           /* место для острого кончика */
+/* Тело пина (прямоугольник с сильно скруглёнными нижними углами) */
+.popup-pin-body {
+    position: relative;
+    width: 100%;
     background: rgba(20,20,22,0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    /* Форма капли: широкий верх, резкое сужение книзу */
-    border-radius: 50% 50% 40% 40% / 55% 55% 20% 20%;
+    border-radius: 12px 12px 12px 4px;   /* верх круглый, низ слегка скруглён, но не яйцо */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -316,10 +314,28 @@ body {
     justify-content: center;
     color: white;
     text-align: center;
-    padding: 6px 8px;
+    padding: 8px 6px;
+    min-height: 80px;
 }
 
-.popup-drop-fill {
+/* Остриё пина (треугольник снизу) */
+.popup-pin-tip {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 14px solid rgba(20,20,22,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
+
+/* Шкала заполнения (абсолютное позиционирование внутри тела) */
+.popup-pin-fill {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -327,9 +343,10 @@ body {
     background: var(--fuel-color, #34c759);
     transition: height 0.5s ease;
     z-index: 0;
+    border-radius: 0 0 12px 4px;  /* повторяем форму низа */
 }
 
-/* Пузырьки */
+/* Пузырьки внутри */
 .popup-bubbles {
     position: absolute;
     bottom: 0; left: 0; width: 100%;
@@ -353,7 +370,7 @@ body {
     100% { transform: translateY(-12px) scale(0.9); opacity: 0; }
 }
 
-/* Текст */
+/* Текст поверх */
 .popup-model {
     position: relative;
     z-index: 2;
@@ -380,20 +397,4 @@ body {
     background: rgba(0,0,0,0.4);
     padding: 2px 5px;
     border-radius: 6px;
-}
-
-/* Остриё капли — аккуратный треугольник */
-.popup-drop-tip {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 14px solid rgba(20,20,22,0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }

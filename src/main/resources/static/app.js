@@ -117,17 +117,17 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== ПОПАП-КАПЛЯ (исправленная) =====
+// ===== ПОПАП В ФОРМЕ PIN-МАРКЕРА =====
 function createPopupContent(req) {
     const container = document.createElement('div');
-    container.className = 'popup-drop';
+    container.className = 'popup-pin';
 
     const body = document.createElement('div');
-    body.className = 'popup-drop-body';
+    body.className = 'popup-pin-body';
 
-    // Заполнитель шкалы
+    // Шкала заполнения
     const fill = document.createElement('div');
-    fill.className = 'popup-drop-fill';
+    fill.className = 'popup-pin-fill';
     fill.style.height = req.fuelLevel + '%';
     fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
 
@@ -158,8 +158,9 @@ function createPopupContent(req) {
     body.appendChild(plate);
     body.appendChild(percent);
 
+    // Остриё
     const tip = document.createElement('div');
-    tip.className = 'popup-drop-tip';
+    tip.className = 'popup-pin-tip';
 
     container.appendChild(body);
     container.appendChild(tip);
