@@ -95,7 +95,14 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 function getStatusText(s) { return s === 'active' ? 'Срочно' : s === 'in_progress' ? 'В работе' : 'Готово'; }
-function markerColor(fuel) { if (fuel < 25) return '#ff3b30'; if (fuel <= 50) return '#ff9500'; return '#34c759'; }
+
+// Новые цвета по диапазонам
+function markerColor(fuel) {
+    if (fuel <= 15) return '#ff3b30';      // красный
+    if (fuel <= 25) return '#ff9500';      // оранжевый
+    return '#34c759';                       // зелёный (26–100%)
+}
+
 function lightenColor(hex, f) {
     const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
     const to = c => Math.min(255, Math.floor(c + (255-c)*f));
@@ -110,7 +117,7 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== НОВЫЙ ПОПАП-КАПЛЯ =====
+// ===== ПОПАП-КАПЛЯ (исправленная) =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-drop';
@@ -295,7 +302,7 @@ async function loadRequests() {
 }
 loadRequests();
 
-// Прозрачная обёртка попапа Leaflet
+// Прозрачность для Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
