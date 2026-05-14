@@ -2,7 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов
+// Переключение видов (остаётся без изменений)
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const mapView = document.getElementById('mapView');
@@ -38,69 +38,38 @@ const map = L.map('map', {
     zoomControl: false,
     attributionControl: false
 });
-
 L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
     attribution: 'Google'
 }).addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-// --- Местоположение пользователя ---
-let userMarker = null;
-let accuracyCircle = null;
-let userLocation = null;
-
+// --- Местоположение ---
+let userMarker = null, accuracyCircle = null, userLocation = null;
 function createUserMarker(latlng, accuracy) {
     if (userMarker) map.removeLayer(userMarker);
     if (accuracyCircle) map.removeLayer(accuracyCircle);
-    userMarker = L.circleMarker(latlng, {
-        radius: 8,
-        fillColor: '#007aff',
-        fillOpacity: 1,
-        color: 'white',
-        weight: 2,
-        opacity: 1
-    }).addTo(map);
-    accuracyCircle = L.circle(latlng, {
-        radius: accuracy,
-        fillColor: '#007aff',
-        fillOpacity: 0.15,
-        color: '#007aff',
-        weight: 1,
-        opacity: 0.3
-    }).addTo(map);
+    userMarker = L.circleMarker(latlng, { radius: 8, fillColor: '#007aff', fillOpacity: 1, color: 'white', weight: 2, opacity: 1 }).addTo(map);
+    accuracyCircle = L.circle(latlng, { radius: accuracy, fillColor: '#007aff', fillOpacity: 0.15, color: '#007aff', weight: 1, opacity: 0.3 }).addTo(map);
     userLocation = latlng;
 }
-
 if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
-        (pos) => {
-            const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
-            const accuracy = pos.coords.accuracy;
-            createUserMarker(latlng, accuracy);
-        },
+        (pos) => createUserMarker(L.latLng(pos.coords.latitude, pos.coords.longitude), pos.coords.accuracy),
         (err) => console.warn('Геолокация недоступна', err.message),
         { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     );
 }
 
-// --- Кнопка компаса ---
+// --- Компас ---
 document.getElementById('locationBtn').addEventListener('click', () => {
-    if (!userLocation) {
-        tg.showAlert('Местоположение ещё не определено');
-        return;
-    }
+    if (!userLocation) return tg.showAlert('Местоположение ещё не определено');
     map.setView(userLocation, map.getZoom(), { animate: true, duration: 0.5 });
 });
 
 // --- Маршрут OSRM ---
 let currentRouteLayer = null;
-function clearRoute() {
-    if (currentRouteLayer) {
-        map.removeLayer(currentRouteLayer);
-        currentRouteLayer = null;
-    }
-}
+function clearRoute() { if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; } }
 async function buildRoute(from, to) {
     clearRoute();
     if (!from || !to) return;
@@ -110,20 +79,12 @@ async function buildRoute(from, to) {
         const data = await resp.json();
         if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) return;
         const route = data.routes[0].geometry;
-        const geojson = { type: 'Feature', geometry: route };
-        currentRouteLayer = L.geoJSON(geojson, {
-            style: { color: '#007aff', weight: 5, opacity: 0.8, lineJoin: 'round', lineCap: 'round' }
-        }).addTo(map);
-    } catch (error) {
-        console.error('Ошибка построения маршрута', error);
-    }
+        currentRouteLayer = L.geoJSON({ type: 'Feature', geometry: route }, { style: { color: '#007aff', weight: 5, opacity: 0.8, lineJoin: 'round', lineCap: 'round' } }).addTo(map);
+    } catch (error) { console.error('Ошибка построения маршрута', error); }
 }
 
 // --- Заявки ---
-let allRequests = [];
-let markers = [];
-let currentFilter = 'all';
-
+let allRequests = [], markers = [], currentFilter = 'all';
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentFilter = btn.dataset.filter;
@@ -133,87 +94,79 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     });
 });
 
-function getStatusText(status) {
-    return status === 'active' ? 'Срочно' : status === 'in_progress' ? 'В работе' : 'Готово';
+function getStatusText(s) { return s === 'active' ? 'Срочно' : s === 'in_progress' ? 'В работе' : 'Готово'; }
+function markerColor(fuel) { if (fuel < 25) return '#ff3b30'; if (fuel <= 50) return '#ff9500'; return '#34c759'; }
+function lightenColor(hex, f) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    const to = c => Math.min(255, Math.floor(c + (255-c)*f));
+    return `rgb(${to(r)},${to(g)},${to(b)})`;
 }
-function markerColor(fuelLevel) {
-    if (fuelLevel < 25) return '#ff3b30';
-    if (fuelLevel <= 50) return '#ff9500';
-    return '#34c759';
-}
-function lightenColor(hex, factor) {
-    const r = parseInt(hex.slice(1,3), 16);
-    const g = parseInt(hex.slice(3,5), 16);
-    const b = parseInt(hex.slice(5,7), 16);
-    const to = (c) => Math.min(255, Math.floor(c + (255 - c) * factor));
-    return `rgb(${to(r)}, ${to(g)}, ${to(b)})`;
-}
-
 function createMarkerIcon(req) {
     const color = markerColor(req.fuelLevel);
-    const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color, 0.4)}, ${color})`;
+    const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
     return L.divIcon({
-        html: `<div style="
-            background:${gradient};
-            width:18px; height:18px;
-            border-radius:50%;
-            border: 2px solid white;
-            box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.3);
-        "></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
-        className: ''
+        html: `<div style="background:${gradient}; width:18px; height:18px; border-radius:50%; border:2px solid white; box-shadow:0 0 6px rgba(0,0,0,0.6),0 0 0 2px rgba(255,255,255,0.3);"></div>`,
+        iconSize: [22,22], iconAnchor: [11,11], className: ''
     });
 }
 
-// ===== ПОПАП: единый блок с прогресс-баром =====
+// ===== НОВЫЙ ПОПАП-КАПЛЯ =====
 function createPopupContent(req) {
     const container = document.createElement('div');
-    container.className = 'popup-card';
+    container.className = 'popup-drop';
 
-    // Прогресс-бар на фоне
-    const progressBg = document.createElement('div');
-    progressBg.className = 'popup-progress-bg';
-    progressBg.style.width = req.fuelLevel + '%';
-    progressBg.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
+    // Тело капли
+    const body = document.createElement('div');
+    body.className = 'popup-drop-body';
 
-    // Текст поверх: модель и строка с номером + проценты
-    const modelDiv = document.createElement('div');
-    modelDiv.className = 'popup-model';
-    modelDiv.textContent = req.carModel;
+    const model = document.createElement('div');
+    model.className = 'popup-model';
+    model.textContent = req.carModel;
 
-    const platePercentDiv = document.createElement('div');
-    platePercentDiv.className = 'popup-plate-percent';
+    const plate = document.createElement('div');
+    plate.className = 'popup-plate';
+    plate.textContent = req.licensePlate;
 
-    const plateSpan = document.createElement('span');
-    plateSpan.className = 'popup-plate';
-    plateSpan.textContent = req.licensePlate;
+    // Вертикальная шкала топлива
+    const fuelTank = document.createElement('div');
+    fuelTank.className = 'vertical-fuel';
 
-    const percentSpan = document.createElement('span');
-    percentSpan.className = 'popup-percent';
-    percentSpan.textContent = req.fuelLevel + '%';
+    const fill = document.createElement('div');
+    fill.className = 'vertical-fuel-fill';
+    fill.style.height = req.fuelLevel + '%';
+    fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
 
-    platePercentDiv.appendChild(plateSpan);
-    platePercentDiv.appendChild(percentSpan);
-
-    // Пузырьки внутри прогресс-бара
-    const bubblesContainer = document.createElement('div');
-    bubblesContainer.className = 'popup-fuel-bubbles';
+    const bubbles = document.createElement('div');
+    bubbles.className = 'vertical-fuel-bubbles';
     for (let i = 0; i < 4; i++) {
-        const bubble = document.createElement('div');
-        bubble.className = 'popup-fuel-bubble';
-        bubblesContainer.appendChild(bubble);
+        const b = document.createElement('div');
+        b.className = 'vertical-fuel-bubble';
+        bubbles.appendChild(b);
     }
 
-    container.appendChild(progressBg);
-    container.appendChild(bubblesContainer);
-    container.appendChild(modelDiv);
-    container.appendChild(platePercentDiv);
+    const text = document.createElement('span');
+    text.className = 'vertical-fuel-text';
+    text.textContent = req.fuelLevel + '%';
+
+    fuelTank.appendChild(fill);
+    fuelTank.appendChild(bubbles);
+    fuelTank.appendChild(text);
+
+    body.appendChild(model);
+    body.appendChild(plate);
+    body.appendChild(fuelTank);
+
+    // Остриё
+    const tip = document.createElement('div');
+    tip.className = 'popup-drop-tip';
+
+    container.appendChild(body);
+    container.appendChild(tip);
 
     return container;
 }
 
-// Панель действий
+// Панель действий (как раньше)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -224,25 +177,16 @@ function showActionPanel(req) {
     acceptBtn.onclick = () => startTask(req);
     routeBtn.onclick = () => {
         const coords = `${req.lat}, ${req.lng}`;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-        } else {
-            tg.showAlert(`Координаты: ${coords}`);
-        }
+        navigator.clipboard ? navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы')) : tg.showAlert(`Координаты: ${coords}`);
     };
-    photoSearchBtn.onclick = () => {
-        tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
-    };
+    photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
 }
-
 function hideActionPanel() {
     actionPanel.classList.add('hidden');
-    acceptBtn.onclick = null;
-    routeBtn.onclick = null;
-    photoSearchBtn.onclick = null;
+    acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null;
 }
 
-// Элементы формы заявки
+// Элементы формы заявки (без изменений)
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -260,12 +204,7 @@ function setupPhotoButton(btn, input) {
         if (e.target.files.length > 0) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude.toFixed(6);
-                        const lng = pos.coords.longitude.toFixed(6);
-                        const time = new Date(pos.timestamp).toLocaleString();
-                        tg.showAlert(`Геометка: ${lat}, ${lng}\nВремя: ${time}`);
-                    },
+                    (pos) => tg.showAlert(`Геометка: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}\nВремя: ${new Date(pos.timestamp).toLocaleString()}`),
                     () => tg.showAlert('Не удалось получить координаты')
                 );
             }
@@ -275,28 +214,21 @@ function setupPhotoButton(btn, input) {
 }
 setupPhotoButton(photoBeforeBtn, photoBeforeInput);
 setupPhotoButton(photoAfterBtn, photoAfterInput);
-
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
-
 closeTaskBtn.addEventListener('click', () => completeTask('closed'));
-cancelTaskBtn.addEventListener('click', () => {
-    if (confirm('Уверены, что хотите отменить заявку?')) completeTask('cancelled');
-});
+cancelTaskBtn.addEventListener('click', () => { if (confirm('Отменить заявку?')) completeTask('cancelled'); });
 
 function completeTask(reason) {
-    const liters = litersInput.value;
-    const comment = commentInput.value;
+    const liters = litersInput.value, comment = commentInput.value;
     console.log(`Заявка ${currentTaskRequest?.id} завершена: ${reason}, литры: ${liters}, комментарий: ${comment}`);
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
-    litersInput.value = '';
-    commentInput.value = '';
-    photoBeforeInput.value = '';
-    photoAfterInput.value = '';
+    litersInput.value = commentInput.value = '';
+    photoBeforeInput.value = photoAfterInput.value = '';
     tg.showAlert(reason === 'closed' ? 'Заявка закрыта' : 'Заявка отменена');
 }
 
@@ -320,17 +252,9 @@ function renderMarkers(requests) {
         marker.bindPopup(createPopupContent(req));
         marker.on('popupopen', () => {
             showActionPanel(req);
-            if (userLocation) {
-                buildRoute(
-                    { lat: userLocation.lat, lng: userLocation.lng },
-                    { lat: req.lat, lng: req.lng }
-                );
-            }
+            if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
-        marker.on('popupclose', () => {
-            hideActionPanel();
-            clearRoute();
-        });
+        marker.on('popupclose', () => { hideActionPanel(); clearRoute(); });
         markers.push(marker);
     });
 }
@@ -338,37 +262,22 @@ function renderMarkers(requests) {
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
-    if (requests.length === 0) {
-        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tg-hint)">Нет заявок</div>';
-        return;
-    }
+    if (requests.length === 0) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tg-hint)">Нет заявок</div>'; return; }
     list.innerHTML = requests.map(r => `
         <div class="request-card" data-lat="${r.lat}" data-lng="${r.lng}">
             <div class="request-info">
                 <div class="car-name">${r.carModel}</div>
                 <div class="license-plate">${r.licensePlate}</div>
-                <div class="fuel-bar">
-                    <div class="fuel-fill" style="width:${r.fuelLevel}%"></div>
-                </div>
+                <div class="fuel-bar"><div class="fuel-fill" style="width:${r.fuelLevel}%"></div></div>
             </div>
             <span class="status-badge status-${r.status}">${getStatusText(r.status)}</span>
-        </div>
-    `).join('');
-
+        </div>`).join('');
     document.querySelectorAll('.request-card').forEach(card => {
         card.addEventListener('click', () => {
-            const mapBtn = document.querySelector('.seg-btn[data-view="mapView"]');
-            if (mapBtn) mapBtn.click();
-            const lat = parseFloat(card.dataset.lat);
-            const lng = parseFloat(card.dataset.lng);
-            const marker = markers.find(m => {
-                const ll = m.getLatLng();
-                return Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lng) < 0.0001;
-            });
-            if (marker) {
-                map.setView([lat, lng], 15, { animate: true, duration: 0.3 });
-                marker.openPopup();
-            }
+            document.querySelector('.seg-btn[data-view="mapView"]').click();
+            const lat = parseFloat(card.dataset.lat), lng = parseFloat(card.dataset.lng);
+            const marker = markers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+            if (marker) { map.setView([lat, lng], 15, { animate: true, duration: 0.3 }); marker.openPopup(); }
         });
     });
 }
@@ -392,16 +301,9 @@ async function loadRequests() {
 }
 loadRequests();
 
-// Стилизация попапа
+// Стили попапа (поддержка прозрачности)
 const style = document.createElement('style');
-style.textContent = `
-    .leaflet-popup-content-wrapper {
-        background: transparent !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-    }
-    .leaflet-popup-tip { display: none; }
-`;
+style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
 
 map.on('click', () => hideActionPanel());

@@ -25,12 +25,7 @@ body {
     flex-direction: column;
 }
 
-.view {
-    display: none;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-}
+.view { display: none; flex: 1; overflow: hidden; position: relative; }
 .view.active { display: block; }
 #mapView { position: relative; }
 #map {
@@ -100,12 +95,7 @@ body {
     color: white;
 }
 
-.request-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-bottom: 20px;
-}
+.request-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
 .request-card {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
@@ -120,43 +110,14 @@ body {
 }
 .request-card:active { transform: scale(0.98); }
 .request-info { flex: 1; }
-.car-name {
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-.license-plate {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-.fuel-bar {
-    width: 100%;
-    height: 6px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 3px;
-    overflow: hidden;
-}
-.fuel-fill {
-    height: 100%;
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.5s ease;
-    background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759);
-}
-.status-badge {
-    padding: 6px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-left: 10px;
-}
+.car-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.license-plate { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
+.fuel-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.fuel-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 0.5s ease; background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759); }
+.status-badge { padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: 10px; }
 .status-active { background: #ff3b30; color: white; }
 .status-in_progress { background: #ff9500; color: white; }
 .status-done { background: #34c759; color: white; }
-
 .request-card { animation: fadeInUp 0.3s ease both; }
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(10px); }
@@ -166,9 +127,7 @@ body {
 /* Нижняя панель */
 .segmented-panel {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0; left: 0; right: 0;
     height: var(--panel-height);
     background: transparent;
     display: flex;
@@ -191,13 +150,11 @@ body {
     transition: all 0.3s ease;
 }
 .seg-btn {
-    flex: 1;
-    height: 54px;
+    flex: 1; height: 54px;
     border: none;
     background: transparent;
     color: rgba(255,255,255,0.7);
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 15px; font-weight: 700;
     letter-spacing: -0.3px;
     border-radius: 16px;
     transition: all 0.25s ease;
@@ -213,51 +170,28 @@ body {
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
 }
-.work-btn {
-    display: none;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: opacity 0.3s, transform 0.3s;
-}
-.work-btn.visible {
-    display: block;
-    opacity: 1;
-    transform: scale(1);
-}
+.work-btn { display: none; opacity: 0; transform: scale(0.8); transition: opacity 0.3s, transform 0.3s; }
+.work-btn.visible { display: block; opacity: 1; transform: scale(1); }
 
-/* Панель действий – кнопки стали темнее для контраста */
+/* Панель действий */
 .action-panel {
     position: fixed;
     bottom: calc(var(--panel-height) + 12px);
-    left: 0;
-    right: 0;
+    left: 0; right: 0;
     display: flex;
     justify-content: center;
     z-index: 999;
     transition: opacity 0.2s, transform 0.2s;
     pointer-events: none;
 }
-.action-panel.hidden {
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-}
-.action-panel:not(.hidden) {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-.action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
+.action-panel.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
+.action-panel:not(.hidden) { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.action-buttons { display: flex; flex-direction: column; gap: 6px; }
 .action-btn {
     padding: 10px 14px;
     border: none;
     border-radius: 12px;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 600; font-size: 13px;
     color: white;
     cursor: pointer;
     white-space: nowrap;
@@ -270,12 +204,7 @@ body {
 .photo-search-btn { background: rgba(0,0,0,0.65); }
 
 /* Вид работы */
-#workView {
-    background: var(--tg-bg);
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
+#workView { background: var(--tg-bg); display: none; align-items: center; justify-content: center; }
 #workView.active { display: flex; }
 .task-container {
     background: rgba(30,30,32,0.5);
@@ -291,12 +220,7 @@ body {
     flex-direction: column;
     gap: 16px;
 }
-.task-title {
-    font-size: 18px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 8px;
-}
+.task-title { font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 8px; }
 .task-field { display: flex; flex-direction: column; gap: 6px; }
 .task-field label { font-size: 13px; color: var(--tg-hint); }
 .photo-btn {
@@ -335,8 +259,7 @@ body {
     padding: 10px;
     border: none;
     border-radius: 10px;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 600; font-size: 13px;
     color: white;
     cursor: pointer;
     background: rgba(255,255,255,0.15);
@@ -362,101 +285,130 @@ body {
     margin-top: 8px;
 }
 
-/* ===== ПОПАП С ПРОГРЕСС‑БАРОМ ===== */
+/* ===== ПОПАП В ФОРМЕ КАПЛИ ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     padding: 0 !important;
-    color: white;
+    border-radius: 0 !important;
+    overflow: visible !important;
 }
 .leaflet-popup-content {
     margin: 0 !important;
+    width: auto !important;
     line-height: 1.3;
-    text-align: center;
 }
-.leaflet-popup-tip { display: none; }
 
-.popup-card {
+/* Контейнер капли */
+.popup-drop {
     position: relative;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(15px);
-    border-radius: 18px;
-    overflow: hidden;
-    min-width: 180px;
-    max-width: 220px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    width: 160px;
+    height: 180px;              /* достаточно для вертикальной шкалы */
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+    margin-bottom: 10px;        /* место для острия */
+}
+
+/* Тело капли */
+.popup-drop-body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 30px;               /* оставляем место для острия */
+    background: rgba(20,20,22,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 50% 50% 10px 10px / 70% 70% 5px 5px;
+    /* форма капли: округлый верх, слегка сужающийся низ */
     display: flex;
     flex-direction: column;
-    padding: 10px 12px;
-    gap: 4px;
-}
-
-/* Прогресс-бар на фоне */
-.popup-progress-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    border-radius: 18px 0 0 18px;
-    background: var(--fuel-color, #34c759);
-    transition: width 0.5s ease;
-    z-index: 0;
-}
-
-/* Контент поверх прогресса */
-.popup-model,
-.popup-plate-percent {
-    position: relative;
-    z-index: 1;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    font-weight: 600;
-}
-.popup-model {
-    font-size: 14px;
-    text-align: left;
-}
-.popup-plate-percent {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 15px;
-}
-.popup-plate {
-    font-weight: 800;
-    letter-spacing: 0.5px;
-}
-.popup-percent {
-    font-weight: 700;
-    font-size: 14px;
-    background: rgba(0,0,0,0.4);
-    border-radius: 10px;
-    padding: 2px 8px;
+    justify-content: center;
+    padding: 12px 10px;
+    color: white;
+    text-align: center;
 }
 
-/* Пузырьки в прогресс-баре */
-.popup-fuel-bubbles {
+/* Остриё капли */
+.popup-drop-tip {
     position: absolute;
-    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 30px solid rgba(20,20,22,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Вертикальная шкала топлива */
+.vertical-fuel {
+    position: relative;
+    width: 24px;
+    height: 100px;              /* высота колбы */
+    background: rgba(0,0,0,0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 8px 0;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.vertical-fuel-fill {
+    position: absolute;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
+    background: var(--fuel-color, #34c759);
+    border-radius: 0 0 12px 12px;
+    transition: height 0.5s ease;
+    z-index: 1;
 }
-.popup-fuel-bubble {
+
+.vertical-fuel-bubbles {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.vertical-fuel-bubble {
     position: absolute;
     background: rgba(255,255,255,0.6);
     border-radius: 50%;
-    animation: bubbleUp 2s infinite ease-in;
+    animation: vertBubble 2s infinite ease-in;
 }
-.popup-fuel-bubble:nth-child(1) { width: 3px; height: 3px; left: 20%; bottom: 4px; animation-delay: 0s; }
-.popup-fuel-bubble:nth-child(2) { width: 2px; height: 2px; left: 50%; bottom: 2px; animation-delay: 0.5s; }
-.popup-fuel-bubble:nth-child(3) { width: 2.5px; height: 2.5px; left: 70%; bottom: 5px; animation-delay: 1s; }
-.popup-fuel-bubble:nth-child(4) { width: 1.5px; height: 1.5px; left: 85%; bottom: 3px; animation-delay: 1.5s; }
+.vertical-fuel-bubble:nth-child(1) { width: 3px; height: 3px; left: 30%; bottom: 20%; animation-delay: 0s; }
+.vertical-fuel-bubble:nth-child(2) { width: 2px; height: 2px; left: 60%; bottom: 40%; animation-delay: 0.5s; }
+.vertical-fuel-bubble:nth-child(3) { width: 2.5px; height: 2.5px; left: 40%; bottom: 60%; animation-delay: 1s; }
+.vertical-fuel-bubble:nth-child(4) { width: 1.5px; height: 1.5px; left: 70%; bottom: 80%; animation-delay: 1.5s; }
 
-@keyframes bubbleUp {
+@keyframes vertBubble {
     0% { transform: translateY(0) scale(1); opacity: 0.8; }
-    50% { transform: translateY(-6px) scale(1.2); opacity: 1; }
-    100% { transform: translateY(-12px) scale(0.8); opacity: 0; }
+    50% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-16px) scale(0.8); opacity: 0; }
+}
+
+.vertical-fuel-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 1px 3px black;
+    z-index: 3;
+}
+
+/* Текст внутри капли */
+.popup-model { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+.popup-plate { font-weight: 800; font-size: 17px; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+/* Прячем стандартный треугольник Leaflet */
+.leaflet-popup-tip {
+    display: none !important;
 }
