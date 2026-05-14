@@ -115,17 +115,16 @@ function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-drop';
 
-    // Тело капли
     const body = document.createElement('div');
     body.className = 'popup-drop-body';
 
-    // Заполнитель шкалы (абсолютный, снизу)
+    // Заполнитель шкалы
     const fill = document.createElement('div');
     fill.className = 'popup-drop-fill';
     fill.style.height = req.fuelLevel + '%';
     fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
 
-    // Пузырьки (внутри тела)
+    // Пузырьки
     const bubbles = document.createElement('div');
     bubbles.className = 'popup-bubbles';
     for (let i = 0; i < 4; i++) {
@@ -134,7 +133,6 @@ function createPopupContent(req) {
         bubbles.appendChild(b);
     }
 
-    // Текст
     const model = document.createElement('div');
     model.className = 'popup-model';
     model.textContent = req.carModel;
@@ -153,7 +151,6 @@ function createPopupContent(req) {
     body.appendChild(plate);
     body.appendChild(percent);
 
-    // Остриё
     const tip = document.createElement('div');
     tip.className = 'popup-drop-tip';
 
@@ -183,7 +180,7 @@ function hideActionPanel() {
     acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null;
 }
 
-// Элементы формы
+// Элементы формы заявки
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -298,7 +295,7 @@ async function loadRequests() {
 }
 loadRequests();
 
-// Стили для прозрачного попапа
+// Прозрачная обёртка попапа Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);

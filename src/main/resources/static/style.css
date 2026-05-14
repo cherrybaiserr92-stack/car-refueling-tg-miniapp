@@ -277,7 +277,7 @@ body {
     margin-top: 8px;
 }
 
-/* ========== ПОПАП-КАПЛЯ ========== */
+/* ===== НАСТОЯЩАЯ КАПЛЯ ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -293,19 +293,21 @@ body {
 
 .popup-drop {
     position: relative;
-    width: 150px;
-    height: 170px;
-    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
-    margin-bottom: 0;
+    width: 110px;           /* меньше */
+    height: 130px;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
 }
 
 .popup-drop-body {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 12px; /* место под остриё */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 16px;           /* место для треугольника */
     background: rgba(20,20,22,0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: 50% 50% 20% 20% / 60% 60% 30% 30%;
+    border-radius: 50% 50% 30% 30% / 55% 55% 30% 30%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -313,7 +315,7 @@ body {
     justify-content: center;
     color: white;
     text-align: center;
-    padding: 10px;
+    padding: 6px 8px;
 }
 
 .popup-drop-fill {
@@ -323,18 +325,16 @@ body {
     width: 100%;
     background: var(--fuel-color, #34c759);
     transition: height 0.5s ease;
-    border-radius: 0 0 20% 20% / 0 0 30% 30%;
     z-index: 0;
 }
 
-/* Пузырьки только внутри заполненной области */
+/* Пузырьки */
 .popup-bubbles {
     position: absolute;
     bottom: 0; left: 0; width: 100%;
     pointer-events: none;
     z-index: 1;
 }
-
 .popup-bubble {
     position: absolute;
     background: rgba(255,255,255,0.7);
@@ -348,49 +348,51 @@ body {
 
 @keyframes floatBubble {
     0% { transform: translateY(0) scale(1); opacity: 0.8; }
-    50% { transform: translateY(-8px) scale(1.3); opacity: 1; }
-    100% { transform: translateY(-16px) scale(0.9); opacity: 0; }
+    50% { transform: translateY(-6px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-12px) scale(0.9); opacity: 0; }
 }
 
-/* Текст поверх шкалы */
+/* Текст */
 .popup-model {
     position: relative;
     z-index: 2;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 10px;
     margin-bottom: 2px;
-    text-shadow: 0 1px 3px black;
+    text-shadow: 0 1px 2px black;
 }
 .popup-plate {
     position: relative;
     z-index: 2;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 12px;
     letter-spacing: 0.3px;
     margin-bottom: 4px;
-    text-shadow: 0 1px 3px black;
+    text-shadow: 0 1px 2px black;
 }
 .popup-percent {
     position: relative;
     z-index: 2;
     font-weight: 700;
-    font-size: 13px;
-    text-shadow: 0 1px 3px black;
+    font-size: 11px;
+    text-shadow: 0 1px 2px black;
     background: rgba(0,0,0,0.4);
-    padding: 2px 6px;
-    border-radius: 8px;
+    padding: 2px 5px;
+    border-radius: 6px;
 }
 
-/* Остриё капли */
+/* Остриё капли — треугольник */
 .popup-drop-tip {
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    width: 14px;
-    height: 14px;
-    background: rgba(20,20,22,0.8);
-    border-radius: 3px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-    z-index: -1;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 16px solid rgba(20,20,22,0.8); /* тот же цвет */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
