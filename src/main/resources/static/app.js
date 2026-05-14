@@ -151,7 +151,6 @@ function lightenColor(hex, factor) {
     return `rgb(${to(r)}, ${to(g)}, ${to(b)})`;
 }
 
-// Значки заявок с белым объёмным обрамлением
 function createMarkerIcon(req) {
     const color = markerColor(req.fuelLevel);
     const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color, 0.4)}, ${color})`;
@@ -169,45 +168,73 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== КОМПАКТНЫЙ ПОПАП =====
+// ===== НОВЫЙ ПОПАП С ЖИВОЙ КОЛБОЙ =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-info';
 
-    // Марка / модель
-    const modelLine = document.createElement('div');
-    modelLine.className = 'popup-model-line';
-    modelLine.textContent = req.carModel;
+    // Единая строка: модель + госномер с копированием
+    const header = document.createElement('div');
+    header.className = 'popup-header';
 
-    // Госномер
-    const plateLine = document.createElement('div');
-    plateLine.className = 'popup-plate-line';
-    plateLine.textContent = req.licensePlate;
+    const modelSpan = document.createElement('span');
+    modelSpan.className = 'popup-model';
+    modelSpan.textContent = req.carModel;
 
-    // Полоса топлива с анимацией
-    const fuelWrapper = document.createElement('div');
-    fuelWrapper.className = 'popup-fuel-wrapper';
+    const plateSpan = document.createElement('span');
+    plateSpan.className = 'popup-plate';
+    plateSpan.textContent = req.licensePlate;
 
-    const fuelFill = document.createElement('div');
-    fuelFill.className = 'popup-fuel-fill';
-    fuelFill.style.width = req.fuelLevel + '%';
-    fuelFill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
+    const copyIcon = document.createElement('span');
+    copyIcon.className = 'popup-copy-icon';
+    copyIcon.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg>';
+    copyIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(req.licensePlate).then(() => {
+            tg.showAlert('Номер скопирован');
+        }).catch(() => {
+            tg.showAlert('Не удалось скопировать');
+        });
+    });
+
+    plateSpan.appendChild(copyIcon);
+    header.appendChild(modelSpan);
+    header.appendChild(plateSpan);
+
+    // Живая колба
+    const tank = document.createElement('div');
+    tank.className = 'popup-fuel-tank';
+
+    const liquid = document.createElement('div');
+    liquid.className = 'popup-fuel-liquid';
+    liquid.style.width = req.fuelLevel + '%';
+    liquid.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
+
+    const wave = document.createElement('div');
+    wave.className = 'popup-fuel-wave';
+
+    // Пузырьки
+    for (let i = 0; i < 4; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'popup-fuel-bubble';
+        tank.appendChild(bubble);
+    }
 
     const fuelText = document.createElement('span');
     fuelText.className = 'popup-fuel-text';
     fuelText.textContent = req.fuelLevel + '%';
 
-    fuelWrapper.appendChild(fuelFill);
-    fuelWrapper.appendChild(fuelText);
+    tank.appendChild(liquid);
+    tank.appendChild(wave);
+    tank.appendChild(fuelText);
 
-    container.appendChild(modelLine);
-    container.appendChild(plateLine);
-    container.appendChild(fuelWrapper);
+    container.appendChild(header);
+    container.appendChild(tank);
 
     return container;
 }
 
-// Панель действий с дополнительной кнопкой "Найти по фото"
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -225,7 +252,6 @@ function showActionPanel(req) {
         }
     };
     photoSearchBtn.onclick = () => {
-        // Заглушка: можно открыть Google Images с моделью авто
         tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
     };
 }
@@ -249,12 +275,10 @@ const closeDoorsBtn = document.getElementById('closeDoorsBtn');
 const closeTaskBtn = document.getElementById('closeTaskBtn');
 const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
-// Открытие камеры с геометкой
 function setupPhotoButton(btn, input) {
     btn.addEventListener('click', () => input.click());
     input.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            // Запрашиваем геолокацию для геометки
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
@@ -262,7 +286,6 @@ function setupPhotoButton(btn, input) {
                         const lng = pos.coords.longitude.toFixed(6);
                         const time = new Date(pos.timestamp).toLocaleString();
                         tg.showAlert(`Геометка: ${lat}, ${lng}\nВремя: ${time}`);
-                        // Здесь можно сохранить координаты в скрытое поле или добавить к комментарию
                     },
                     () => tg.showAlert('Не удалось получить координаты')
                 );
@@ -310,7 +333,6 @@ function startTask(req) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
-// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -334,7 +356,6 @@ function renderMarkers(requests) {
     });
 }
 
-// Рендер списка
 function renderList(requests) {
     const list = document.getElementById('request-list');
     if (!list) return;
@@ -392,16 +413,16 @@ async function loadRequests() {
 }
 loadRequests();
 
-// Подстраховка стилей
+// Поддержка стилей
 const style = document.createElement('style');
 style.textContent = `
     .leaflet-popup-content-wrapper {
-        background: rgba(30,30,32,0.75) !important;
-        backdrop-filter: blur(30px);
-        padding: 0;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
     }
     .leaflet-popup-tip {
-        background: rgba(30,30,32,0.75) !important;
+        display: none;
     }
 `;
 document.head.appendChild(style);

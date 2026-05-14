@@ -248,7 +248,7 @@ body {
     transform: scale(1);
 }
 
-/* Панель действий */
+/* Панель действий – полностью без фона, только кнопки */
 .action-panel {
     position: fixed;
     bottom: calc(var(--panel-height) + 12px);
@@ -274,16 +274,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    background: rgba(30,30,32,0.55);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 16px;
-    padding: 8px 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    max-width: 90vw;
+    /* фон убран */
 }
 .action-btn {
-    width: 100%;
     padding: 10px 14px;
     border: none;
     border-radius: 12px;
@@ -292,11 +285,14 @@ body {
     color: white;
     cursor: pointer;
     white-space: nowrap;
-    transition: background 0.2s;
+    transition: background 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.25); /* лёгкая тень, но не сплошной фон */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .accept-btn { background: var(--tg-accent, #007aff); }
 .route-btn { background: rgba(255,255,255,0.15); }
-.photo-search-btn { background: rgba(255,255,255,0.25); }
+.photo-search-btn { background: rgba(255,255,255,0.2); }
 
 /* Вид работы */
 #workView {
@@ -407,26 +403,22 @@ body {
     margin-top: 8px;
 }
 
-/* --- ПОПАП ЗАЯВКИ: компактный, квадратный --- */
+/* ========== ПОПАП (совсем прозрачный фон) ========== */
 .leaflet-popup-content-wrapper {
-    background: rgba(30,30,32,0.75) !important;
-    backdrop-filter: blur(30px);
-    color: white;
-    border-radius: 18px !important;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    border-radius: 0 !important;
     padding: 0 !important;
-    min-width: 180px;  /* чтобы был квадратным */
-    max-width: 220px !important;
+    color: white;
 }
 .leaflet-popup-content {
-    margin: 12px !important;
-    font-size: 13px;
+    margin: 0 !important;
     line-height: 1.3;
     text-align: center;
 }
 .leaflet-popup-tip {
-    background: rgba(30,30,32,0.75) !important;
-    backdrop-filter: blur(30px);
+    display: none; /* без фона стрелка не нужна */
 }
 
 .popup-info {
@@ -434,66 +426,116 @@ body {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
+    background: transparent;
+    padding: 0;
 }
 
-.popup-model-line {
-    background: rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 6px 8px;
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: -0.2px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.popup-plate-line {
-    background: rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 8px 8px;
-    font-weight: 700;
-    font-size: 16px;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    position: relative;
-}
-
-/* Полоса топлива с анимацией перелива */
-.popup-fuel-wrapper {
+/* Единая строка: марка-модель и госномер с иконкой копирования */
+.popup-header {
     display: flex;
     align-items: center;
-    background: rgba(0,0,0,0.3);
+    gap: 6px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(15px);
     border-radius: 14px;
-    height: 28px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    padding: 8px 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
-
-.popup-fuel-fill {
-    height: 100%;
-    border-radius: 14px 0 0 14px;
-    background: linear-gradient(90deg, var(--fuel-color, #34c759), rgba(255,255,255,0.4));
-    background-size: 200% 100%;
-    animation: fuelShimmer 2s infinite linear;
+.popup-model {
+    font-weight: 700;
+    font-size: 15px;
+    flex: 1;
+    text-align: left;
+}
+.popup-plate {
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.popup-copy-icon {
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 0;
-    transition: width 0.5s ease;
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.popup-copy-icon:active {
+    background: rgba(255,255,255,0.4);
+    transform: scale(0.9);
 }
 
-@keyframes fuelShimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+/* Живая колба топлива */
+.popup-fuel-tank {
+    position: relative;
+    width: 100%;
+    height: 14px; /* тоньше */
+    background: rgba(0,0,0,0.5);
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.popup-fuel-liquid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 7px 0 0 7px;
+    background: var(--fuel-color, #34c759);
+    transition: width 0.5s ease;
+    z-index: 1;
+}
+
+/* Волна на поверхности жидкости */
+.popup-fuel-wave {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 200%;
+    height: 6px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0px, rgba(255,255,255,0.3) 8px, transparent 8px, transparent 16px);
+    animation: waveMove 1s infinite linear;
+    z-index: 2;
+}
+@keyframes waveMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-16px); }
+}
+
+/* Пузырьки */
+.popup-fuel-bubble {
+    position: absolute;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    z-index: 2;
+    animation: bubbleUp 2s infinite ease-in;
+}
+.popup-fuel-bubble:nth-child(1) { width: 3px; height: 3px; left: 20%; bottom: 4px; animation-delay: 0s; }
+.popup-fuel-bubble:nth-child(2) { width: 2px; height: 2px; left: 50%; bottom: 2px; animation-delay: 0.5s; }
+.popup-fuel-bubble:nth-child(3) { width: 2.5px; height: 2.5px; left: 70%; bottom: 5px; animation-delay: 1s; }
+.popup-fuel-bubble:nth-child(4) { width: 1.5px; height: 1.5px; left: 85%; bottom: 3px; animation-delay: 1.5s; }
+
+@keyframes bubbleUp {
+    0% { transform: translateY(0) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-6px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-12px) scale(0.8); opacity: 0; }
 }
 
 .popup-fuel-text {
     position: absolute;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    font-size: 13px;
+    transform: translate(-50%, -50%);
+    font-size: 11px;
     font-weight: 800;
     color: white;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    z-index: 1;
+    text-shadow: 0 1px 3px black;
+    z-index: 3;
 }
