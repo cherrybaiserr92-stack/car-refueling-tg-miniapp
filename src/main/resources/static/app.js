@@ -2,18 +2,19 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов
+// Переключение видов (mapView, accountView, workView)
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const mapView = document.getElementById('mapView');
-const listView = document.getElementById('listView');
 const workBtn = document.getElementById('workBtn');
 let currentTaskRequest = null;
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-    if (viewId === 'mapView') setTimeout(() => map.invalidateSize(), 100);
+    if (viewId === 'mapView') {
+        setTimeout(() => map.invalidateSize(), 100);
+    }
     if (viewId !== 'mapView') {
         map.closePopup();
         hideActionPanel();
@@ -83,26 +84,16 @@ async function buildRoute(from, to) {
     } catch (error) { console.error('Ошибка построения маршрута', error); }
 }
 
-// --- Заявки ---
-let allRequests = [], markers = [], currentFilter = 'all';
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        currentFilter = btn.dataset.filter;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        applyFilter();
-    });
-});
+// --- Заявки на карте (без списка) ---
+let allRequests = [], markers = [];
 
 function getStatusText(s) { return s === 'active' ? 'Срочно' : s === 'in_progress' ? 'В работе' : 'Готово'; }
 
-// Новые цвета по диапазонам
 function markerColor(fuel) {
-    if (fuel <= 15) return '#ff3b30';      // красный
-    if (fuel <= 25) return '#ff9500';      // оранжевый
-    return '#34c759';                       // зелёный (26–100%)
+    if (fuel <= 15) return '#ff3b30';
+    if (fuel <= 25) return '#ff9500';
+    return '#34c759';
 }
-
 function lightenColor(hex, f) {
     const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
     const to = c => Math.min(255, Math.floor(c + (255-c)*f));
@@ -117,7 +108,7 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== ПОПАП В ФОРМЕ PIN-МАРКЕРА =====
+// ===== PIN-МАРКЕР (круг с остриём) =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-pin';
@@ -158,7 +149,6 @@ function createPopupContent(req) {
     body.appendChild(plate);
     body.appendChild(percent);
 
-    // Остриё
     const tip = document.createElement('div');
     tip.className = 'popup-pin-tip';
 
@@ -246,6 +236,7 @@ function startTask(req) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
+// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -261,49 +252,19 @@ function renderMarkers(requests) {
     });
 }
 
-function renderList(requests) {
-    const list = document.getElementById('request-list');
-    if (!list) return;
-    if (requests.length === 0) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tg-hint)">Нет заявок</div>'; return; }
-    list.innerHTML = requests.map(r => `
-        <div class="request-card" data-lat="${r.lat}" data-lng="${r.lng}">
-            <div class="request-info">
-                <div class="car-name">${r.carModel}</div>
-                <div class="license-plate">${r.licensePlate}</div>
-                <div class="fuel-bar"><div class="fuel-fill" style="width:${r.fuelLevel}%"></div></div>
-            </div>
-            <span class="status-badge status-${r.status}">${getStatusText(r.status)}</span>
-        </div>`).join('');
-    document.querySelectorAll('.request-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelector('.seg-btn[data-view="mapView"]').click();
-            const lat = parseFloat(card.dataset.lat), lng = parseFloat(card.dataset.lng);
-            const marker = markers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
-            if (marker) { map.setView([lat, lng], 15, { animate: true, duration: 0.3 }); marker.openPopup(); }
-        });
-    });
-}
-
-function applyFilter() {
-    const filtered = currentFilter === 'all' ? allRequests : allRequests.filter(r => r.status === currentFilter);
-    renderMarkers(filtered);
-    renderList(filtered);
-}
-
+// Инициализация карты
 async function loadRequests() {
     try {
         const res = await fetch('/api/requests');
         allRequests = await res.json();
-        applyFilter();
+        renderMarkers(allRequests);
     } catch (e) {
         console.error(e);
-        const list = document.getElementById('request-list');
-        if (list) list.innerHTML = 'Ошибка загрузки';
     }
 }
 loadRequests();
 
-// Прозрачность для Leaflet
+// Прозрачная обёртка для Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);

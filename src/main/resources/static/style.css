@@ -56,64 +56,70 @@ body {
     background: rgba(60,60,64,0.8);
 }
 
-#listView { background: var(--tg-bg); overflow-y: auto; }
-.list-container { padding: 16px; height: 100%; }
-
-.panel-header {
+/* Аккаунт */
+#accountView {
+    background: var(--tg-bg);
+    overflow-y: auto;
+    padding: 20px;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+}
+#accountView.active { display: flex; }
+.account-container {
+    width: 100%;
+    max-width: 400px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 16px;
 }
-.sheet-title { font-weight: 600; font-size: 20px; letter-spacing: -0.3px; }
-.filter-buttons { display: flex; gap: 6px; }
-.filter-btn {
-    border: 1px solid rgba(255,255,255,0.12);
-    background: transparent;
-    color: var(--tg-hint);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    transition: all 0.2s;
-    outline: none;
-    white-space: nowrap;
+.account-title {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
 }
-.filter-btn.active {
-    background: var(--tg-accent);
-    border-color: var(--tg-accent);
-    color: white;
-}
-
-.request-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
-.request-card {
+.account-card {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: var(--card-radius);
-    padding: 14px 16px;
+    border-radius: 16px;
+    padding: 16px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-.request-card:active { transform: scale(0.98); }
-.request-info { flex: 1; }
-.car-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
-.license-plate { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
-.fuel-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
-.fuel-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 0.5s ease; background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759); }
-.status-badge { padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: 10px; }
-.status-active { background: #ff3b30; color: white; }
-.status-in_progress { background: #ff9500; color: white; }
-.status-done { background: #34c759; color: white; }
-.request-card { animation: fadeInUp 0.3s ease both; }
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.account-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+.account-row span { color: var(--tg-hint); }
+.account-row strong { font-weight: 600; }
+
+.account-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.stat-item {
+    flex: 1;
+    min-width: 80px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.stat-item span {
+    display: block;
+    font-size: 12px;
+    color: var(--tg-hint);
+    margin-bottom: 4px;
+}
+.stat-item strong {
+    font-size: 18px;
+    font-weight: 700;
 }
 
 /* Нижняя панель */
@@ -196,7 +202,13 @@ body {
 .photo-search-btn { background: rgba(0,0,0,0.65); }
 
 /* Вид работы */
-#workView { background: var(--tg-bg); display: none; align-items: center; justify-content: center; }
+#workView {
+    background: var(--tg-bg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
 #workView.active { display: flex; }
 .task-container {
     background: rgba(30,30,32,0.5);
@@ -204,7 +216,7 @@ body {
     -webkit-backdrop-filter: blur(25px);
     border-radius: 20px;
     padding: 20px;
-    width: 90%;
+    width: 100%;
     max-width: 360px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
     color: white;
@@ -277,7 +289,7 @@ body {
     margin-top: 8px;
 }
 
-/* ===== ПОПАП В ФОРМЕ МАРКЕРА (PIN) ===== */
+/* ===== PIN-МАРКЕР (круг с остриём) ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -293,20 +305,21 @@ body {
 
 .popup-pin {
     position: relative;
-    width: 100px;
-    height: auto;
+    width: 80px;
+    height: 90px;          /* круг + остриё */
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
     margin-bottom: 0;
 }
 
-/* Тело пина (прямоугольник с сильно скруглёнными нижними углами) */
 .popup-pin-body {
-    position: relative;
-    width: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    width: 80px;
+    height: 80px;
     background: rgba(20,20,22,0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 12px 12px 12px 4px;   /* верх круглый, низ слегка скруглён, но не яйцо */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 50%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -314,27 +327,10 @@ body {
     justify-content: center;
     color: white;
     text-align: center;
-    padding: 8px 6px;
-    min-height: 80px;
+    padding: 6px;
 }
 
-/* Остриё пина (треугольник снизу) */
-.popup-pin-tip {
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 14px solid rgba(20,20,22,0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
-}
-
-/* Шкала заполнения (абсолютное позиционирование внутри тела) */
+/* Заполнение шкалы (круг снизу) */
 .popup-pin-fill {
     position: absolute;
     bottom: 0;
@@ -343,10 +339,10 @@ body {
     background: var(--fuel-color, #34c759);
     transition: height 0.5s ease;
     z-index: 0;
-    border-radius: 0 0 12px 4px;  /* повторяем форму низа */
+    border-radius: 0 0 50% 50%;  /* повторяет низ круга */
 }
 
-/* Пузырьки внутри */
+/* Пузырьки */
 .popup-bubbles {
     position: absolute;
     bottom: 0; left: 0; width: 100%;
@@ -375,26 +371,42 @@ body {
     position: relative;
     z-index: 2;
     font-weight: 700;
-    font-size: 10px;
-    margin-bottom: 2px;
+    font-size: 9px;
+    margin-bottom: 1px;
     text-shadow: 0 1px 2px black;
 }
 .popup-plate {
     position: relative;
     z-index: 2;
     font-weight: 800;
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.3px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     text-shadow: 0 1px 2px black;
 }
 .popup-percent {
     position: relative;
     z-index: 2;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 10px;
     text-shadow: 0 1px 2px black;
     background: rgba(0,0,0,0.4);
-    padding: 2px 5px;
-    border-radius: 6px;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+/* Остриё */
+.popup-pin-tip {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 12px solid rgba(20,20,22,0.8);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
