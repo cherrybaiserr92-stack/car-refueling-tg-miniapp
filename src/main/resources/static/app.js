@@ -10,13 +10,19 @@ const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 let currentTaskRequest = null;
 let activeTaskMarker = null;
+let activeTaskPopup = null; // попап активной заявки, не закрывается автоматически
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
     if (viewId === 'mapView') setTimeout(() => map.invalidateSize(), 100);
     if (viewId !== 'mapView') {
-        map.closePopup();
+        // Закрываем все попапы, кроме активного
+        map.eachLayer(layer => {
+            if (layer instanceof L.Popup && layer !== activeTaskPopup) {
+                map.removeLayer(layer);
+            }
+        });
         hideActionPanel();
         clearRoute();
     }
@@ -73,7 +79,10 @@ taskLocationBtn.addEventListener('click', () => {
     }
     const latlng = activeTaskMarker.getLatLng();
     map.panTo(latlng, { animate: true, duration: 0.5 });
-    activeTaskMarker.openPopup();
+    // Убедимся, что активный попап открыт
+    if (activeTaskPopup && !map.hasLayer(activeTaskPopup)) {
+        activeTaskPopup.openOn(map);
+    }
 });
 
 // --- Маршрут OSRM ---
@@ -285,10 +294,14 @@ function completeTask(reason, liters = 0) {
         carsRefueled += 1;
         litersDispensed += liters;
         currentTaskRequest.status = 'done';
-        // Удалить маркер
+        // Удалить маркер и активный попап
         if (activeTaskMarker) {
             map.removeLayer(activeTaskMarker);
             activeTaskMarker = null;
+        }
+        if (activeTaskPopup) {
+            map.removeLayer(activeTaskPopup);
+            activeTaskPopup = null;
         }
         allRequests = allRequests.filter(r => r.id !== currentTaskRequest.id);
         renderMarkers(allRequests);
@@ -305,7 +318,7 @@ function completeTask(reason, liters = 0) {
     photoAfterInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
-    taskLocationBtn.classList.remove('visible');   // скрыть кнопку заправки
+    taskLocationBtn.classList.remove('visible');
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
@@ -320,14 +333,28 @@ function startTask(req, marker) {
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
     workBtn.classList.add('visible');
-    taskLocationBtn.classList.add('visible');   // показать кнопку заправки
+    taskLocationBtn.classList.add('visible');
     switchView('workView');
     segBtns.forEach(b => b.classList.remove('active'));
     workBtn.classList.add('active');
     hideActionPanel();
-    // Меняем иконку активной заявки на подсвеченную
+    // Создаём постоянный попап для активной заявки
+    if (activeTaskPopup) {
+        map.removeLayer(activeTaskPopup);
+    }
+    const content = createPopupContent(req);
+    activeTaskPopup = L.popup({ closeOnClick: false, autoClose: false, className: 'active-task-popup' })
+        .setLatLng(marker.getLatLng())
+        .setContent(content)
+        .openOn(map);
+    // Добавляем свечение
+    const popupElement = activeTaskPopup.getElement();
+    if (popupElement) {
+        const pin = popupElement.querySelector('.popup-pin');
+        if (pin) pin.classList.add('active-task');
+    }
+    // Обновляем иконку маркера
     marker.setIcon(createMarkerIcon(req, true));
-    map.closePopup();  // закрываем попап (будет открыт снова при возврате)
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -336,15 +363,16 @@ function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
-        // Используем обычную иконку, если заявка не активна
-        const icon = (currentTaskRequest && req.id === currentTaskRequest.id) ? createMarkerIcon(req, true) : createMarkerIcon(req);
+        const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
+        const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
-        marker.bindPopup(createPopupContent(req));
+        marker.bindPopup(createPopupContent(req), { autoClose: true }); // обычные попапы закрываются
 
         marker.on('popupopen', (e) => {
-            // Центрируем без изменения зума
-            map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
-            // Если это активная заявка, то панель "взять в работу" не показываем (уже в работе)
+            // Не центрируем, если уже есть активный попап и это не он
+            if (!isActive) {
+                map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
+            }
             showActionPanel(req, marker);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
@@ -354,9 +382,13 @@ function renderMarkers(requests) {
         });
         markers.push(marker);
     });
-    // Если была активная заявка и её удалили, сбросим
+    // Если была активная заявка и её удалили, сбрасываем
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
         activeTaskMarker = null;
+        if (activeTaskPopup) {
+            map.removeLayer(activeTaskPopup);
+            activeTaskPopup = null;
+        }
         taskLocationBtn.classList.remove('visible');
     }
 }
@@ -369,4 +401,12 @@ const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
 
-map.on('click', () => hideActionPanel());
+// Закрываем все попапы, кроме активного, при клике на карту
+map.on('click', () => {
+    hideActionPanel();
+    map.eachLayer(layer => {
+        if (layer instanceof L.Popup && layer !== activeTaskPopup) {
+            map.removeLayer(layer);
+        }
+    });
+});
