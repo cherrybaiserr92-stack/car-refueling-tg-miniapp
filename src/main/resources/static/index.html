@@ -17,7 +17,6 @@
 
     <div id="accountView" class="view">
         <div class="account-container">
-            <!-- Кнопка шестерёнки и выпадающее меню -->
             <div class="settings-wrapper">
                 <button id="settingsBtn" class="settings-btn">⚙️</button>
                 <div id="settingsMenu" class="settings-menu hidden">
@@ -29,9 +28,17 @@
                 </div>
             </div>
 
-            <!-- Бочки со свайпом -->
-            <div class="tank-swiper" id="tankSwiper">
-                <div class="tank-panel" data-fuel="ai92">
+            <!-- Карусель бочек -->
+            <div class="tank-carousel" id="tankCarousel">
+                <div class="tank-panel tank-left" data-fuel="ai95">
+                    <div class="fuel-tank" id="tankAi95">
+                        <div class="fuel-tank-fill" id="fillAi95"></div>
+                        <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
+                        <span class="fuel-tank-text" id="textAi95">0 л</span>
+                    </div>
+                    <div class="fuel-label">АИ-95</div>
+                </div>
+                <div class="tank-panel tank-center" data-fuel="ai92">
                     <div class="fuel-tank" id="tankAi92">
                         <div class="fuel-tank-fill" id="fillAi92"></div>
                         <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
@@ -39,21 +46,13 @@
                     </div>
                     <div class="fuel-label">АИ-92</div>
                 </div>
-                <div class="tank-panel" data-fuel="dt">
+                <div class="tank-panel tank-right" data-fuel="dt">
                     <div class="fuel-tank" id="tankDt">
                         <div class="fuel-tank-fill" id="fillDt"></div>
                         <div class="fuel-tank-bubbles" id="bubblesDt"></div>
                         <span class="fuel-tank-text" id="textDt">0 л</span>
                     </div>
                     <div class="fuel-label">ДТ</div>
-                </div>
-                <div class="tank-panel" data-fuel="ai95">
-                    <div class="fuel-tank" id="tankAi95">
-                        <div class="fuel-tank-fill" id="fillAi95"></div>
-                        <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
-                        <span class="fuel-tank-text" id="textAi95">0 л</span>
-                    </div>
-                    <div class="fuel-label">АИ-95</div>
                 </div>
             </div>
 
@@ -72,6 +71,7 @@
         </div>
     </div>
 
+    <!-- Вид работы без изменений -->
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>

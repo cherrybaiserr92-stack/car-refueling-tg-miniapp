@@ -99,20 +99,19 @@ let allRequests = [], markers = [];
 let carsRefueled = 0;
 let litersDispensed = 0;
 
-// Три отсека бензовоза (изначально)
 const fuelTanks = {
     ai92: 210,
     dt: 180,
     ai95: 90
 };
 
+// Текущий выбранный тип топлива
+let currentFuelType = 'ai92';
+
 function updateAccountStats() {
-    // Обновляем каждую бочку
     updateTank('ai92');
     updateTank('dt');
     updateTank('ai95');
-
-    // Статистика
     document.getElementById('carsRefueled').textContent = carsRefueled;
     document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
     const totalNeeded = allRequests
@@ -124,18 +123,18 @@ function updateAccountStats() {
 function updateTank(type) {
     const fuel = fuelTanks[type];
     const percentage = Math.min(100, (fuel / MAX_FUEL) * 100);
-    const fill = document.getElementById(`fill${type.charAt(0).toUpperCase() + type.slice(1)}`); // fillAi92 и т.д.
-    if (!fill) return;
-    fill.style.height = percentage + '%';
-    let color;
-    if (percentage <= 15) color = '#ff3b30';
-    else if (percentage <= 25) color = '#ff9500';
-    else color = '#34c759';
-    fill.style.backgroundColor = color;
-
-    const bubblesContainer = document.getElementById(`bubbles${type.charAt(0).toUpperCase() + type.slice(1)}`);
-    if (bubblesContainer) {
-        bubblesContainer.innerHTML = '';
+    const fillEl = document.getElementById(`fill${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    if (fillEl) {
+        fillEl.style.height = percentage + '%';
+        let color;
+        if (percentage <= 15) color = '#ff3b30';
+        else if (percentage <= 25) color = '#ff9500';
+        else color = '#34c759';
+        fillEl.style.backgroundColor = color;
+    }
+    const bubblesEl = document.getElementById(`bubbles${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    if (bubblesEl) {
+        bubblesEl.innerHTML = '';
         for (let i = 0; i < 6; i++) {
             const b = document.createElement('div');
             b.className = 'fuel-bubble';
@@ -144,10 +143,9 @@ function updateTank(type) {
             b.style.width = (Math.random() * 4 + 2) + 'px';
             b.style.height = b.style.width;
             b.style.animationDelay = Math.random() * 2 + 's';
-            bubblesContainer.appendChild(b);
+            bubblesEl.appendChild(b);
         }
     }
-
     const textEl = document.getElementById(`text${type.charAt(0).toUpperCase() + type.slice(1)}`);
     if (textEl) textEl.textContent = fuel + ' л';
 }
@@ -164,33 +162,104 @@ document.getElementById('refuelDTBtn').addEventListener('click', () => {
     tg.showAlert('Отсек ДТ заправлен до полного');
 });
 
-// Свайп между бочками (горизонтальная прокрутка)
-const swiper = document.getElementById('tankSwiper');
-// Поддержка плавного скролла при свайпе – браузер сам обрабатывает, но добавим принудительную прокрутку к ближайшей панели при отпускании
-let isDown = false, startX, scrollLeft;
-swiper.addEventListener('pointerdown', (e) => {
-    isDown = true;
-    startX = e.pageX - swiper.offsetLeft;
-    scrollLeft = swiper.scrollLeft;
-    swiper.style.cursor = 'grabbing';
+// --- Логика карусели бочек ---
+const carousel = document.getElementById('tankCarousel');
+let touchStartX = 0;
+let touchEndX = 0;
+
+carousel.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+carousel.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
 });
-swiper.addEventListener('pointerleave', () => { isDown = false; swiper.style.cursor = 'grab'; });
-swiper.addEventListener('pointerup', () => {
-    isDown = false;
-    swiper.style.cursor = 'grab';
-    // Доводка до ближайшей панели
-    const panelWidth = swiper.offsetWidth;
-    const currentScroll = swiper.scrollLeft;
-    const targetPanel = Math.round(currentScroll / panelWidth);
-    swiper.scrollTo({ left: targetPanel * panelWidth, behavior: 'smooth' });
-});
-swiper.addEventListener('pointermove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - swiper.offsetLeft;
-    const walk = (x - startX) * 1;
-    swiper.scrollLeft = scrollLeft - walk;
-});
+
+function handleSwipe() {
+    const diff = touchEndX - touchStartX;
+    const threshold = 50;
+    if (Math.abs(diff) < threshold) return;
+
+    // Все панели
+    const panels = carousel.querySelectorAll('.tank-panel');
+    if (panels.length < 3) return;
+
+    // Определяем текущий центральный индекс
+    let centerIndex = 0;
+    panels.forEach((p, i) => {
+        if (p.classList.contains('tank-center')) {
+            centerIndex = i;
+        }
+    });
+
+    // Направление свайпа: положительное diff -> свайп вправо (перемещаемся к предыдущей панели)
+    // отрицательное diff -> свайп влево (следующая панель)
+    if (diff > 0) {
+        // Свайп вправо – показать панель слева
+        moveCarousel(-1);
+    } else {
+        // Свайп влево – показать панель справа
+        moveCarousel(1);
+    }
+}
+
+function moveCarousel(direction) {
+    const panels = Array.from(carousel.querySelectorAll('.tank-panel'));
+    if (panels.length === 0) return;
+
+    // Найдём центральную панель
+    const centerIndex = panels.findIndex(p => p.classList.contains('tank-center'));
+    if (centerIndex === -1) return;
+
+    // Очистим все классы
+    panels.forEach(p => {
+        p.classList.remove('tank-left', 'tank-center', 'tank-right', 'tank-hidden-left', 'tank-hidden-right');
+    });
+
+    // Вычислим новый центральный индекс
+    let newCenterIndex = centerIndex + direction;
+    // Зацикливаем: если вышли за границы, перескакиваем на другой конец
+    if (newCenterIndex < 0) newCenterIndex = panels.length - 1;
+    if (newCenterIndex >= panels.length) newCenterIndex = 0;
+
+    // Левый и правый индексы
+    const leftIndex = (newCenterIndex - 1 + panels.length) % panels.length;
+    const rightIndex = (newCenterIndex + 1) % panels.length;
+
+    // Присвоим классы
+    panels[newCenterIndex].classList.add('tank-center');
+    panels[leftIndex].classList.add('tank-left');
+    panels[rightIndex].classList.add('tank-right');
+
+    // Остальные скрываем (не должно быть при трёх элементах, но на всякий случай)
+    panels.forEach((p, i) => {
+        if (i !== newCenterIndex && i !== leftIndex && i !== rightIndex) {
+            p.classList.add(direction > 0 ? 'tank-hidden-left' : 'tank-hidden-right');
+        }
+    });
+
+    // Обновляем currentFuelType по data-fuel центральной панели
+    const newFuel = panels[newCenterIndex].dataset.fuel;
+    if (newFuel) currentFuelType = newFuel;
+}
+
+// Инициализация карусели: выставляем классы
+function initCarousel() {
+    const panels = carousel.querySelectorAll('.tank-panel');
+    if (panels.length < 3) return;
+    // Очищаем
+    panels.forEach(p => {
+        p.classList.remove('tank-left', 'tank-center', 'tank-right', 'tank-hidden-left', 'tank-hidden-right');
+    });
+    // Назначаем центральную, левую, правую
+    // Пусть ai92 будет центральной (индекс 1), ai95 слева, dt справа (как в HTML)
+    panels[1].classList.add('tank-center');
+    panels[0].classList.add('tank-left');
+    panels[2].classList.add('tank-right');
+    currentFuelType = panels[1].dataset.fuel;
+}
+initCarousel();
 
 // Шестерёнка и меню
 const settingsBtn = document.getElementById('settingsBtn');
@@ -199,13 +268,11 @@ settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     settingsMenu.classList.toggle('hidden');
 });
-// Закрытие меню при клике вне его
 document.addEventListener('click', (e) => {
     if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
         settingsMenu.classList.add('hidden');
     }
 });
-// Обработчики пунктов меню
 document.getElementById('menuSupport').addEventListener('click', () => {
     tg.showAlert('Свяжитесь с диспетчером по телефону');
     settingsMenu.classList.add('hidden');
@@ -218,7 +285,6 @@ document.getElementById('menuSOS').addEventListener('click', () => {
     tg.showAlert('SOS: помощь уже в пути');
     settingsMenu.classList.add('hidden');
 });
-// Имя водителя и бензовоз – просто для информации (можно ничего не делать)
 
 async function loadRequests() {
     try {
@@ -242,9 +308,8 @@ function lightenColor(hex, f) {
 
 function createMarkerIcon(req, isActive = false) {
     let gradient;
-    if (isActive) {
-        gradient = '#000000';
-    } else {
+    if (isActive) gradient = '#000000';
+    else {
         const color = markerColor(req.fuelLevel);
         gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
     }
@@ -258,15 +323,12 @@ function createMarkerIcon(req, isActive = false) {
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-pin';
-
     const body = document.createElement('div');
     body.className = 'popup-pin-body';
-
     const fill = document.createElement('div');
     fill.className = 'popup-pin-fill';
     fill.style.height = req.fuelLevel + '%';
     fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
-
     const bubbles = document.createElement('div');
     bubbles.className = 'popup-pin-bubbles';
     for (let i = 0; i < 4; i++) {
@@ -274,28 +336,22 @@ function createPopupContent(req) {
         b.className = 'popup-bubble';
         bubbles.appendChild(b);
     }
-
     const model = document.createElement('div');
     model.className = 'popup-model';
     model.textContent = req.carModel;
-
     const plate = document.createElement('div');
     plate.className = 'popup-plate';
     plate.textContent = req.licensePlate;
-
     const percent = document.createElement('div');
     percent.className = 'popup-percent';
     percent.textContent = req.fuelLevel + '%';
-
     body.appendChild(fill);
     body.appendChild(bubbles);
     body.appendChild(model);
     body.appendChild(plate);
     body.appendChild(percent);
-
     const tip = document.createElement('div');
     tip.className = 'popup-pin-tip';
-
     container.appendChild(body);
     container.appendChild(tip);
     return container;
@@ -397,8 +453,8 @@ cancelTaskBtn.addEventListener('click', () => {
 
 function completeTask(reason, liters = 0) {
     if (reason === 'closed' && currentTaskRequest) {
-        // Предполагаем, что для заправки используется текущий выбранный отсек (не реализовано, пока просто уменьшаем общий остаток? Для простоты уменьшим из ai92)
-        fuelTanks.ai92 = Math.max(0, fuelTanks.ai92 - liters); // условно из 92-го
+        // Списание литров из текущего выбранного топлива
+        fuelTanks[currentFuelType] = Math.max(0, fuelTanks[currentFuelType] - liters);
         carsRefueled += 1;
         litersDispensed += liters;
         currentTaskRequest.status = 'done';
@@ -454,7 +510,6 @@ function renderMarkers(requests) {
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
         marker.bindPopup(createPopupContent(req));
-
         marker.on('popupopen', (e) => {
             map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
             showActionPanel(req, marker);

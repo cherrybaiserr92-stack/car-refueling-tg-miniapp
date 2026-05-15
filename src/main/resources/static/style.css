@@ -102,7 +102,7 @@ body {
     position: relative;
 }
 
-/* Шестерёнка и меню */
+/* Шестерёнка */
 .settings-wrapper {
     position: absolute;
     top: 0;
@@ -155,23 +155,59 @@ body {
 .menu-item:active { background: rgba(255,255,255,0.1); }
 .menu-sos { color: #ff3b30; font-weight: 700; }
 
-/* Свайпаемый контейнер для бочек */
-.tank-swiper {
-    display: flex;
-    overflow-x: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 20px;
-    scrollbar-width: none;
+/* Карусель бочек */
+.tank-carousel {
+    position: relative;
+    width: 100%;
+    height: 180px;   /* достаточно для центральной бочки */
+    overflow: hidden;
+    touch-action: pan-x;  /* разрешаем горизонтальный свайп */
 }
-.tank-swiper::-webkit-scrollbar { display: none; }
+
 .tank-panel {
-    flex: 0 0 100%;
-    scroll-snap-align: center;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.35s;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    pointer-events: auto;
+}
+
+/* Центральная бочка */
+.tank-center {
+    z-index: 2;
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+}
+
+/* Левая (уменьшенная) */
+.tank-left {
+    z-index: 1;
+    transform: translateX(calc(-50% - 90px)) scale(0.7);
+    opacity: 0.7;
+}
+
+/* Правая (уменьшенная) */
+.tank-right {
+    z-index: 1;
+    transform: translateX(calc(-50% + 90px)) scale(0.7);
+    opacity: 0.7;
+}
+
+/* Скрытая панель (вне экрана) */
+.tank-hidden-left {
+    transform: translateX(calc(-50% - 180px)) scale(0.7);
+    opacity: 0;
+    pointer-events: none;
+}
+.tank-hidden-right {
+    transform: translateX(calc(-50% + 180px)) scale(0.7);
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Бочка */
