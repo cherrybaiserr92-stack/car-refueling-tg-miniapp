@@ -55,6 +55,35 @@ body {
     background: rgba(60,60,64,0.8);
 }
 
+/* Кнопка возврата к активной заявке */
+.task-location-btn {
+    position: absolute;
+    top: 50%; right: 16px;
+    transform: translateY(calc(-50% + 56px));
+    z-index: 800;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(30,30,32,0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    font-size: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    outline: none;
+}
+.task-location-btn.visible {
+    display: flex;
+}
+.task-location-btn:active {
+    transform: scale(0.92) translateY(calc(-50% + 56px));
+    background: rgba(60,60,64,0.8);
+}
+
 /* Аккаунт */
 #accountView {
     background: var(--tg-bg);
@@ -286,7 +315,7 @@ body {
     margin-top: 8px;
 }
 
-/* ===== PIN-МАРКЕР ===== */
+/* ===== PIN-МАРКЕР (круг с остриём) ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -303,7 +332,7 @@ body {
 .popup-pin {
     position: relative;
     width: 70px;
-    height: 78px;          /* 70px круг + 8px остриё */
+    height: 78px;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
@@ -328,6 +357,11 @@ body {
     padding: 4px;
 }
 
+/* Свечение для активной заявки */
+.popup-pin.active-task .popup-pin-body {
+    box-shadow: 0 0 12px 4px rgba(255,255,255,0.4), 0 0 8px rgba(0,0,0,0.4);
+}
+
 /* Шкала заполнения */
 .popup-pin-fill {
     position: absolute;
@@ -340,7 +374,7 @@ body {
     border-radius: 0 0 50% 50%;
 }
 
-/* Пузырьки только в заполненной части (вся колба) */
+/* Пузырьки */
 .popup-pin-bubbles {
     position: absolute;
     bottom: 0; left: 0; width: 100%;
@@ -364,21 +398,20 @@ body {
     100% { transform: translateY(-12px) scale(0.9); opacity: 0; }
 }
 
-/* Текст внутри */
+/* Текст попапа (увеличенный, проценты ниже) */
 .popup-model {
     position: relative;
     z-index: 2;
     font-weight: 700;
-    font-size: 8px;
+    font-size: 9px;
     text-shadow: 0 1px 2px black;
     margin-bottom: 1px;
-    word-break: keep-all;
 }
 .popup-plate {
     position: relative;
     z-index: 2;
     font-weight: 800;
-    font-size: 8px;
+    font-size: 9px;
     letter-spacing: 0.2px;
     text-shadow: 0 1px 2px black;
     margin-bottom: 1px;
@@ -387,14 +420,15 @@ body {
     position: relative;
     z-index: 2;
     font-weight: 700;
-    font-size: 8px;
+    font-size: 9px;
     text-shadow: 0 1px 2px black;
     background: rgba(0,0,0,0.4);
-    padding: 1px 3px;
+    padding: 2px 4px;
     border-radius: 4px;
+    margin-top: 2px;
 }
 
-/* Остриё (треугольник) — теперь как продолжение фона */
+/* Остриё */
 .popup-pin-tip {
     position: absolute;
     bottom: 0;

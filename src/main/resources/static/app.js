@@ -2,12 +2,14 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Переключение видов (mapView, accountView, workView)
+// Переключение видов
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const mapView = document.getElementById('mapView');
 const workBtn = document.getElementById('workBtn');
+const taskLocationBtn = document.getElementById('taskLocationBtn');
 let currentTaskRequest = null;
+let activeTaskMarker = null; // маркер активной заявки
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
@@ -63,6 +65,17 @@ document.getElementById('locationBtn').addEventListener('click', () => {
     map.setView(userLocation, map.getZoom(), { animate: true, duration: 0.5 });
 });
 
+// --- Кнопка возврата к активной заявке ---
+taskLocationBtn.addEventListener('click', () => {
+    if (!activeTaskMarker) {
+        tg.showAlert('Нет активной заявки');
+        return;
+    }
+    const latlng = activeTaskMarker.getLatLng();
+    map.setView(latlng, 15, { animate: true, duration: 0.5 });
+    activeTaskMarker.openPopup();
+});
+
 // --- Маршрут OSRM ---
 let currentRouteLayer = null;
 function clearRoute() { if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; } }
@@ -82,8 +95,7 @@ async function buildRoute(from, to) {
 
 // --- Данные заявок и аккаунта ---
 let allRequests = [], markers = [];
-// Статистика аккаунта
-let fuelRemaining = 420; // литры в бензовозе
+let fuelRemaining = 420;
 let carsRefueled = 0;
 let litersDispensed = 0;
 
@@ -91,16 +103,12 @@ function updateAccountStats() {
     document.getElementById('fuelRemaining').textContent = fuelRemaining + ' л';
     document.getElementById('carsRefueled').textContent = carsRefueled;
     document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
-
-    // Суммарный недостающий объем на зоне: считаем только заявки со статусом 'active' или 'in_progress'
-    // предполагаем полный бак = 50 л, недостаток = (100 - fuelLevel)/100 * 50
     const totalNeeded = allRequests
         .filter(r => r.status !== 'done')
         .reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
     document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
 }
 
-// Инициализация
 async function loadRequests() {
     try {
         const res = await fetch('/api/requests');
@@ -110,11 +118,10 @@ async function loadRequests() {
     } catch (e) { console.error(e); }
 }
 
-// Цвета
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
-    return '#34c759'; // 26–50%, выше 50 не должно быть
+    return '#34c759';
 }
 function lightenColor(hex, f) {
     const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
@@ -185,11 +192,10 @@ const photoSearchBtn = document.getElementById('photoSearchBtn');
 
 function showActionPanel(req) {
     if (currentTaskRequest) {
-        // уже есть активная заявка, скрываем кнопку "Взять в работу"
         acceptBtn.style.display = 'none';
     } else {
         acceptBtn.style.display = 'block';
-        acceptBtn.onclick = () => startTask(req);
+        acceptBtn.onclick = () => startTask(req, marker);
     }
     actionPanel.classList.remove('hidden');
     routeBtn.onclick = () => {
@@ -246,7 +252,6 @@ setupPhotoButton(photoAfterBtn, photoAfterInput);
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
 
-// Копирование госномера и координат
 copyPlateBtn.addEventListener('click', () => {
     if (currentTaskRequest) {
         navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован'));
@@ -259,7 +264,6 @@ copyCoordsBtn.addEventListener('click', () => {
     }
 });
 
-// Закрытие заявки
 closeTaskBtn.addEventListener('click', () => {
     if (!currentTaskRequest) return;
     const liters = parseFloat(litersInput.value);
@@ -276,17 +280,20 @@ cancelTaskBtn.addEventListener('click', () => {
 
 function completeTask(reason, liters = 0) {
     if (reason === 'closed' && currentTaskRequest) {
-        // Обновляем статистику
         fuelRemaining = Math.max(0, fuelRemaining - liters);
         carsRefueled += 1;
         litersDispensed += liters;
-        // Меняем статус заявки на done
         currentTaskRequest.status = 'done';
-        // Обновить маркеры (убрать с карты или изменить иконку)
+        // Удалить маркер с карты
+        if (activeTaskMarker) {
+            map.removeLayer(activeTaskMarker);
+            activeTaskMarker = null;
+        }
+        // Убрать из общего списка
+        allRequests = allRequests.filter(r => r.id !== currentTaskRequest.id);
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    // Очищаем форму
     taskCarModel.textContent = '';
     taskPlate.textContent = '';
     taskCoords.textContent = '';
@@ -297,26 +304,32 @@ function completeTask(reason, liters = 0) {
     photoAfterInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
+    taskLocationBtn.classList.add('hidden');
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
     tg.showAlert(reason === 'closed' ? 'Заявка закрыта' : 'Заявка отменена');
 }
 
-// Запуск заявки
-function startTask(req) {
+function startTask(req, marker) {
     currentTaskRequest = req;
+    activeTaskMarker = marker;
     taskCarModel.textContent = req.carModel;
     taskPlate.textContent = req.licensePlate;
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
     workBtn.classList.add('visible');
+    taskLocationBtn.classList.remove('hidden');
     switchView('workView');
     segBtns.forEach(b => b.classList.remove('active'));
     workBtn.classList.add('active');
     hideActionPanel();
-    map.closePopup();
-    clearRoute();
+    // Не закрываем попап, наоборот, добавляем свечение
+    const popupElement = marker.getPopup()?.getElement();
+    if (popupElement) {
+        const pin = popupElement.querySelector('.popup-pin');
+        if (pin) pin.classList.add('active-task');
+    }
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -328,12 +341,28 @@ function renderMarkers(requests) {
         const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
         marker.bindPopup(createPopupContent(req));
         marker.on('popupopen', () => {
+            // Центрируем карту на заявке
+            map.setView([req.lat, req.lng], 15, { animate: true, duration: 0.5 });
             showActionPanel(req);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
-        marker.on('popupclose', () => { hideActionPanel(); clearRoute(); });
+        marker.on('popupclose', () => {
+            hideActionPanel();
+            clearRoute();
+            // Убираем свечение, если оно было
+            const popupElement = marker.getPopup()?.getElement();
+            if (popupElement) {
+                const pin = popupElement.querySelector('.popup-pin');
+                if (pin) pin.classList.remove('active-task');
+            }
+        });
         markers.push(marker);
     });
+    // Если есть активный маркер, но его заявка не в текущем списке (удалена), сбрасываем
+    if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
+        activeTaskMarker = null;
+        taskLocationBtn.classList.add('hidden');
+    }
 }
 
 // Старт
