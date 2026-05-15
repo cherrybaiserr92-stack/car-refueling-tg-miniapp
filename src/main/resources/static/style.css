@@ -315,7 +315,7 @@ body {
     margin-top: 8px;
 }
 
-/* ===== PIN-МАРКЕР (круг с остриём) ===== */
+/* ===== PIN-МАРКЕР ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -357,11 +357,6 @@ body {
     padding: 4px;
 }
 
-/* Свечение для активной заявки */
-.popup-pin.active-task .popup-pin-body {
-    box-shadow: 0 0 12px 4px rgba(255,255,255,0.4), 0 0 8px rgba(0,0,0,0.4);
-}
-
 /* Шкала заполнения */
 .popup-pin-fill {
     position: absolute;
@@ -398,7 +393,7 @@ body {
     100% { transform: translateY(-12px) scale(0.9); opacity: 0; }
 }
 
-/* Текст попапа (увеличенный, проценты ниже) */
+/* Текст попапа */
 .popup-model {
     position: relative;
     z-index: 2;

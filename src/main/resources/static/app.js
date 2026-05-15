@@ -9,7 +9,7 @@ const mapView = document.getElementById('mapView');
 const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 let currentTaskRequest = null;
-let activeTaskMarker = null; // маркер активной заявки
+let activeTaskMarker = null;
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
@@ -72,7 +72,7 @@ taskLocationBtn.addEventListener('click', () => {
         return;
     }
     const latlng = activeTaskMarker.getLatLng();
-    map.setView(latlng, 15, { animate: true, duration: 0.5 });
+    map.panTo(latlng, { animate: true, duration: 0.5 });
     activeTaskMarker.openPopup();
 });
 
@@ -128,11 +128,12 @@ function lightenColor(hex, f) {
     const to = c => Math.min(255, Math.floor(c + (255-c)*f));
     return `rgb(${to(r)},${to(g)},${to(b)})`;
 }
-function createMarkerIcon(req) {
+function createMarkerIcon(req, isActive = false) {
     const color = markerColor(req.fuelLevel);
     const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
+    const extraShadow = isActive ? '0 0 12px 4px rgba(255,255,255,0.6), ' : '';
     return L.divIcon({
-        html: `<div style="background:${gradient}; width:18px; height:18px; border-radius:50%; border:2px solid white; box-shadow:0 0 6px rgba(0,0,0,0.6),0 0 0 2px rgba(255,255,255,0.3);"></div>`,
+        html: `<div style="background:${gradient}; width:18px; height:18px; border-radius:50%; border:2px solid white; box-shadow:${extraShadow}0 0 6px rgba(0,0,0,0.6),0 0 0 2px rgba(255,255,255,0.3);"></div>`,
         iconSize: [22,22], iconAnchor: [11,11], className: ''
     });
 }
@@ -190,7 +191,7 @@ const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
-function showActionPanel(req) {
+function showActionPanel(req, marker) {
     if (currentTaskRequest) {
         acceptBtn.style.display = 'none';
     } else {
@@ -284,16 +285,16 @@ function completeTask(reason, liters = 0) {
         carsRefueled += 1;
         litersDispensed += liters;
         currentTaskRequest.status = 'done';
-        // Удалить маркер с карты
+        // Удалить маркер
         if (activeTaskMarker) {
             map.removeLayer(activeTaskMarker);
             activeTaskMarker = null;
         }
-        // Убрать из общего списка
         allRequests = allRequests.filter(r => r.id !== currentTaskRequest.id);
         renderMarkers(allRequests);
     }
     updateAccountStats();
+    // Очистить форму
     taskCarModel.textContent = '';
     taskPlate.textContent = '';
     taskCoords.textContent = '';
@@ -304,7 +305,7 @@ function completeTask(reason, liters = 0) {
     photoAfterInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
-    taskLocationBtn.classList.add('hidden');
+    taskLocationBtn.classList.remove('visible');   // скрыть кнопку заправки
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
@@ -319,17 +320,14 @@ function startTask(req, marker) {
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
     workBtn.classList.add('visible');
-    taskLocationBtn.classList.remove('hidden');
+    taskLocationBtn.classList.add('visible');   // показать кнопку заправки
     switchView('workView');
     segBtns.forEach(b => b.classList.remove('active'));
     workBtn.classList.add('active');
     hideActionPanel();
-    // Не закрываем попап, наоборот, добавляем свечение
-    const popupElement = marker.getPopup()?.getElement();
-    if (popupElement) {
-        const pin = popupElement.querySelector('.popup-pin');
-        if (pin) pin.classList.add('active-task');
-    }
+    // Меняем иконку активной заявки на подсвеченную
+    marker.setIcon(createMarkerIcon(req, true));
+    map.closePopup();  // закрываем попап (будет открыт снова при возврате)
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -338,30 +336,28 @@ function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
-        const marker = L.marker([req.lat, req.lng], { icon: createMarkerIcon(req) }).addTo(map);
+        // Используем обычную иконку, если заявка не активна
+        const icon = (currentTaskRequest && req.id === currentTaskRequest.id) ? createMarkerIcon(req, true) : createMarkerIcon(req);
+        const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
         marker.bindPopup(createPopupContent(req));
-        marker.on('popupopen', () => {
-            // Центрируем карту на заявке
-            map.setView([req.lat, req.lng], 15, { animate: true, duration: 0.5 });
-            showActionPanel(req);
+
+        marker.on('popupopen', (e) => {
+            // Центрируем без изменения зума
+            map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
+            // Если это активная заявка, то панель "взять в работу" не показываем (уже в работе)
+            showActionPanel(req, marker);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
         marker.on('popupclose', () => {
             hideActionPanel();
             clearRoute();
-            // Убираем свечение, если оно было
-            const popupElement = marker.getPopup()?.getElement();
-            if (popupElement) {
-                const pin = popupElement.querySelector('.popup-pin');
-                if (pin) pin.classList.remove('active-task');
-            }
         });
         markers.push(marker);
     });
-    // Если есть активный маркер, но его заявка не в текущем списке (удалена), сбрасываем
+    // Если была активная заявка и её удалили, сбросим
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
         activeTaskMarker = null;
-        taskLocationBtn.classList.add('hidden');
+        taskLocationBtn.classList.remove('visible');
     }
 }
 
