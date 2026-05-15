@@ -9,33 +9,37 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Вид карты -->
     <div id="mapView" class="view active">
         <div id="map"></div>
         <button id="locationBtn" class="location-btn">🧭</button>
     </div>
 
-    <!-- Вид аккаунта (вместо списка заявок) -->
     <div id="accountView" class="view">
         <div class="account-container">
             <h2 class="account-title">Аккаунт водителя</h2>
             <div class="account-card">
                 <div class="account-row"><span>Водитель:</span> <strong>Иван Петров</strong></div>
                 <div class="account-row"><span>Бензовоз:</span> <strong>ГАЗель А123ВС 178</strong></div>
-                <div class="account-row"><span>Остаток топлива в бензовозе:</span> <strong>420 л</strong></div>
+                <div class="account-row"><span>Остаток топлива в бензовозе:</span> <strong id="fuelRemaining">420 л</strong></div>
             </div>
             <div class="account-stats">
-                <div class="stat-item"><span>Заправлено машин</span><strong>12</strong></div>
-                <div class="stat-item"><span>Слито литров</span><strong>340 л</strong></div>
-                <div class="stat-item"><span>На зоне требуется</span><strong>1 250 л</strong></div>
+                <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
+                <div class="stat-item"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
+                <div class="stat-item"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
             </div>
         </div>
     </div>
 
-    <!-- Вид выполнения заявки (без изменений) -->
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>
+            <!-- Информация о заявке -->
+            <div class="task-info" id="taskInfo">
+                <div class="info-row"><span>Авто:</span> <strong id="taskCarModel"></strong></div>
+                <div class="info-row"><span>Госномер:</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn">📋</button></div>
+                <div class="info-row"><span>Координаты:</span> <strong id="taskCoords"></strong> <button id="copyCoordsBtn" class="copy-btn">📋</button></div>
+                <div class="info-row"><span>Заявка №:</span> <strong id="taskId"></strong></div>
+            </div>
             <div class="task-actions">
                 <button id="openDoorsBtn" class="door-btn">Открыть двери</button>
                 <button id="closeDoorsBtn" class="door-btn">Закрыть двери</button>
@@ -63,7 +67,6 @@
         </div>
     </div>
 
-    <!-- Панель действий -->
     <div id="actionPanel" class="action-panel hidden">
         <div class="action-buttons">
             <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
@@ -72,7 +75,6 @@
         </div>
     </div>
 
-    <!-- Нижняя панель: Карта, Аккаунт, В работе -->
     <div class="segmented-panel">
         <div class="segmented-control" id="segmentedControl">
             <button class="seg-btn active" data-view="mapView">Карта</button>

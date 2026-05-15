@@ -12,9 +12,7 @@ let currentTaskRequest = null;
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-    if (viewId === 'mapView') {
-        setTimeout(() => map.invalidateSize(), 100);
-    }
+    if (viewId === 'mapView') setTimeout(() => map.invalidateSize(), 100);
     if (viewId !== 'mapView') {
         map.closePopup();
         hideActionPanel();
@@ -39,10 +37,7 @@ const map = L.map('map', {
     zoomControl: false,
     attributionControl: false
 });
-L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-    maxZoom: 20,
-    attribution: 'Google'
-}).addTo(map);
+L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google' }).addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 // --- Местоположение ---
@@ -79,20 +74,47 @@ async function buildRoute(from, to) {
         const resp = await fetch(url);
         const data = await resp.json();
         if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) return;
-        const route = data.routes[0].geometry;
-        currentRouteLayer = L.geoJSON({ type: 'Feature', geometry: route }, { style: { color: '#007aff', weight: 5, opacity: 0.8, lineJoin: 'round', lineCap: 'round' } }).addTo(map);
-    } catch (error) { console.error('Ошибка построения маршрута', error); }
+        currentRouteLayer = L.geoJSON({ type: 'Feature', geometry: data.routes[0].geometry }, {
+            style: { color: '#007aff', weight: 5, opacity: 0.8 }
+        }).addTo(map);
+    } catch (e) { console.error('Ошибка построения маршрута', e); }
 }
 
-// --- Заявки на карте (без списка) ---
+// --- Данные заявок и аккаунта ---
 let allRequests = [], markers = [];
+// Статистика аккаунта
+let fuelRemaining = 420; // литры в бензовозе
+let carsRefueled = 0;
+let litersDispensed = 0;
 
-function getStatusText(s) { return s === 'active' ? 'Срочно' : s === 'in_progress' ? 'В работе' : 'Готово'; }
+function updateAccountStats() {
+    document.getElementById('fuelRemaining').textContent = fuelRemaining + ' л';
+    document.getElementById('carsRefueled').textContent = carsRefueled;
+    document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
 
+    // Суммарный недостающий объем на зоне: считаем только заявки со статусом 'active' или 'in_progress'
+    // предполагаем полный бак = 50 л, недостаток = (100 - fuelLevel)/100 * 50
+    const totalNeeded = allRequests
+        .filter(r => r.status !== 'done')
+        .reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
+    document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
+}
+
+// Инициализация
+async function loadRequests() {
+    try {
+        const res = await fetch('/api/requests');
+        allRequests = await res.json();
+        renderMarkers(allRequests);
+        updateAccountStats();
+    } catch (e) { console.error(e); }
+}
+
+// Цвета
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
-    return '#34c759';
+    return '#34c759'; // 26–50%, выше 50 не должно быть
 }
 function lightenColor(hex, f) {
     const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
@@ -108,7 +130,7 @@ function createMarkerIcon(req) {
     });
 }
 
-// ===== PIN-МАРКЕР (круг с остриём) =====
+// ===== PIN-МАРКЕР =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-pin';
@@ -116,15 +138,13 @@ function createPopupContent(req) {
     const body = document.createElement('div');
     body.className = 'popup-pin-body';
 
-    // Шкала заполнения
     const fill = document.createElement('div');
     fill.className = 'popup-pin-fill';
     fill.style.height = req.fuelLevel + '%';
     fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
 
-    // Пузырьки
     const bubbles = document.createElement('div');
-    bubbles.className = 'popup-bubbles';
+    bubbles.className = 'popup-pin-bubbles';
     for (let i = 0; i < 4; i++) {
         const b = document.createElement('div');
         b.className = 'popup-bubble';
@@ -154,7 +174,6 @@ function createPopupContent(req) {
 
     container.appendChild(body);
     container.appendChild(tip);
-
     return container;
 }
 
@@ -165,20 +184,37 @@ const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
 function showActionPanel(req) {
+    if (currentTaskRequest) {
+        // уже есть активная заявка, скрываем кнопку "Взять в работу"
+        acceptBtn.style.display = 'none';
+    } else {
+        acceptBtn.style.display = 'block';
+        acceptBtn.onclick = () => startTask(req);
+    }
     actionPanel.classList.remove('hidden');
-    acceptBtn.onclick = () => startTask(req);
     routeBtn.onclick = () => {
         const coords = `${req.lat}, ${req.lng}`;
-        navigator.clipboard ? navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы')) : tg.showAlert(`Координаты: ${coords}`);
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+        } else tg.showAlert(`Координаты: ${coords}`);
     };
     photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
 }
+
 function hideActionPanel() {
     actionPanel.classList.add('hidden');
-    acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null;
+    acceptBtn.onclick = null;
+    routeBtn.onclick = null;
+    photoSearchBtn.onclick = null;
 }
 
-// Элементы формы заявки
+// Элементы окна выполнения
+const taskCarModel = document.getElementById('taskCarModel');
+const taskPlate = document.getElementById('taskPlate');
+const taskCoords = document.getElementById('taskCoords');
+const taskId = document.getElementById('taskId');
+const copyPlateBtn = document.getElementById('copyPlateBtn');
+const copyCoordsBtn = document.getElementById('copyCoordsBtn');
 const photoBeforeBtn = document.getElementById('photoBeforeBtn');
 const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
@@ -206,26 +242,74 @@ function setupPhotoButton(btn, input) {
 }
 setupPhotoButton(photoBeforeBtn, photoBeforeInput);
 setupPhotoButton(photoAfterBtn, photoAfterInput);
+
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
-closeTaskBtn.addEventListener('click', () => completeTask('closed'));
-cancelTaskBtn.addEventListener('click', () => { if (confirm('Отменить заявку?')) completeTask('cancelled'); });
 
-function completeTask(reason) {
-    const liters = litersInput.value, comment = commentInput.value;
-    console.log(`Заявка ${currentTaskRequest?.id} завершена: ${reason}, литры: ${liters}, комментарий: ${comment}`);
+// Копирование госномера и координат
+copyPlateBtn.addEventListener('click', () => {
+    if (currentTaskRequest) {
+        navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован'));
+    }
+});
+copyCoordsBtn.addEventListener('click', () => {
+    if (currentTaskRequest) {
+        const coords = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`;
+        navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+    }
+});
+
+// Закрытие заявки
+closeTaskBtn.addEventListener('click', () => {
+    if (!currentTaskRequest) return;
+    const liters = parseFloat(litersInput.value);
+    if (isNaN(liters) || liters <= 0) {
+        tg.showAlert('Введите корректный литраж');
+        return;
+    }
+    completeTask('closed', liters);
+});
+
+cancelTaskBtn.addEventListener('click', () => {
+    if (confirm('Отменить заявку?')) completeTask('cancelled');
+});
+
+function completeTask(reason, liters = 0) {
+    if (reason === 'closed' && currentTaskRequest) {
+        // Обновляем статистику
+        fuelRemaining = Math.max(0, fuelRemaining - liters);
+        carsRefueled += 1;
+        litersDispensed += liters;
+        // Меняем статус заявки на done
+        currentTaskRequest.status = 'done';
+        // Обновить маркеры (убрать с карты или изменить иконку)
+        renderMarkers(allRequests);
+    }
+    updateAccountStats();
+    // Очищаем форму
+    taskCarModel.textContent = '';
+    taskPlate.textContent = '';
+    taskCoords.textContent = '';
+    taskId.textContent = '';
+    litersInput.value = '';
+    commentInput.value = '';
+    photoBeforeInput.value = '';
+    photoAfterInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
-    litersInput.value = commentInput.value = '';
-    photoBeforeInput.value = photoAfterInput.value = '';
     tg.showAlert(reason === 'closed' ? 'Заявка закрыта' : 'Заявка отменена');
 }
 
+// Запуск заявки
 function startTask(req) {
     currentTaskRequest = req;
+    taskCarModel.textContent = req.carModel;
+    taskPlate.textContent = req.licensePlate;
+    taskCoords.textContent = `${req.lat}, ${req.lng}`;
+    taskId.textContent = req.id;
     workBtn.classList.add('visible');
     switchView('workView');
     segBtns.forEach(b => b.classList.remove('active'));
@@ -252,19 +336,10 @@ function renderMarkers(requests) {
     });
 }
 
-// Инициализация карты
-async function loadRequests() {
-    try {
-        const res = await fetch('/api/requests');
-        allRequests = await res.json();
-        renderMarkers(allRequests);
-    } catch (e) {
-        console.error(e);
-    }
-}
+// Старт
 loadRequests();
 
-// Прозрачная обёртка для Leaflet
+// Стилизация Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
