@@ -10,19 +10,13 @@ const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 let currentTaskRequest = null;
 let activeTaskMarker = null;
-let activeTaskPopup = null; // попап активной заявки, не закрывается автоматически
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
     if (viewId === 'mapView') setTimeout(() => map.invalidateSize(), 100);
     if (viewId !== 'mapView') {
-        // Закрываем все попапы, кроме активного
-        map.eachLayer(layer => {
-            if (layer instanceof L.Popup && layer !== activeTaskPopup) {
-                map.removeLayer(layer);
-            }
-        });
+        map.closePopup();
         hideActionPanel();
         clearRoute();
     }
@@ -79,10 +73,7 @@ taskLocationBtn.addEventListener('click', () => {
     }
     const latlng = activeTaskMarker.getLatLng();
     map.panTo(latlng, { animate: true, duration: 0.5 });
-    // Убедимся, что активный попап открыт
-    if (activeTaskPopup && !map.hasLayer(activeTaskPopup)) {
-        activeTaskPopup.openOn(map);
-    }
+    activeTaskMarker.openPopup();
 });
 
 // --- Маршрут OSRM ---
@@ -137,12 +128,18 @@ function lightenColor(hex, f) {
     const to = c => Math.min(255, Math.floor(c + (255-c)*f));
     return `rgb(${to(r)},${to(g)},${to(b)})`;
 }
+
+// Изменённая иконка: для активной заявки – чёрный фон с белой обводкой
 function createMarkerIcon(req, isActive = false) {
-    const color = markerColor(req.fuelLevel);
-    const gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
-    const extraShadow = isActive ? '0 0 12px 4px rgba(255,255,255,0.6), ' : '';
+    let gradient;
+    if (isActive) {
+        gradient = '#000000'; // чёрный
+    } else {
+        const color = markerColor(req.fuelLevel);
+        gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
+    }
     return L.divIcon({
-        html: `<div style="background:${gradient}; width:18px; height:18px; border-radius:50%; border:2px solid white; box-shadow:${extraShadow}0 0 6px rgba(0,0,0,0.6),0 0 0 2px rgba(255,255,255,0.3);"></div>`,
+        html: `<div style="background:${gradient}; width:18px; height:18px; border-radius:50%; border:2px solid white; box-shadow:0 0 6px rgba(0,0,0,0.6),0 0 0 2px rgba(255,255,255,0.3);"></div>`,
         iconSize: [22,22], iconAnchor: [11,11], className: ''
     });
 }
@@ -294,14 +291,10 @@ function completeTask(reason, liters = 0) {
         carsRefueled += 1;
         litersDispensed += liters;
         currentTaskRequest.status = 'done';
-        // Удалить маркер и активный попап
+        // Удалить маркер
         if (activeTaskMarker) {
             map.removeLayer(activeTaskMarker);
             activeTaskMarker = null;
-        }
-        if (activeTaskPopup) {
-            map.removeLayer(activeTaskPopup);
-            activeTaskPopup = null;
         }
         allRequests = allRequests.filter(r => r.id !== currentTaskRequest.id);
         renderMarkers(allRequests);
@@ -338,23 +331,10 @@ function startTask(req, marker) {
     segBtns.forEach(b => b.classList.remove('active'));
     workBtn.classList.add('active');
     hideActionPanel();
-    // Создаём постоянный попап для активной заявки
-    if (activeTaskPopup) {
-        map.removeLayer(activeTaskPopup);
-    }
-    const content = createPopupContent(req);
-    activeTaskPopup = L.popup({ closeOnClick: false, autoClose: false, className: 'active-task-popup' })
-        .setLatLng(marker.getLatLng())
-        .setContent(content)
-        .openOn(map);
-    // Добавляем свечение
-    const popupElement = activeTaskPopup.getElement();
-    if (popupElement) {
-        const pin = popupElement.querySelector('.popup-pin');
-        if (pin) pin.classList.add('active-task');
-    }
-    // Обновляем иконку маркера
+    // Обновляем иконку на чёрную
     marker.setIcon(createMarkerIcon(req, true));
+    // Закрываем попап, если открыт (пользователь сам откроет при возврате)
+    map.closePopup();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -366,13 +346,10 @@ function renderMarkers(requests) {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
-        marker.bindPopup(createPopupContent(req), { autoClose: true }); // обычные попапы закрываются
+        marker.bindPopup(createPopupContent(req));
 
         marker.on('popupopen', (e) => {
-            // Не центрируем, если уже есть активный попап и это не он
-            if (!isActive) {
-                map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
-            }
+            map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
             showActionPanel(req, marker);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
@@ -385,10 +362,6 @@ function renderMarkers(requests) {
     // Если была активная заявка и её удалили, сбрасываем
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
         activeTaskMarker = null;
-        if (activeTaskPopup) {
-            map.removeLayer(activeTaskPopup);
-            activeTaskPopup = null;
-        }
         taskLocationBtn.classList.remove('visible');
     }
 }
@@ -401,12 +374,4 @@ const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
 
-// Закрываем все попапы, кроме активного, при клике на карту
-map.on('click', () => {
-    hideActionPanel();
-    map.eachLayer(layer => {
-        if (layer instanceof L.Popup && layer !== activeTaskPopup) {
-            map.removeLayer(layer);
-        }
-    });
-});
+map.on('click', () => hideActionPanel());
