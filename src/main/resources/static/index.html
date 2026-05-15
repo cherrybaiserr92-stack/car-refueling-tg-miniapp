@@ -17,12 +17,43 @@
 
     <div id="accountView" class="view">
         <div class="account-container">
-            <!-- Бензовоз: бочка с остатком -->
-            <div class="fuel-tank-wrapper">
-                <div class="fuel-tank" id="fuelTank">
-                    <div class="fuel-tank-fill" id="fuelTankFill"></div>
-                    <div class="fuel-tank-bubbles" id="fuelTankBubbles"></div>
-                    <span class="fuel-tank-text" id="fuelTankText">0 л</span>
+            <!-- Кнопка шестерёнки и выпадающее меню -->
+            <div class="settings-wrapper">
+                <button id="settingsBtn" class="settings-btn">⚙️</button>
+                <div id="settingsMenu" class="settings-menu hidden">
+                    <div class="menu-item" id="menuDriver">👤 Иван Петров</div>
+                    <div class="menu-item" id="menuTruck">🚛 ГАЗель А123ВС 178</div>
+                    <div class="menu-item" id="menuSupport">📞 Поддержка</div>
+                    <div class="menu-item" id="menuInstructions">📖 Инструкции</div>
+                    <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
+                </div>
+            </div>
+
+            <!-- Бочки со свайпом -->
+            <div class="tank-swiper" id="tankSwiper">
+                <div class="tank-panel" data-fuel="ai92">
+                    <div class="fuel-tank" id="tankAi92">
+                        <div class="fuel-tank-fill" id="fillAi92"></div>
+                        <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
+                        <span class="fuel-tank-text" id="textAi92">0 л</span>
+                    </div>
+                    <div class="fuel-label">АИ-92</div>
+                </div>
+                <div class="tank-panel" data-fuel="dt">
+                    <div class="fuel-tank" id="tankDt">
+                        <div class="fuel-tank-fill" id="fillDt"></div>
+                        <div class="fuel-tank-bubbles" id="bubblesDt"></div>
+                        <span class="fuel-tank-text" id="textDt">0 л</span>
+                    </div>
+                    <div class="fuel-label">ДТ</div>
+                </div>
+                <div class="tank-panel" data-fuel="ai95">
+                    <div class="fuel-tank" id="tankAi95">
+                        <div class="fuel-tank-fill" id="fillAi95"></div>
+                        <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
+                        <span class="fuel-tank-text" id="textAi95">0 л</span>
+                    </div>
+                    <div class="fuel-label">АИ-95</div>
                 </div>
             </div>
 
@@ -38,16 +69,9 @@
                 <div class="stat-item"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
             </div>
-
-            <!-- Кнопки поддержка и инструкции -->
-            <div class="support-buttons">
-                <button id="supportBtn" class="support-btn">Поддержка</button>
-                <button id="instructionsBtn" class="support-btn">Инструкции</button>
-            </div>
         </div>
     </div>
 
-    <!-- Остальные виды без изменений -->
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>

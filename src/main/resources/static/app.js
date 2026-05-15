@@ -96,37 +96,21 @@ async function buildRoute(from, to) {
 
 // --- Данные заявок и аккаунта ---
 let allRequests = [], markers = [];
-let fuelRemaining = 210; // начальный остаток, например 210 л из 320
 let carsRefueled = 0;
 let litersDispensed = 0;
 
+// Три отсека бензовоза (изначально)
+const fuelTanks = {
+    ai92: 210,
+    dt: 180,
+    ai95: 90
+};
+
 function updateAccountStats() {
-    // Обновляем бочку
-    const percentage = Math.min(100, (fuelRemaining / MAX_FUEL) * 100);
-    const tankFill = document.getElementById('fuelTankFill');
-    tankFill.style.height = percentage + '%';
-    // Цвет как у заявок
-    let color;
-    if (percentage <= 15) color = '#ff3b30';
-    else if (percentage <= 25) color = '#ff9500';
-    else color = '#34c759';
-    tankFill.style.backgroundColor = color;
-
-    // Пересоздаём пузырьки (чтобы анимация перезапустилась)
-    const bubblesContainer = document.getElementById('fuelTankBubbles');
-    bubblesContainer.innerHTML = '';
-    for (let i = 0; i < 6; i++) {
-        const b = document.createElement('div');
-        b.className = 'fuel-bubble';
-        b.style.left = (Math.random() * 80 + 10) + '%';
-        b.style.bottom = (Math.random() * 20 + 5) + '%';
-        b.style.width = (Math.random() * 4 + 2) + 'px';
-        b.style.height = b.style.width;
-        b.style.animationDelay = Math.random() * 2 + 's';
-        bubblesContainer.appendChild(b);
-    }
-
-    document.getElementById('fuelTankText').textContent = fuelRemaining + ' л';
+    // Обновляем каждую бочку
+    updateTank('ai92');
+    updateTank('dt');
+    updateTank('ai95');
 
     // Статистика
     document.getElementById('carsRefueled').textContent = carsRefueled;
@@ -137,26 +121,104 @@ function updateAccountStats() {
     document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
 }
 
+function updateTank(type) {
+    const fuel = fuelTanks[type];
+    const percentage = Math.min(100, (fuel / MAX_FUEL) * 100);
+    const fill = document.getElementById(`fill${type.charAt(0).toUpperCase() + type.slice(1)}`); // fillAi92 и т.д.
+    if (!fill) return;
+    fill.style.height = percentage + '%';
+    let color;
+    if (percentage <= 15) color = '#ff3b30';
+    else if (percentage <= 25) color = '#ff9500';
+    else color = '#34c759';
+    fill.style.backgroundColor = color;
+
+    const bubblesContainer = document.getElementById(`bubbles${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    if (bubblesContainer) {
+        bubblesContainer.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const b = document.createElement('div');
+            b.className = 'fuel-bubble';
+            b.style.left = (Math.random() * 80 + 10) + '%';
+            b.style.bottom = (Math.random() * 20 + 5) + '%';
+            b.style.width = (Math.random() * 4 + 2) + 'px';
+            b.style.height = b.style.width;
+            b.style.animationDelay = Math.random() * 2 + 's';
+            bubblesContainer.appendChild(b);
+        }
+    }
+
+    const textEl = document.getElementById(`text${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    if (textEl) textEl.textContent = fuel + ' л';
+}
+
 // Кнопки заправки
 document.getElementById('refuelA92Btn').addEventListener('click', () => {
-    fuelRemaining = MAX_FUEL;
+    fuelTanks.ai92 = MAX_FUEL;
     updateAccountStats();
-    tg.showAlert('Бензовоз заправлен АИ-92 до полного');
+    tg.showAlert('Отсек АИ-92 заправлен до полного');
 });
-
 document.getElementById('refuelDTBtn').addEventListener('click', () => {
-    fuelRemaining = MAX_FUEL;
+    fuelTanks.dt = MAX_FUEL;
     updateAccountStats();
-    tg.showAlert('Бензовоз заправлен ДТ до полного');
+    tg.showAlert('Отсек ДТ заправлен до полного');
 });
 
-// Кнопки поддержка и инструкции
-document.getElementById('supportBtn').addEventListener('click', () => {
-    tg.showAlert('Поддержка: свяжитесь с диспетчером');
+// Свайп между бочками (горизонтальная прокрутка)
+const swiper = document.getElementById('tankSwiper');
+// Поддержка плавного скролла при свайпе – браузер сам обрабатывает, но добавим принудительную прокрутку к ближайшей панели при отпускании
+let isDown = false, startX, scrollLeft;
+swiper.addEventListener('pointerdown', (e) => {
+    isDown = true;
+    startX = e.pageX - swiper.offsetLeft;
+    scrollLeft = swiper.scrollLeft;
+    swiper.style.cursor = 'grabbing';
 });
-document.getElementById('instructionsBtn').addEventListener('click', () => {
+swiper.addEventListener('pointerleave', () => { isDown = false; swiper.style.cursor = 'grab'; });
+swiper.addEventListener('pointerup', () => {
+    isDown = false;
+    swiper.style.cursor = 'grab';
+    // Доводка до ближайшей панели
+    const panelWidth = swiper.offsetWidth;
+    const currentScroll = swiper.scrollLeft;
+    const targetPanel = Math.round(currentScroll / panelWidth);
+    swiper.scrollTo({ left: targetPanel * panelWidth, behavior: 'smooth' });
+});
+swiper.addEventListener('pointermove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - swiper.offsetLeft;
+    const walk = (x - startX) * 1;
+    swiper.scrollLeft = scrollLeft - walk;
+});
+
+// Шестерёнка и меню
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsMenu = document.getElementById('settingsMenu');
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    settingsMenu.classList.toggle('hidden');
+});
+// Закрытие меню при клике вне его
+document.addEventListener('click', (e) => {
+    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+        settingsMenu.classList.add('hidden');
+    }
+});
+// Обработчики пунктов меню
+document.getElementById('menuSupport').addEventListener('click', () => {
+    tg.showAlert('Свяжитесь с диспетчером по телефону');
+    settingsMenu.classList.add('hidden');
+});
+document.getElementById('menuInstructions').addEventListener('click', () => {
     tg.showAlert('Инструкция по заправке каршеринга...');
+    settingsMenu.classList.add('hidden');
 });
+document.getElementById('menuSOS').addEventListener('click', () => {
+    tg.showAlert('SOS: помощь уже в пути');
+    settingsMenu.classList.add('hidden');
+});
+// Имя водителя и бензовоз – просто для информации (можно ничего не делать)
 
 async function loadRequests() {
     try {
@@ -335,7 +397,8 @@ cancelTaskBtn.addEventListener('click', () => {
 
 function completeTask(reason, liters = 0) {
     if (reason === 'closed' && currentTaskRequest) {
-        fuelRemaining = Math.max(0, fuelRemaining - liters);
+        // Предполагаем, что для заправки используется текущий выбранный отсек (не реализовано, пока просто уменьшаем общий остаток? Для простоты уменьшим из ai92)
+        fuelTanks.ai92 = Math.max(0, fuelTanks.ai92 - liters); // условно из 92-го
         carsRefueled += 1;
         litersDispensed += liters;
         currentTaskRequest.status = 'done';
