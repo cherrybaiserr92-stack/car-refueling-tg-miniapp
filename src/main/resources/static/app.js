@@ -10,6 +10,7 @@ const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 let currentTaskRequest = null;
 let activeTaskMarker = null;
+const MAX_FUEL = 320;
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
@@ -95,12 +96,39 @@ async function buildRoute(from, to) {
 
 // --- Данные заявок и аккаунта ---
 let allRequests = [], markers = [];
-let fuelRemaining = 420;
+let fuelRemaining = 210; // начальный остаток, например 210 л из 320
 let carsRefueled = 0;
 let litersDispensed = 0;
 
 function updateAccountStats() {
-    document.getElementById('fuelRemaining').textContent = fuelRemaining + ' л';
+    // Обновляем бочку
+    const percentage = Math.min(100, (fuelRemaining / MAX_FUEL) * 100);
+    const tankFill = document.getElementById('fuelTankFill');
+    tankFill.style.height = percentage + '%';
+    // Цвет как у заявок
+    let color;
+    if (percentage <= 15) color = '#ff3b30';
+    else if (percentage <= 25) color = '#ff9500';
+    else color = '#34c759';
+    tankFill.style.backgroundColor = color;
+
+    // Пересоздаём пузырьки (чтобы анимация перезапустилась)
+    const bubblesContainer = document.getElementById('fuelTankBubbles');
+    bubblesContainer.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+        const b = document.createElement('div');
+        b.className = 'fuel-bubble';
+        b.style.left = (Math.random() * 80 + 10) + '%';
+        b.style.bottom = (Math.random() * 20 + 5) + '%';
+        b.style.width = (Math.random() * 4 + 2) + 'px';
+        b.style.height = b.style.width;
+        b.style.animationDelay = Math.random() * 2 + 's';
+        bubblesContainer.appendChild(b);
+    }
+
+    document.getElementById('fuelTankText').textContent = fuelRemaining + ' л';
+
+    // Статистика
     document.getElementById('carsRefueled').textContent = carsRefueled;
     document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
     const totalNeeded = allRequests
@@ -108,6 +136,27 @@ function updateAccountStats() {
         .reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
     document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
 }
+
+// Кнопки заправки
+document.getElementById('refuelA92Btn').addEventListener('click', () => {
+    fuelRemaining = MAX_FUEL;
+    updateAccountStats();
+    tg.showAlert('Бензовоз заправлен АИ-92 до полного');
+});
+
+document.getElementById('refuelDTBtn').addEventListener('click', () => {
+    fuelRemaining = MAX_FUEL;
+    updateAccountStats();
+    tg.showAlert('Бензовоз заправлен ДТ до полного');
+});
+
+// Кнопки поддержка и инструкции
+document.getElementById('supportBtn').addEventListener('click', () => {
+    tg.showAlert('Поддержка: свяжитесь с диспетчером');
+});
+document.getElementById('instructionsBtn').addEventListener('click', () => {
+    tg.showAlert('Инструкция по заправке каршеринга...');
+});
 
 async function loadRequests() {
     try {
@@ -129,11 +178,10 @@ function lightenColor(hex, f) {
     return `rgb(${to(r)},${to(g)},${to(b)})`;
 }
 
-// Изменённая иконка: для активной заявки – чёрный фон с белой обводкой
 function createMarkerIcon(req, isActive = false) {
     let gradient;
     if (isActive) {
-        gradient = '#000000'; // чёрный
+        gradient = '#000000';
     } else {
         const color = markerColor(req.fuelLevel);
         gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
@@ -291,7 +339,6 @@ function completeTask(reason, liters = 0) {
         carsRefueled += 1;
         litersDispensed += liters;
         currentTaskRequest.status = 'done';
-        // Удалить маркер
         if (activeTaskMarker) {
             map.removeLayer(activeTaskMarker);
             activeTaskMarker = null;
@@ -300,7 +347,6 @@ function completeTask(reason, liters = 0) {
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    // Очистить форму
     taskCarModel.textContent = '';
     taskPlate.textContent = '';
     taskCoords.textContent = '';
@@ -331,9 +377,7 @@ function startTask(req, marker) {
     segBtns.forEach(b => b.classList.remove('active'));
     workBtn.classList.add('active');
     hideActionPanel();
-    // Обновляем иконку на чёрную
     marker.setIcon(createMarkerIcon(req, true));
-    // Закрываем попап, если открыт (пользователь сам откроет при возврате)
     map.closePopup();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
@@ -359,7 +403,6 @@ function renderMarkers(requests) {
         });
         markers.push(marker);
     });
-    // Если была активная заявка и её удалили, сбрасываем
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
         activeTaskMarker = null;
         taskLocationBtn.classList.remove('visible');

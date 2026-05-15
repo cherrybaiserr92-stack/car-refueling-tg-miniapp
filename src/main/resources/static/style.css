@@ -55,7 +55,6 @@ body {
     background: rgba(60,60,64,0.8);
 }
 
-/* Кнопка возврата к активной заявке */
 .task-location-btn {
     position: absolute;
     top: 50%; right: 16px;
@@ -99,24 +98,87 @@ body {
     max-width: 400px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
-.account-title { font-size: 20px; font-weight: 600; text-align: center; }
-.account-card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.account-row { display: flex; justify-content: space-between; font-size: 14px; }
-.account-row span { color: var(--tg-hint); }
-.account-row strong { font-weight: 600; }
 
-.account-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Бочка с топливом */
+.fuel-tank-wrapper {
+    display: flex;
+    justify-content: center;
+}
+.fuel-tank {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    background: rgba(20,20,22,0.8);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+.fuel-tank-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--fuel-color, #34c759);
+    transition: height 0.5s ease;
+    z-index: 0;
+    border-radius: 0 0 50% 50%;
+}
+.fuel-tank-bubbles {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+.fuel-tank-bubbles .fuel-bubble {
+    position: absolute;
+    background: rgba(255,255,255,0.7);
+    border-radius: 50%;
+    animation: floatBubble 2.5s infinite ease-in-out;
+}
+.fuel-tank-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 2px 4px black;
+    z-index: 2;
+}
+
+/* Кнопки заправки */
+.refuel-buttons {
+    display: flex;
+    gap: 10px;
+}
+.refuel-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+    background: var(--tg-accent);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: background 0.2s;
+}
+.refuel-btn:active { opacity: 0.8; }
+
+/* Статистика */
+.account-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
 .stat-item {
     flex: 1;
     min-width: 80px;
@@ -129,6 +191,27 @@ body {
 }
 .stat-item span { display: block; font-size: 12px; color: var(--tg-hint); margin-bottom: 4px; }
 .stat-item strong { font-size: 18px; font-weight: 700; }
+
+/* Кнопки поддержки/инструкций */
+.support-buttons {
+    display: flex;
+    gap: 10px;
+}
+.support-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: background 0.2s;
+}
+.support-btn:active { background: rgba(255,255,255,0.2); }
 
 /* Нижняя панель */
 .segmented-panel {
@@ -225,7 +308,6 @@ body {
     gap: 12px;
 }
 .task-title { font-size: 18px; font-weight: 600; text-align: center; }
-
 .task-info {
     background: rgba(255,255,255,0.05);
     border-radius: 12px;
@@ -357,7 +439,6 @@ body {
     padding: 4px;
 }
 
-/* Шкала заполнения */
 .popup-pin-fill {
     position: absolute;
     bottom: 0;
@@ -369,7 +450,6 @@ body {
     border-radius: 0 0 50% 50%;
 }
 
-/* Пузырьки */
 .popup-pin-bubbles {
     position: absolute;
     bottom: 0; left: 0; width: 100%;
@@ -382,10 +462,6 @@ body {
     border-radius: 50%;
     animation: floatBubble 2.5s infinite ease-in-out;
 }
-.popup-bubble:nth-child(1) { width: 4px; height: 4px; left: 25%; bottom: 20%; animation-delay: 0s; }
-.popup-bubble:nth-child(2) { width: 3px; height: 3px; left: 55%; bottom: 35%; animation-delay: 0.6s; }
-.popup-bubble:nth-child(3) { width: 3.5px; height: 3.5px; left: 75%; bottom: 15%; animation-delay: 1.2s; }
-.popup-bubble:nth-child(4) { width: 2.5px; height: 2.5px; left: 45%; bottom: 50%; animation-delay: 1.8s; }
 
 @keyframes floatBubble {
     0% { transform: translateY(0) scale(1); opacity: 0.8; }
@@ -393,7 +469,6 @@ body {
     100% { transform: translateY(-12px) scale(0.9); opacity: 0; }
 }
 
-/* Текст попапа */
 .popup-model {
     position: relative;
     z-index: 2;
@@ -423,7 +498,6 @@ body {
     margin-top: 2px;
 }
 
-/* Остриё */
 .popup-pin-tip {
     position: absolute;
     bottom: 0;

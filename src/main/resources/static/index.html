@@ -17,20 +17,37 @@
 
     <div id="accountView" class="view">
         <div class="account-container">
-            <h2 class="account-title">Аккаунт водителя</h2>
-            <div class="account-card">
-                <div class="account-row"><span>Водитель:</span> <strong>Иван Петров</strong></div>
-                <div class="account-row"><span>Бензовоз:</span> <strong>ГАЗель А123ВС 178</strong></div>
-                <div class="account-row"><span>Остаток топлива в бензовозе:</span> <strong id="fuelRemaining">420 л</strong></div>
+            <!-- Бензовоз: бочка с остатком -->
+            <div class="fuel-tank-wrapper">
+                <div class="fuel-tank" id="fuelTank">
+                    <div class="fuel-tank-fill" id="fuelTankFill"></div>
+                    <div class="fuel-tank-bubbles" id="fuelTankBubbles"></div>
+                    <span class="fuel-tank-text" id="fuelTankText">0 л</span>
+                </div>
             </div>
+
+            <!-- Кнопки заправки -->
+            <div class="refuel-buttons">
+                <button id="refuelA92Btn" class="refuel-btn">Заправить АИ-92</button>
+                <button id="refuelDTBtn" class="refuel-btn">Заправить ДТ</button>
+            </div>
+
+            <!-- Статистика -->
             <div class="account-stats">
                 <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
                 <div class="stat-item"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
             </div>
+
+            <!-- Кнопки поддержка и инструкции -->
+            <div class="support-buttons">
+                <button id="supportBtn" class="support-btn">Поддержка</button>
+                <button id="instructionsBtn" class="support-btn">Инструкции</button>
+            </div>
         </div>
     </div>
 
+    <!-- Остальные виды без изменений -->
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>
