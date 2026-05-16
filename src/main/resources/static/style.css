@@ -468,7 +468,7 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 20px 20px 100px 20px; /* добавлен нижний отступ, чтобы не перекрывало */
     overflow-y: auto;
 }
 #workView.active { display: flex; }
@@ -484,7 +484,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 140px);
     overflow-y: auto;
 }
 
@@ -500,12 +500,13 @@ body {
     font-weight: 600; font-size: 13px;
     color: white;
     cursor: pointer;
-    background: rgba(255,255,255,0.15);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
 }
+.door-open { background: #34c759; } /* зелёный */
+.door-close { background: #ff3b30; } /* красный */
 .door-btn svg { flex-shrink: 0; }
 
 .task-photos {
@@ -522,11 +523,13 @@ body {
     font-weight: 500;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
 }
 .photo-label {
-    font-size: 14px;
+    font-size: 12px;
     opacity: 0.8;
 }
 
@@ -551,7 +554,11 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
-.info-row strong { font-weight: 600; }
+.info-row strong {
+    font-weight: 600;
+    margin-left: auto; /* сдвигаем координаты вправо */
+    text-align: right;
+}
 .copy-btn {
     background: rgba(255,255,255,0.15);
     border: none;
@@ -561,12 +568,19 @@ body {
     cursor: pointer;
     display: flex;
     align-items: center;
+    margin-left: 6px;
 }
 .copy-btn svg { stroke: white; }
 
 .task-field { display: flex; flex-direction: column; gap: 6px; }
 .task-field label { font-size: 13px; color: var(--tg-hint); }
+.liters-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
 .liters-input {
+    flex: 1;
     background: rgba(255,255,255,0.12);
     border: 2px solid var(--tg-accent);
     border-radius: 10px;
@@ -576,6 +590,20 @@ body {
     font-weight: 700;
     outline: none;
     text-align: center;
+}
+.confirm-liters-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: none;
+    background: var(--tg-accent);
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .comment-input {
     background: rgba(255,255,255,0.08);
@@ -721,31 +749,30 @@ body {
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
 
-/* Облачко с текстовой оценкой */
-.estimate-tooltip {
+/* Облачко оценки под маркером */
+.estimate-cloud {
     position: absolute;
-    bottom: 100%;
+    bottom: -28px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0,0,0,0.8);
     backdrop-filter: blur(10px);
     color: white;
-    padding: 6px 10px;
+    padding: 4px 8px;
     border-radius: 12px;
     font-size: 10px;
     white-space: nowrap;
-    z-index: 20;
+    z-index: 10;
     pointer-events: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    margin-bottom: 4px;
 }
-.estimate-tooltip::after {
+.estimate-cloud::after {
     content: '';
     position: absolute;
-    top: 100%;
+    top: -6px;
     left: 50%;
     transform: translateX(-50%);
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-    border-top: 5px solid rgba(0,0,0,0.8);
+    border-bottom: 6px solid rgba(0,0,0,0.8);
 }

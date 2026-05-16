@@ -75,7 +75,6 @@
         </div>
     </div>
 
-    <!-- Всплывающая панель со списком (теперь между кнопками и нижним меню) -->
     <div id="detailsPanel" class="details-panel hidden">
         <div class="details-content" id="detailsContent"></div>
     </div>
@@ -83,15 +82,17 @@
     <div id="workView" class="view">
         <div class="task-container">
             <div class="task-header">
-                <button id="openDoorsBtn" class="door-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg> Открыть</button>
-                <button id="closeDoorsBtn" class="door-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/><path d="M8 8h8"/></svg> Закрыть</button>
+                <button id="openDoorsBtn" class="door-btn door-open">Открыть</button>
+                <button id="closeDoorsBtn" class="door-btn door-close">Закрыть</button>
             </div>
             <div class="task-photos">
                 <button id="photoBeforeBtn" class="photo-btn-large">
-                    <span class="photo-label">Фото ДО</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span class="photo-label">ДО</span>
                 </button>
                 <button id="photoAfterBtn" class="photo-btn-large">
-                    <span class="photo-label">Фото ПОСЛЕ</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span class="photo-label">ПОСЛЕ</span>
                 </button>
                 <input type="file" id="photoBeforeInput" accept="image/*" capture="environment" style="display:none">
                 <input type="file" id="photoAfterInput" accept="image/*" capture="environment" style="display:none">
@@ -104,7 +105,10 @@
             </div>
             <div class="task-field">
                 <label>Литраж заправки</label>
-                <input type="number" id="litersInput" class="liters-input" placeholder="0.0" step="0.1" min="0">
+                <div class="liters-row">
+                    <input type="number" id="litersInput" class="liters-input" placeholder="0.0" step="0.1" min="0">
+                    <button id="confirmLitersBtn" class="confirm-liters-btn">✓</button>
+                </div>
             </div>
             <div class="task-field">
                 <label>Комментарий (тех. состояние и др.)</label>

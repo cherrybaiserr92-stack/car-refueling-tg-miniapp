@@ -24,6 +24,8 @@ estimateBtn.addEventListener('click', () => {
         tg.showAlert('Режим оценки сложности включён');
     } else {
         estimateBtn.classList.remove('active');
+        // Убираем все облачка с маркеров
+        document.querySelectorAll('.estimate-cloud').forEach(el => el.remove());
     }
 });
 
@@ -288,7 +290,7 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     showDetailsPanel(items);
 });
 
-// Функция ИИ-оценки (вызывает серверный endpoint)
+// Функция ИИ-оценки
 async function fetchEstimate(lat, lng) {
     try {
         const res = await fetch(`/api/estimate?lat=${lat}&lng=${lng}`);
@@ -351,26 +353,19 @@ async function createPopupContent(req) {
     const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
     container.appendChild(body); container.appendChild(tip);
 
-    // Если включён режим оценки, добавляем индикатор и облачко
+    // Если включён режим оценки, добавляем облачко
     if (estimateMode) {
         const data = await fetchEstimate(req.lat, req.lng);
         if (data && data.score >= 0) {
-            const indicator = document.createElement('div');
-            indicator.className = 'popup-estimate';
+            const cloud = document.createElement('div');
+            cloud.className = 'estimate-cloud';
             let color;
             if (data.score <= 3) color = '#34c759';
             else if (data.score <= 6) color = '#ff9500';
             else color = '#ff3b30';
-            indicator.style.backgroundColor = color;
-            indicator.textContent = data.score;
-
-            // Подсказка-облачко
-            const tooltip = document.createElement('div');
-            tooltip.className = 'estimate-tooltip';
-            tooltip.textContent = data.text || 'Оценка сложности';
-            indicator.appendChild(tooltip);
-
-            container.appendChild(indicator);
+            cloud.style.backgroundColor = color;
+            cloud.textContent = data.text || `Сложность: ${data.score}/10`;
+            container.appendChild(cloud);
         }
     }
 
@@ -408,6 +403,7 @@ const photoAfterBtn = document.getElementById('photoAfterBtn');
 const photoBeforeInput = document.getElementById('photoBeforeInput');
 const photoAfterInput = document.getElementById('photoAfterInput');
 const litersInput = document.getElementById('litersInput');
+const confirmLitersBtn = document.getElementById('confirmLitersBtn');
 const commentInput = document.getElementById('commentInput');
 const openDoorsBtn = document.getElementById('openDoorsBtn');
 const closeDoorsBtn = document.getElementById('closeDoorsBtn');
@@ -441,6 +437,12 @@ copyCoordsBtn.addEventListener('click', () => {
         const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`;
         navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы'));
     }
+});
+
+// Кнопка подтверждения литража – просто убираем фокус
+confirmLitersBtn.addEventListener('click', () => {
+    litersInput.blur();
+    tg.showAlert('Литраж зафиксирован');
 });
 
 closeTaskBtn.addEventListener('click', () => {
