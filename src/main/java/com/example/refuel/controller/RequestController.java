@@ -48,9 +48,8 @@ public class RequestController {
         return String.valueOf(c);
     }
 
-    // Эндпоинт для ИИ-оценки на основе Overpass API
     @GetMapping("/api/estimate")
-    public ScoreResponse estimate(@RequestParam double lat, @RequestParam double lng) {
+    public EstimateResponse estimate(@RequestParam double lat, @RequestParam double lng) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String overpassUrl = "https://overpass-api.de/api/interpreter?data=" +
@@ -74,19 +73,36 @@ public class RequestController {
                 }
             }
             int score = 0;
-            if (buildings > 5) score += 3;
-            if (parkings == 0) score += 3;
-            if (narrowRoads > 0) score += 2;
+            StringBuilder text = new StringBuilder();
+            if (buildings > 5) {
+                score += 3;
+                text.append("Плотная застройка. ");
+            }
+            if (parkings == 0) {
+                score += 3;
+                text.append("Нет парковки рядом. ");
+            }
+            if (narrowRoads > 0) {
+                score += 2;
+                text.append("Узкие проезды. ");
+            }
+            if (score == 0) {
+                text.append("Свободно, парковка есть.");
+            }
             score = Math.min(10, score);
-            return new ScoreResponse(score);
+            return new EstimateResponse(score, text.toString().trim());
         } catch (Exception e) {
             e.printStackTrace();
-            return new ScoreResponse(-1); // ошибка
+            return new EstimateResponse(-1, "Ошибка оценки");
         }
     }
 
-    static class ScoreResponse {
+    static class EstimateResponse {
         public int score;
-        public ScoreResponse(int score) { this.score = score; }
+        public String text;
+        public EstimateResponse(int score, String text) {
+            this.score = score;
+            this.text = text;
+        }
     }
 }

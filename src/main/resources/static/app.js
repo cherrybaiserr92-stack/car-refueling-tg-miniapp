@@ -253,19 +253,15 @@ document.getElementById('menuSOS').addEventListener('click', () => { tg.showAler
 
 // --- Всплывающая панель со списками ---
 const detailsPanel = document.getElementById('detailsPanel');
-const detailsTitle = document.getElementById('detailsTitle');
 const detailsContent = document.getElementById('detailsContent');
-const closeDetailsBtn = document.getElementById('closeDetailsBtn');
 
-function showDetailsPanel(title, items) {
-    detailsTitle.textContent = title;
+function showDetailsPanel(items) {
     detailsContent.innerHTML = items.map(item => `<div class="details-item">${item}</div>`).join('');
     detailsPanel.classList.remove('hidden');
 }
 function hideDetailsPanel() {
     detailsPanel.classList.add('hidden');
 }
-closeDetailsBtn.addEventListener('click', hideDetailsPanel);
 document.addEventListener('click', (e) => {
     if (!detailsPanel.contains(e.target) && e.target !== document.getElementById('litersDispensedBlock') && e.target !== document.getElementById('totalNeededBlock')) {
         hideDetailsPanel();
@@ -278,7 +274,7 @@ document.getElementById('litersDispensedBlock').addEventListener('click', (e) =>
     const items = refuelLog.map(entry => 
         `<span>${entry.plate} ${entry.model}</span> <strong>${entry.liters} л</strong> <span style="font-size:11px">${entry.time}</span>`
     );
-    showDetailsPanel('Слито литров', items);
+    showDetailsPanel(items);
 });
 
 document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
@@ -289,7 +285,7 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
         const lack = ((100 - r.fuelLevel) / 100 * 50).toFixed(1);
         return `<span>${r.licensePlate} ${r.carModel}</span> <strong>${lack} л</strong>`;
     });
-    showDetailsPanel('На зоне требуется', items);
+    showDetailsPanel(items);
 });
 
 // Функция ИИ-оценки (вызывает серверный endpoint)
@@ -298,7 +294,7 @@ async function fetchEstimate(lat, lng) {
         const res = await fetch(`/api/estimate?lat=${lat}&lng=${lng}`);
         if (!res.ok) return null;
         const data = await res.json();
-        return data.score; // число 0-10
+        return data;
     } catch (e) {
         console.warn('Ошибка получения оценки', e);
         return null;
@@ -355,19 +351,25 @@ async function createPopupContent(req) {
     const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
     container.appendChild(body); container.appendChild(tip);
 
-    // Если включён режим оценки, добавляем индикатор
+    // Если включён режим оценки, добавляем индикатор и облачко
     if (estimateMode) {
-        const score = await fetchEstimate(req.lat, req.lng);
-        if (score !== null) {
+        const data = await fetchEstimate(req.lat, req.lng);
+        if (data && data.score >= 0) {
             const indicator = document.createElement('div');
             indicator.className = 'popup-estimate';
-            // Цвет по сложности
             let color;
-            if (score <= 3) color = '#34c759';
-            else if (score <= 6) color = '#ff9500';
+            if (data.score <= 3) color = '#34c759';
+            else if (data.score <= 6) color = '#ff9500';
             else color = '#ff3b30';
             indicator.style.backgroundColor = color;
-            indicator.textContent = score;
+            indicator.textContent = data.score;
+
+            // Подсказка-облачко
+            const tooltip = document.createElement('div');
+            tooltip.className = 'estimate-tooltip';
+            tooltip.textContent = data.text || 'Оценка сложности';
+            indicator.appendChild(tooltip);
+
             container.appendChild(indicator);
         }
     }
@@ -501,8 +503,7 @@ function renderMarkers(requests) {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
-        // Создаём попап динамически при открытии
-        marker.bindPopup(''); // пустой, контент зададим при событии
+        marker.bindPopup('');
         marker.on('popupopen', async () => {
             const content = await createPopupContent(req);
             marker.setPopupContent(content);

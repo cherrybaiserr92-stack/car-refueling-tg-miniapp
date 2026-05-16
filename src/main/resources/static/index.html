@@ -16,7 +16,6 @@
         <button id="estimateBtn" class="estimate-btn" title="Оценка сложности">🧠</button>
     </div>
 
-    <!-- Остальное без изменений -->
     <div id="accountView" class="view">
         <div class="account-container">
             <div class="settings-wrapper">
@@ -41,6 +40,7 @@
                         <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
                         <span class="fuel-tank-text" id="textAi95">0 л</span>
                     </div>
+                    <div class="fuel-label">АИ-95</div>
                 </div>
                 <div class="tank-panel tank-center" data-fuel="ai92">
                     <div class="fuel-tank" id="tankAi92">
@@ -48,6 +48,7 @@
                         <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
                         <span class="fuel-tank-text" id="textAi92">0 л</span>
                     </div>
+                    <div class="fuel-label">АИ-92</div>
                 </div>
                 <div class="tank-panel tank-right" data-fuel="dt">
                     <div class="fuel-tank" id="tankDt">
@@ -55,6 +56,7 @@
                         <div class="fuel-tank-bubbles" id="bubblesDt"></div>
                         <span class="fuel-tank-text" id="textDt">0 л</span>
                     </div>
+                    <div class="fuel-label">ДТ</div>
                 </div>
             </div>
             <div class="refuel-custom">
@@ -70,38 +72,35 @@
                 <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item clickable" id="totalNeededBlock"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
             </div>
-            <div id="detailsPanel" class="details-panel hidden">
-                <div class="details-header">
-                    <span id="detailsTitle"></span>
-                    <button id="closeDetailsBtn" class="close-details-btn">✕</button>
-                </div>
-                <div class="details-content" id="detailsContent"></div>
-            </div>
         </div>
+    </div>
+
+    <!-- Всплывающая панель со списком (теперь между кнопками и нижним меню) -->
+    <div id="detailsPanel" class="details-panel hidden">
+        <div class="details-content" id="detailsContent"></div>
     </div>
 
     <div id="workView" class="view">
         <div class="task-container">
-            <h3 class="task-title">Выполнение заявки</h3>
-            <div class="task-info" id="taskInfo">
-                <div class="info-row"><span>Авто:</span> <strong id="taskCarModel"></strong></div>
-                <div class="info-row"><span>Госномер:</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn">📋</button></div>
-                <div class="info-row"><span>Координаты:</span> <strong id="taskCoords"></strong> <button id="copyCoordsBtn" class="copy-btn">📋</button></div>
-                <div class="info-row"><span>Заявка №:</span> <strong id="taskId"></strong></div>
+            <div class="task-header">
+                <button id="openDoorsBtn" class="door-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg> Открыть</button>
+                <button id="closeDoorsBtn" class="door-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/><path d="M8 8h8"/></svg> Закрыть</button>
             </div>
-            <div class="task-actions">
-                <button id="openDoorsBtn" class="door-btn">Открыть двери</button>
-                <button id="closeDoorsBtn" class="door-btn">Закрыть двери</button>
-            </div>
-            <div class="task-field">
-                <label>Фото госномера ДО</label>
-                <button id="photoBeforeBtn" class="photo-btn">Выбрать фото</button>
+            <div class="task-photos">
+                <button id="photoBeforeBtn" class="photo-btn-large">
+                    <span class="photo-label">Фото ДО</span>
+                </button>
+                <button id="photoAfterBtn" class="photo-btn-large">
+                    <span class="photo-label">Фото ПОСЛЕ</span>
+                </button>
                 <input type="file" id="photoBeforeInput" accept="image/*" capture="environment" style="display:none">
-            </div>
-            <div class="task-field">
-                <label>Фото госномера ПОСЛЕ</label>
-                <button id="photoAfterBtn" class="photo-btn">Выбрать фото</button>
                 <input type="file" id="photoAfterInput" accept="image/*" capture="environment" style="display:none">
+            </div>
+            <div class="task-info" id="taskInfo">
+                <div class="info-row"><span>Авто</span> <strong id="taskCarModel"></strong></div>
+                <div class="info-row"><span>Госномер</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
+                <div class="info-row"><span>Координаты</span> <strong id="taskCoords"></strong> <button id="copyCoordsBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
+                <div class="info-row"><span>Заявка №</span> <strong id="taskId"></strong></div>
             </div>
             <div class="task-field">
                 <label>Литраж заправки</label>
