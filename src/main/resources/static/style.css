@@ -81,6 +81,35 @@ body {
     background: rgba(60,60,64,0.8);
 }
 
+/* Кнопка ИИ-оценки */
+.estimate-btn {
+    position: absolute;
+    top: 50%; right: 16px;
+    transform: translateY(calc(-50% + 112px));
+    z-index: 800;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(30,30,32,0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    outline: none;
+}
+.estimate-btn.active {
+    background: #007aff;
+    border-color: #007aff;
+}
+.estimate-btn:active {
+    transform: scale(0.92) translateY(calc(-50% + 112px));
+}
+
 /* Аккаунт */
 #accountView {
     background: var(--tg-bg);
@@ -158,10 +187,10 @@ body {
 .tank-carousel {
     position: relative;
     width: 100%;
-    height: 160px;       /* чуть меньше, чтобы шестерёнка не задевала */
+    height: 160px;
     overflow: hidden;
     touch-action: pan-x;
-    margin-top: 30px;    /* отступ под шестерёнку */
+    margin-top: 30px;
 }
 
 .tank-panel {
@@ -216,7 +245,6 @@ body {
     box-shadow: 0 0 12px rgba(0,0,0,0.5);
     overflow: hidden;
 }
-/* Крышка */
 .fuel-tank::before {
     content: '';
     position: absolute;
@@ -319,7 +347,7 @@ body {
 /* Всплывающая панель со списком */
 .details-panel {
     position: fixed;
-    bottom: calc(var(--panel-height) + 150px); /* не перекрывает кнопки */
+    bottom: calc(var(--panel-height) + 150px);
     left: 16px;
     right: 16px;
     max-height: 260px;
@@ -671,4 +699,24 @@ body {
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
+
+/* Индикатор сложности в попапе */
+.popup-estimate {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    border: 1.5px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }

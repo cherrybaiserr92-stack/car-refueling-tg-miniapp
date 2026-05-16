@@ -14,6 +14,19 @@ const MAX_FUEL_92 = 320;
 const MAX_FUEL_DT = 1000;
 const MAX_FUEL_95 = 0;
 
+// Режим оценки
+let estimateMode = false;
+const estimateBtn = document.getElementById('estimateBtn');
+estimateBtn.addEventListener('click', () => {
+    estimateMode = !estimateMode;
+    if (estimateMode) {
+        estimateBtn.classList.add('active');
+        tg.showAlert('Режим оценки сложности включён');
+    } else {
+        estimateBtn.classList.remove('active');
+    }
+});
+
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -153,7 +166,7 @@ function updateTank(type) {
     if (textEl) textEl.textContent = fuel + ' л';
 }
 
-// Кнопки заправки (полное пополнение)
+// Кнопки заправки
 document.getElementById('refuelA92Btn').addEventListener('click', () => {
     fuelTanks.ai92 = maxFuel.ai92;
     updateAccountStats();
@@ -165,7 +178,7 @@ document.getElementById('refuelDTBtn').addEventListener('click', () => {
     tg.showAlert('Канистра ДТ заправлена до полного');
 });
 
-// Пополнение на произвольное количество
+// Пополнение произвольного литража
 document.getElementById('customRefuelBtn').addEventListener('click', () => {
     const input = document.getElementById('customLitersInput');
     const liters = parseInt(input.value, 10);
@@ -279,6 +292,19 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     showDetailsPanel('На зоне требуется', items);
 });
 
+// Функция ИИ-оценки (вызывает серверный endpoint)
+async function fetchEstimate(lat, lng) {
+    try {
+        const res = await fetch(`/api/estimate?lat=${lat}&lng=${lng}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.score; // число 0-10
+    } catch (e) {
+        console.warn('Ошибка получения оценки', e);
+        return null;
+    }
+}
+
 // Загрузка заявок
 async function loadRequests() {
     try {
@@ -314,8 +340,9 @@ function createMarkerIcon(req, isActive = false) {
     });
 }
 
-function createPopupContent(req) {
-    const container = document.createElement('div'); container.className = 'popup-pin';
+async function createPopupContent(req) {
+    const container = document.createElement('div');
+    container.className = 'popup-pin';
     const body = document.createElement('div'); body.className = 'popup-pin-body';
     const fill = document.createElement('div'); fill.className = 'popup-pin-fill';
     fill.style.height = req.fuelLevel + '%'; fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
@@ -327,6 +354,24 @@ function createPopupContent(req) {
     body.appendChild(fill); body.appendChild(bubbles); body.appendChild(model); body.appendChild(plate); body.appendChild(percent);
     const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
     container.appendChild(body); container.appendChild(tip);
+
+    // Если включён режим оценки, добавляем индикатор
+    if (estimateMode) {
+        const score = await fetchEstimate(req.lat, req.lng);
+        if (score !== null) {
+            const indicator = document.createElement('div');
+            indicator.className = 'popup-estimate';
+            // Цвет по сложности
+            let color;
+            if (score <= 3) color = '#34c759';
+            else if (score <= 6) color = '#ff9500';
+            else color = '#ff3b30';
+            indicator.style.backgroundColor = color;
+            indicator.textContent = score;
+            container.appendChild(indicator);
+        }
+    }
+
     return container;
 }
 
@@ -456,8 +501,11 @@ function renderMarkers(requests) {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
-        marker.bindPopup(createPopupContent(req));
-        marker.on('popupopen', () => {
+        // Создаём попап динамически при открытии
+        marker.bindPopup(''); // пустой, контент зададим при событии
+        marker.on('popupopen', async () => {
+            const content = await createPopupContent(req);
+            marker.setPopupContent(content);
             map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
             showActionPanel(req, marker);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });

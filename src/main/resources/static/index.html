@@ -13,8 +13,10 @@
         <div id="map"></div>
         <button id="locationBtn" class="location-btn">🧭</button>
         <button id="taskLocationBtn" class="task-location-btn hidden">⛽</button>
+        <button id="estimateBtn" class="estimate-btn" title="Оценка сложности">🧠</button>
     </div>
 
+    <!-- Остальное без изменений -->
     <div id="accountView" class="view">
         <div class="account-container">
             <div class="settings-wrapper">
@@ -32,8 +34,6 @@
                     <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
                 </div>
             </div>
-
-            <!-- Карусель канистр (без подписей) -->
             <div class="tank-carousel" id="tankCarousel">
                 <div class="tank-panel tank-left" data-fuel="ai95">
                     <div class="fuel-tank" id="tankAi95">
@@ -57,27 +57,19 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Кнопка пополнения с полем ввода -->
             <div class="refuel-custom">
                 <input type="number" id="customLitersInput" class="custom-liters-input" placeholder="Литры" step="1" min="1">
                 <button id="customRefuelBtn" class="refuel-btn">Пополнить</button>
             </div>
-
-            <!-- Кнопки заправки (без изменений) -->
             <div class="refuel-buttons">
                 <button id="refuelA92Btn" class="refuel-btn">Заправить АИ-92</button>
                 <button id="refuelDTBtn" class="refuel-btn">Заправить ДТ</button>
             </div>
-
-            <!-- Статистика -->
             <div class="account-stats">
                 <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
                 <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item clickable" id="totalNeededBlock"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
             </div>
-
-            <!-- Всплывающая панель со списком (поднята выше) -->
             <div id="detailsPanel" class="details-panel hidden">
                 <div class="details-header">
                     <span id="detailsTitle"></span>
@@ -88,7 +80,6 @@
         </div>
     </div>
 
-    <!-- Остальное без изменений -->
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>

@@ -2,7 +2,11 @@ package com.example.refuel.controller;
 
 import com.example.refuel.model.RefuelRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Random;
@@ -12,7 +16,7 @@ import java.util.stream.IntStream;
 @RestController
 public class RequestController {
 
-    private final Random random = new Random(42); // фиксируем для повторяемости
+    private final Random random = new Random(42);
 
     private final String[] models = {
         "Kia Rio", "VW Polo", "Hyundai Solaris", "Renault Logan", "Skoda Rapid",
@@ -27,23 +31,62 @@ public class RequestController {
     public List<RefuelRequest> getRequests() {
         return IntStream.rangeClosed(1, 150)
                 .mapToObj(i -> {
-                    // случайное смещение в пределах города (Питер: 59.75..60.05 с.ш., 30.0..30.7 в.д.)
                     double lat = 59.80 + random.nextDouble() * 0.25;
                     double lng = 30.10 + random.nextDouble() * 0.50;
-
                     String model = models[random.nextInt(models.length)];
                     String status = statuses[random.nextInt(statuses.length)];
-                    int fuelLevel = random.nextInt(101); // 0–100%
+                    int fuelLevel = random.nextInt(101);
                     String licensePlate = String.format("%s%03d%s%s 178",
                         randomLetter(), random.nextInt(1000), randomLetter(), randomLetter());
-
                     return new RefuelRequest(i, lat, lng, model, fuelLevel, status, licensePlate);
                 })
                 .collect(Collectors.toList());
     }
 
     private String randomLetter() {
-        char c = (char) ('А' + random.nextInt(26)); // кириллические буквы
+        char c = (char) ('А' + random.nextInt(26));
         return String.valueOf(c);
+    }
+
+    // Эндпоинт для ИИ-оценки на основе Overpass API
+    @GetMapping("/api/estimate")
+    public ScoreResponse estimate(@RequestParam double lat, @RequestParam double lng) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String overpassUrl = "https://overpass-api.de/api/interpreter?data=" +
+                java.net.URLEncoder.encode(
+                    "[out:json];(way[\"building\"](around:50," + lat + "," + lng + ");node[\"amenity\"=\"parking\"](around:50," + lat + "," + lng + ");way[\"highway\"](around:50," + lat + "," + lng + "););out center;",
+                    "UTF-8"
+                );
+            String response = restTemplate.getForObject(overpassUrl, String.class);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response);
+            int buildings = 0;
+            int parkings = 0;
+            int narrowRoads = 0;
+            for (JsonNode el : root.get("elements")) {
+                JsonNode tags = el.get("tags");
+                if (tags != null) {
+                    if (tags.has("building")) buildings++;
+                    if ("parking".equals(tags.has("amenity") ? tags.get("amenity").asText() : "")) parkings++;
+                    if ("residential".equals(tags.has("highway") ? tags.get("highway").asText() : "") &&
+                        "1".equals(tags.has("lanes") ? tags.get("lanes").asText() : "")) narrowRoads++;
+                }
+            }
+            int score = 0;
+            if (buildings > 5) score += 3;
+            if (parkings == 0) score += 3;
+            if (narrowRoads > 0) score += 2;
+            score = Math.min(10, score);
+            return new ScoreResponse(score);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ScoreResponse(-1); // ошибка
+        }
+    }
+
+    static class ScoreResponse {
+        public int score;
+        public ScoreResponse(int score) { this.score = score; }
     }
 }
