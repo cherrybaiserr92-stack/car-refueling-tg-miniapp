@@ -10,7 +10,9 @@ const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 let currentTaskRequest = null;
 let activeTaskMarker = null;
-const MAX_FUEL = 320;
+const MAX_FUEL_92 = 320;
+const MAX_FUEL_DT = 1000;
+const MAX_FUEL_95 = 0; // не используется
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
@@ -68,12 +70,8 @@ document.getElementById('locationBtn').addEventListener('click', () => {
 
 // --- Кнопка возврата к активной заявке ---
 taskLocationBtn.addEventListener('click', () => {
-    if (!activeTaskMarker) {
-        tg.showAlert('Нет активной заявки');
-        return;
-    }
-    const latlng = activeTaskMarker.getLatLng();
-    map.panTo(latlng, { animate: true, duration: 0.5 });
+    if (!activeTaskMarker) { tg.showAlert('Нет активной заявки'); return; }
+    map.panTo(activeTaskMarker.getLatLng(), { animate: true, duration: 0.5 });
     activeTaskMarker.openPopup();
 });
 
@@ -91,22 +89,26 @@ async function buildRoute(from, to) {
         currentRouteLayer = L.geoJSON({ type: 'Feature', geometry: data.routes[0].geometry }, {
             style: { color: '#007aff', weight: 5, opacity: 0.8 }
         }).addTo(map);
-    } catch (e) { console.error('Ошибка построения маршрута', e); }
+    } catch (e) { console.error(e); }
 }
 
-// --- Данные заявок и аккаунта ---
+// --- Данные ---
 let allRequests = [], markers = [];
 let carsRefueled = 0;
 let litersDispensed = 0;
+const refuelLog = []; // история заправок
 
 const fuelTanks = {
     ai92: 210,
-    dt: 180,
-    ai95: 90
+    dt: 600,  // будет пополнено до 1000
+    ai95: 0
 };
-
-// Текущий выбранный тип топлива
-let currentFuelType = 'ai92';
+const maxFuel = {
+    ai92: MAX_FUEL_92,
+    dt: MAX_FUEL_DT,
+    ai95: MAX_FUEL_95
+};
+let currentFuelType = 'ai92'; // по умолчанию 92
 
 function updateAccountStats() {
     updateTank('ai92');
@@ -122,7 +124,8 @@ function updateAccountStats() {
 
 function updateTank(type) {
     const fuel = fuelTanks[type];
-    const percentage = Math.min(100, (fuel / MAX_FUEL) * 100);
+    const max = maxFuel[type];
+    const percentage = Math.min(100, (fuel / max) * 100);
     const fillEl = document.getElementById(`fill${type.charAt(0).toUpperCase() + type.slice(1)}`);
     if (fillEl) {
         fillEl.style.height = percentage + '%';
@@ -152,108 +155,54 @@ function updateTank(type) {
 
 // Кнопки заправки
 document.getElementById('refuelA92Btn').addEventListener('click', () => {
-    fuelTanks.ai92 = MAX_FUEL;
+    fuelTanks.ai92 = maxFuel.ai92;
     updateAccountStats();
-    tg.showAlert('Отсек АИ-92 заправлен до полного');
+    tg.showAlert('Канистра АИ-92 заправлена до полного');
 });
 document.getElementById('refuelDTBtn').addEventListener('click', () => {
-    fuelTanks.dt = MAX_FUEL;
+    fuelTanks.dt = maxFuel.dt;
     updateAccountStats();
-    tg.showAlert('Отсек ДТ заправлен до полного');
+    tg.showAlert('Канистра ДТ заправлена до полного');
 });
 
-// --- Логика карусели бочек ---
+// Карусель
 const carousel = document.getElementById('tankCarousel');
-let touchStartX = 0;
-let touchEndX = 0;
-
-carousel.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-}, { passive: true });
-
+let touchStartX = 0, touchEndX = 0;
+carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
 carousel.addEventListener('touchend', (e) => {
     touchEndX = e.changedTouches[0].screenX;
     handleSwipe();
 });
-
 function handleSwipe() {
     const diff = touchEndX - touchStartX;
-    const threshold = 50;
-    if (Math.abs(diff) < threshold) return;
-
-    // Все панели
-    const panels = carousel.querySelectorAll('.tank-panel');
-    if (panels.length < 3) return;
-
-    // Определяем текущий центральный индекс
-    let centerIndex = 0;
-    panels.forEach((p, i) => {
-        if (p.classList.contains('tank-center')) {
-            centerIndex = i;
-        }
-    });
-
-    // Направление свайпа: положительное diff -> свайп вправо (перемещаемся к предыдущей панели)
-    // отрицательное diff -> свайп влево (следующая панель)
-    if (diff > 0) {
-        // Свайп вправо – показать панель слева
-        moveCarousel(-1);
-    } else {
-        // Свайп влево – показать панель справа
-        moveCarousel(1);
-    }
+    if (Math.abs(diff) < 50) return;
+    if (diff > 0) moveCarousel(-1);
+    else moveCarousel(1);
 }
-
 function moveCarousel(direction) {
     const panels = Array.from(carousel.querySelectorAll('.tank-panel'));
-    if (panels.length === 0) return;
-
-    // Найдём центральную панель
+    if (panels.length < 3) return;
     const centerIndex = panels.findIndex(p => p.classList.contains('tank-center'));
     if (centerIndex === -1) return;
-
-    // Очистим все классы
-    panels.forEach(p => {
-        p.classList.remove('tank-left', 'tank-center', 'tank-right', 'tank-hidden-left', 'tank-hidden-right');
-    });
-
-    // Вычислим новый центральный индекс
+    panels.forEach(p => p.classList.remove('tank-left', 'tank-center', 'tank-right', 'tank-hidden-left', 'tank-hidden-right'));
     let newCenterIndex = centerIndex + direction;
-    // Зацикливаем: если вышли за границы, перескакиваем на другой конец
     if (newCenterIndex < 0) newCenterIndex = panels.length - 1;
     if (newCenterIndex >= panels.length) newCenterIndex = 0;
-
-    // Левый и правый индексы
     const leftIndex = (newCenterIndex - 1 + panels.length) % panels.length;
     const rightIndex = (newCenterIndex + 1) % panels.length;
-
-    // Присвоим классы
     panels[newCenterIndex].classList.add('tank-center');
     panels[leftIndex].classList.add('tank-left');
     panels[rightIndex].classList.add('tank-right');
-
-    // Остальные скрываем (не должно быть при трёх элементах, но на всякий случай)
     panels.forEach((p, i) => {
         if (i !== newCenterIndex && i !== leftIndex && i !== rightIndex) {
             p.classList.add(direction > 0 ? 'tank-hidden-left' : 'tank-hidden-right');
         }
     });
-
-    // Обновляем currentFuelType по data-fuel центральной панели
-    const newFuel = panels[newCenterIndex].dataset.fuel;
-    if (newFuel) currentFuelType = newFuel;
+    currentFuelType = panels[newCenterIndex].dataset.fuel;
 }
-
-// Инициализация карусели: выставляем классы
 function initCarousel() {
     const panels = carousel.querySelectorAll('.tank-panel');
     if (panels.length < 3) return;
-    // Очищаем
-    panels.forEach(p => {
-        p.classList.remove('tank-left', 'tank-center', 'tank-right', 'tank-hidden-left', 'tank-hidden-right');
-    });
-    // Назначаем центральную, левую, правую
-    // Пусть ai92 будет центральной (индекс 1), ai95 слева, dt справа (как в HTML)
     panels[1].classList.add('tank-center');
     panels[0].classList.add('tank-left');
     panels[2].classList.add('tank-right');
@@ -264,28 +213,63 @@ initCarousel();
 // Шестерёнка и меню
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsMenu = document.getElementById('settingsMenu');
-settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    settingsMenu.classList.toggle('hidden');
-});
+settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsMenu.classList.toggle('hidden'); });
 document.addEventListener('click', (e) => {
-    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
-        settingsMenu.classList.add('hidden');
+    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) settingsMenu.classList.add('hidden');
+});
+document.getElementById('menuSupport').addEventListener('click', () => { tg.showAlert('Поддержка: звоните диспетчеру'); settingsMenu.classList.add('hidden'); });
+document.getElementById('menuInstructions').addEventListener('click', () => { tg.showAlert('Инструкция по заправке...'); settingsMenu.classList.add('hidden'); });
+document.getElementById('menuSOS').addEventListener('click', () => { tg.showAlert('SOS: помощь уже в пути'); settingsMenu.classList.add('hidden'); });
+
+// --- Всплывающая панель со списками ---
+const detailsPanel = document.getElementById('detailsPanel');
+const detailsTitle = document.getElementById('detailsTitle');
+const detailsContent = document.getElementById('detailsContent');
+const closeDetailsBtn = document.getElementById('closeDetailsBtn');
+
+function showDetailsPanel(title, items) {
+    detailsTitle.textContent = title;
+    detailsContent.innerHTML = items.map(item => `<div class="details-item">${item}</div>`).join('');
+    detailsPanel.classList.remove('hidden');
+}
+function hideDetailsPanel() {
+    detailsPanel.classList.add('hidden');
+}
+closeDetailsBtn.addEventListener('click', hideDetailsPanel);
+document.addEventListener('click', (e) => {
+    if (!detailsPanel.contains(e.target) && e.target !== document.getElementById('litersDispensedBlock') && e.target !== document.getElementById('totalNeededBlock')) {
+        hideDetailsPanel();
     }
 });
-document.getElementById('menuSupport').addEventListener('click', () => {
-    tg.showAlert('Свяжитесь с диспетчером по телефону');
-    settingsMenu.classList.add('hidden');
-});
-document.getElementById('menuInstructions').addEventListener('click', () => {
-    tg.showAlert('Инструкция по заправке каршеринга...');
-    settingsMenu.classList.add('hidden');
-});
-document.getElementById('menuSOS').addEventListener('click', () => {
-    tg.showAlert('SOS: помощь уже в пути');
-    settingsMenu.classList.add('hidden');
+
+// Обработчики кнопок статистики
+document.getElementById('litersDispensedBlock').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (refuelLog.length === 0) {
+        tg.showAlert('Нет заправленных машин');
+        return;
+    }
+    const items = refuelLog.map(entry => 
+        `<span>${entry.plate} ${entry.model}</span> <strong>${entry.liters} л</strong> <span style="font-size:11px">${entry.time}</span>`
+    );
+    showDetailsPanel('Слито литров', items);
 });
 
+document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const needed = allRequests.filter(r => r.status !== 'done');
+    if (needed.length === 0) {
+        tg.showAlert('Нет активных заявок');
+        return;
+    }
+    const items = needed.map(r => {
+        const lack = ((100 - r.fuelLevel) / 100 * 50).toFixed(1);
+        return `<span>${r.licensePlate} ${r.carModel}</span> <strong>${lack} л</strong>`;
+    });
+    showDetailsPanel('На зоне требуется', items);
+});
+
+// Загрузка заявок
 async function loadRequests() {
     try {
         const res = await fetch('/api/requests');
@@ -295,6 +279,7 @@ async function loadRequests() {
     } catch (e) { console.error(e); }
 }
 
+// Функции для маркеров и попапов (как прежде)
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
@@ -319,41 +304,20 @@ function createMarkerIcon(req, isActive = false) {
     });
 }
 
-// ===== PIN-МАРКЕР =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-pin';
-    const body = document.createElement('div');
-    body.className = 'popup-pin-body';
-    const fill = document.createElement('div');
-    fill.className = 'popup-pin-fill';
-    fill.style.height = req.fuelLevel + '%';
-    fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
-    const bubbles = document.createElement('div');
-    bubbles.className = 'popup-pin-bubbles';
-    for (let i = 0; i < 4; i++) {
-        const b = document.createElement('div');
-        b.className = 'popup-bubble';
-        bubbles.appendChild(b);
-    }
-    const model = document.createElement('div');
-    model.className = 'popup-model';
-    model.textContent = req.carModel;
-    const plate = document.createElement('div');
-    plate.className = 'popup-plate';
-    plate.textContent = req.licensePlate;
-    const percent = document.createElement('div');
-    percent.className = 'popup-percent';
-    percent.textContent = req.fuelLevel + '%';
-    body.appendChild(fill);
-    body.appendChild(bubbles);
-    body.appendChild(model);
-    body.appendChild(plate);
-    body.appendChild(percent);
-    const tip = document.createElement('div');
-    tip.className = 'popup-pin-tip';
-    container.appendChild(body);
-    container.appendChild(tip);
+    const body = document.createElement('div'); body.className = 'popup-pin-body';
+    const fill = document.createElement('div'); fill.className = 'popup-pin-fill';
+    fill.style.height = req.fuelLevel + '%'; fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
+    const bubbles = document.createElement('div'); bubbles.className = 'popup-pin-bubbles';
+    for (let i=0; i<4; i++) { const b = document.createElement('div'); b.className = 'popup-bubble'; bubbles.appendChild(b); }
+    const model = document.createElement('div'); model.className = 'popup-model'; model.textContent = req.carModel;
+    const plate = document.createElement('div'); plate.className = 'popup-plate'; plate.textContent = req.licensePlate;
+    const percent = document.createElement('div'); percent.className = 'popup-percent'; percent.textContent = req.fuelLevel + '%';
+    body.appendChild(fill); body.appendChild(bubbles); body.appendChild(model); body.appendChild(plate); body.appendChild(percent);
+    const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
+    container.appendChild(body); container.appendChild(tip);
     return container;
 }
 
@@ -364,28 +328,17 @@ const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
 function showActionPanel(req, marker) {
-    if (currentTaskRequest) {
-        acceptBtn.style.display = 'none';
-    } else {
-        acceptBtn.style.display = 'block';
-        acceptBtn.onclick = () => startTask(req, marker);
-    }
+    if (currentTaskRequest) { acceptBtn.style.display = 'none'; }
+    else { acceptBtn.style.display = 'block'; acceptBtn.onclick = () => startTask(req, marker); }
     actionPanel.classList.remove('hidden');
     routeBtn.onclick = () => {
         const coords = `${req.lat}, ${req.lng}`;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-        } else tg.showAlert(`Координаты: ${coords}`);
+        if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+        else tg.showAlert(`Координаты: ${coords}`);
     };
     photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
 }
-
-function hideActionPanel() {
-    actionPanel.classList.add('hidden');
-    acceptBtn.onclick = null;
-    routeBtn.onclick = null;
-    photoSearchBtn.onclick = null;
-}
+function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
 // Элементы окна выполнения
 const taskCarModel = document.getElementById('taskCarModel');
@@ -424,56 +377,44 @@ setupPhotoButton(photoAfterBtn, photoAfterInput);
 
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
-
 copyPlateBtn.addEventListener('click', () => {
-    if (currentTaskRequest) {
-        navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован'));
-    }
+    if (currentTaskRequest) navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован'));
 });
 copyCoordsBtn.addEventListener('click', () => {
     if (currentTaskRequest) {
-        const coords = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`;
-        navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+        const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`;
+        navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы'));
     }
 });
 
 closeTaskBtn.addEventListener('click', () => {
     if (!currentTaskRequest) return;
     const liters = parseFloat(litersInput.value);
-    if (isNaN(liters) || liters <= 0) {
-        tg.showAlert('Введите корректный литраж');
-        return;
-    }
+    if (isNaN(liters) || liters <= 0) { tg.showAlert('Введите корректный литраж'); return; }
     completeTask('closed', liters);
 });
-
-cancelTaskBtn.addEventListener('click', () => {
-    if (confirm('Отменить заявку?')) completeTask('cancelled');
-});
+cancelTaskBtn.addEventListener('click', () => { if (confirm('Отменить заявку?')) completeTask('cancelled'); });
 
 function completeTask(reason, liters = 0) {
     if (reason === 'closed' && currentTaskRequest) {
-        // Списание литров из текущего выбранного топлива
+        // Списание из текущего топлива
         fuelTanks[currentFuelType] = Math.max(0, fuelTanks[currentFuelType] - liters);
-        carsRefueled += 1;
+        carsRefueled++;
         litersDispensed += liters;
+        refuelLog.push({
+            model: currentTaskRequest.carModel,
+            plate: currentTaskRequest.licensePlate,
+            liters: liters,
+            time: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+        });
         currentTaskRequest.status = 'done';
-        if (activeTaskMarker) {
-            map.removeLayer(activeTaskMarker);
-            activeTaskMarker = null;
-        }
+        if (activeTaskMarker) { map.removeLayer(activeTaskMarker); activeTaskMarker = null; }
         allRequests = allRequests.filter(r => r.id !== currentTaskRequest.id);
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    taskCarModel.textContent = '';
-    taskPlate.textContent = '';
-    taskCoords.textContent = '';
-    taskId.textContent = '';
-    litersInput.value = '';
-    commentInput.value = '';
-    photoBeforeInput.value = '';
-    photoAfterInput.value = '';
+    taskCarModel.textContent = ''; taskPlate.textContent = ''; taskCoords.textContent = ''; taskId.textContent = '';
+    litersInput.value = ''; commentInput.value = ''; photoBeforeInput.value = ''; photoAfterInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     taskLocationBtn.classList.remove('visible');
@@ -493,15 +434,13 @@ function startTask(req, marker) {
     workBtn.classList.add('visible');
     taskLocationBtn.classList.add('visible');
     switchView('workView');
-    segBtns.forEach(b => b.classList.remove('active'));
-    workBtn.classList.add('active');
+    segBtns.forEach(b => b.classList.remove('active')); workBtn.classList.add('active');
     hideActionPanel();
     marker.setIcon(createMarkerIcon(req, true));
     map.closePopup();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
-// Рендер маркеров
 function renderMarkers(requests) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -510,27 +449,21 @@ function renderMarkers(requests) {
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
         marker.bindPopup(createPopupContent(req));
-        marker.on('popupopen', (e) => {
+        marker.on('popupopen', () => {
             map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
             showActionPanel(req, marker);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
-        marker.on('popupclose', () => {
-            hideActionPanel();
-            clearRoute();
-        });
+        marker.on('popupclose', () => { hideActionPanel(); clearRoute(); });
         markers.push(marker);
     });
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
-        activeTaskMarker = null;
-        taskLocationBtn.classList.remove('visible');
+        activeTaskMarker = null; taskLocationBtn.classList.remove('visible');
     }
 }
 
-// Старт
 loadRequests();
 
-// Стилизация Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);

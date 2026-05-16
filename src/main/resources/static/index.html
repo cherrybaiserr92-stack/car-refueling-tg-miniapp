@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <!-- Карусель бочек -->
+            <!-- Карусель канистр -->
             <div class="tank-carousel" id="tankCarousel">
                 <div class="tank-panel tank-left" data-fuel="ai95">
                     <div class="fuel-tank" id="tankAi95">
@@ -36,7 +36,7 @@
                         <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
                         <span class="fuel-tank-text" id="textAi95">0 л</span>
                     </div>
-                    <div class="fuel-label">АИ-95</div>
+                    <div class="fuel-label">Канистра АИ-95</div>
                 </div>
                 <div class="tank-panel tank-center" data-fuel="ai92">
                     <div class="fuel-tank" id="tankAi92">
@@ -44,7 +44,7 @@
                         <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
                         <span class="fuel-tank-text" id="textAi92">0 л</span>
                     </div>
-                    <div class="fuel-label">АИ-92</div>
+                    <div class="fuel-label">Канистра АИ-92</div>
                 </div>
                 <div class="tank-panel tank-right" data-fuel="dt">
                     <div class="fuel-tank" id="tankDt">
@@ -52,21 +52,30 @@
                         <div class="fuel-tank-bubbles" id="bubblesDt"></div>
                         <span class="fuel-tank-text" id="textDt">0 л</span>
                     </div>
-                    <div class="fuel-label">ДТ</div>
+                    <div class="fuel-label">Канистра ДТ</div>
                 </div>
             </div>
 
-            <!-- Кнопки заправки -->
+            <!-- Кнопки заправки (теперь только 92 и ДТ) -->
             <div class="refuel-buttons">
                 <button id="refuelA92Btn" class="refuel-btn">Заправить АИ-92</button>
                 <button id="refuelDTBtn" class="refuel-btn">Заправить ДТ</button>
             </div>
 
-            <!-- Статистика -->
+            <!-- Статистика (кликабельные элементы) -->
             <div class="account-stats">
                 <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
-                <div class="stat-item"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
-                <div class="stat-item"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
+                <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
+                <div class="stat-item clickable" id="totalNeededBlock"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
+            </div>
+
+            <!-- Всплывающая панель со списком (скрыта) -->
+            <div id="detailsPanel" class="details-panel hidden">
+                <div class="details-header">
+                    <span id="detailsTitle"></span>
+                    <button id="closeDetailsBtn" class="close-details-btn">✕</button>
+                </div>
+                <div class="details-content" id="detailsContent"></div>
             </div>
         </div>
     </div>
