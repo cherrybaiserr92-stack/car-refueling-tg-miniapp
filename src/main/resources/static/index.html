@@ -18,7 +18,12 @@
     <div id="accountView" class="view">
         <div class="account-container">
             <div class="settings-wrapper">
-                <button id="settingsBtn" class="settings-btn">⚙️</button>
+                <button id="settingsBtn" class="settings-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                </button>
                 <div id="settingsMenu" class="settings-menu hidden">
                     <div class="menu-item" id="menuDriver">👤 Иван Петров</div>
                     <div class="menu-item" id="menuTruck">🚛 ГАЗель А123ВС 178</div>
@@ -28,7 +33,7 @@
                 </div>
             </div>
 
-            <!-- Карусель канистр -->
+            <!-- Карусель канистр (без подписей) -->
             <div class="tank-carousel" id="tankCarousel">
                 <div class="tank-panel tank-left" data-fuel="ai95">
                     <div class="fuel-tank" id="tankAi95">
@@ -36,7 +41,6 @@
                         <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
                         <span class="fuel-tank-text" id="textAi95">0 л</span>
                     </div>
-                    <div class="fuel-label">Канистра АИ-95</div>
                 </div>
                 <div class="tank-panel tank-center" data-fuel="ai92">
                     <div class="fuel-tank" id="tankAi92">
@@ -44,7 +48,6 @@
                         <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
                         <span class="fuel-tank-text" id="textAi92">0 л</span>
                     </div>
-                    <div class="fuel-label">Канистра АИ-92</div>
                 </div>
                 <div class="tank-panel tank-right" data-fuel="dt">
                     <div class="fuel-tank" id="tankDt">
@@ -52,24 +55,29 @@
                         <div class="fuel-tank-bubbles" id="bubblesDt"></div>
                         <span class="fuel-tank-text" id="textDt">0 л</span>
                     </div>
-                    <div class="fuel-label">Канистра ДТ</div>
                 </div>
             </div>
 
-            <!-- Кнопки заправки (теперь только 92 и ДТ) -->
+            <!-- Кнопка пополнения с полем ввода -->
+            <div class="refuel-custom">
+                <input type="number" id="customLitersInput" class="custom-liters-input" placeholder="Литры" step="1" min="1">
+                <button id="customRefuelBtn" class="refuel-btn">Пополнить</button>
+            </div>
+
+            <!-- Кнопки заправки (без изменений) -->
             <div class="refuel-buttons">
                 <button id="refuelA92Btn" class="refuel-btn">Заправить АИ-92</button>
                 <button id="refuelDTBtn" class="refuel-btn">Заправить ДТ</button>
             </div>
 
-            <!-- Статистика (кликабельные элементы) -->
+            <!-- Статистика -->
             <div class="account-stats">
                 <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
                 <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item clickable" id="totalNeededBlock"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
             </div>
 
-            <!-- Всплывающая панель со списком (скрыта) -->
+            <!-- Всплывающая панель со списком (поднята выше) -->
             <div id="detailsPanel" class="details-panel hidden">
                 <div class="details-header">
                     <span id="detailsTitle"></span>
@@ -80,7 +88,7 @@
         </div>
     </div>
 
-    <!-- Вид работы без изменений -->
+    <!-- Остальное без изменений -->
     <div id="workView" class="view">
         <div class="task-container">
             <h3 class="task-title">Выполнение заявки</h3>

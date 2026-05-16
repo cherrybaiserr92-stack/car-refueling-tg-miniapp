@@ -12,7 +12,7 @@ let currentTaskRequest = null;
 let activeTaskMarker = null;
 const MAX_FUEL_92 = 320;
 const MAX_FUEL_DT = 1000;
-const MAX_FUEL_95 = 0; // не используется
+const MAX_FUEL_95 = 0;
 
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
@@ -96,11 +96,11 @@ async function buildRoute(from, to) {
 let allRequests = [], markers = [];
 let carsRefueled = 0;
 let litersDispensed = 0;
-const refuelLog = []; // история заправок
+const refuelLog = [];
 
 const fuelTanks = {
     ai92: 210,
-    dt: 600,  // будет пополнено до 1000
+    dt: 600,
     ai95: 0
 };
 const maxFuel = {
@@ -108,7 +108,7 @@ const maxFuel = {
     dt: MAX_FUEL_DT,
     ai95: MAX_FUEL_95
 };
-let currentFuelType = 'ai92'; // по умолчанию 92
+let currentFuelType = 'ai92';
 
 function updateAccountStats() {
     updateTank('ai92');
@@ -125,7 +125,7 @@ function updateAccountStats() {
 function updateTank(type) {
     const fuel = fuelTanks[type];
     const max = maxFuel[type];
-    const percentage = Math.min(100, (fuel / max) * 100);
+    const percentage = Math.min(100, max > 0 ? (fuel / max) * 100 : 0);
     const fillEl = document.getElementById(`fill${type.charAt(0).toUpperCase() + type.slice(1)}`);
     if (fillEl) {
         fillEl.style.height = percentage + '%';
@@ -153,7 +153,7 @@ function updateTank(type) {
     if (textEl) textEl.textContent = fuel + ' л';
 }
 
-// Кнопки заправки
+// Кнопки заправки (полное пополнение)
 document.getElementById('refuelA92Btn').addEventListener('click', () => {
     fuelTanks.ai92 = maxFuel.ai92;
     updateAccountStats();
@@ -163,6 +163,23 @@ document.getElementById('refuelDTBtn').addEventListener('click', () => {
     fuelTanks.dt = maxFuel.dt;
     updateAccountStats();
     tg.showAlert('Канистра ДТ заправлена до полного');
+});
+
+// Пополнение на произвольное количество
+document.getElementById('customRefuelBtn').addEventListener('click', () => {
+    const input = document.getElementById('customLitersInput');
+    const liters = parseInt(input.value, 10);
+    if (isNaN(liters) || liters <= 0) {
+        tg.showAlert('Введите корректное количество литров');
+        return;
+    }
+    const tankType = currentFuelType;
+    const max = maxFuel[tankType];
+    const newFuel = Math.min(fuelTanks[tankType] + liters, max);
+    fuelTanks[tankType] = newFuel;
+    updateAccountStats();
+    tg.showAlert(`Канистра ${tankType.toUpperCase()} пополнена на ${liters} л`);
+    input.value = '';
 });
 
 // Карусель
@@ -242,13 +259,9 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Обработчики кнопок статистики
 document.getElementById('litersDispensedBlock').addEventListener('click', (e) => {
     e.stopPropagation();
-    if (refuelLog.length === 0) {
-        tg.showAlert('Нет заправленных машин');
-        return;
-    }
+    if (refuelLog.length === 0) { tg.showAlert('Нет заправленных машин'); return; }
     const items = refuelLog.map(entry => 
         `<span>${entry.plate} ${entry.model}</span> <strong>${entry.liters} л</strong> <span style="font-size:11px">${entry.time}</span>`
     );
@@ -258,10 +271,7 @@ document.getElementById('litersDispensedBlock').addEventListener('click', (e) =>
 document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     e.stopPropagation();
     const needed = allRequests.filter(r => r.status !== 'done');
-    if (needed.length === 0) {
-        tg.showAlert('Нет активных заявок');
-        return;
-    }
+    if (needed.length === 0) { tg.showAlert('Нет активных заявок'); return; }
     const items = needed.map(r => {
         const lack = ((100 - r.fuelLevel) / 100 * 50).toFixed(1);
         return `<span>${r.licensePlate} ${r.carModel}</span> <strong>${lack} л</strong>`;
@@ -279,7 +289,7 @@ async function loadRequests() {
     } catch (e) { console.error(e); }
 }
 
-// Функции для маркеров и попапов (как прежде)
+// Маркеры
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
@@ -305,8 +315,7 @@ function createMarkerIcon(req, isActive = false) {
 }
 
 function createPopupContent(req) {
-    const container = document.createElement('div');
-    container.className = 'popup-pin';
+    const container = document.createElement('div'); container.className = 'popup-pin';
     const body = document.createElement('div'); body.className = 'popup-pin-body';
     const fill = document.createElement('div'); fill.className = 'popup-pin-fill';
     fill.style.height = req.fuelLevel + '%'; fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
@@ -397,7 +406,6 @@ cancelTaskBtn.addEventListener('click', () => { if (confirm('Отменить з
 
 function completeTask(reason, liters = 0) {
     if (reason === 'closed' && currentTaskRequest) {
-        // Списание из текущего топлива
         fuelTanks[currentFuelType] = Math.max(0, fuelTanks[currentFuelType] - liters);
         carsRefueled++;
         litersDispensed += liters;
