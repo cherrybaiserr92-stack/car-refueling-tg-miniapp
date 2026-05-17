@@ -52,7 +52,7 @@ public class RequestController {
     public EstimateResponse estimate(@RequestParam double lat, @RequestParam double lng) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String overpassUrl = "https://overpass-api.de/api/interpreter?data=" +
+            String overpassUrl = "https://overpass.openstreetmap.ru/api/interpreter?data=" +
                 java.net.URLEncoder.encode(
                     "[out:json];(way[\"building\"](around:50," + lat + "," + lng + ");node[\"amenity\"=\"parking\"](around:50," + lat + "," + lng + ");way[\"highway\"](around:50," + lat + "," + lng + "););out center;",
                     "UTF-8"

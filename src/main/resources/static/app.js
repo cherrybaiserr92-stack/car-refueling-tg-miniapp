@@ -24,7 +24,7 @@ estimateBtn.addEventListener('click', () => {
         tg.showAlert('Режим оценки сложности включён');
     } else {
         estimateBtn.classList.remove('active');
-        // Убираем все облачка с маркеров
+        // Убираем все облачка
         document.querySelectorAll('.estimate-cloud').forEach(el => el.remove());
     }
 });
@@ -376,7 +376,7 @@ async function createPopupContent(req) {
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
-const photoSearchBtn = document.getElementById('photoSearchBtn');
+const panoramaBtn = document.getElementById('panoramaBtn');
 
 function showActionPanel(req, marker) {
     if (currentTaskRequest) { acceptBtn.style.display = 'none'; }
@@ -387,9 +387,12 @@ function showActionPanel(req, marker) {
         if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
         else tg.showAlert(`Координаты: ${coords}`);
     };
-    photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
+    panoramaBtn.onclick = () => {
+        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${req.lat},${req.lng}`;
+        window.open(url, '_blank');
+    };
 }
-function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
+function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = panoramaBtn.onclick = null; }
 
 // Элементы окна выполнения
 const taskCarModel = document.getElementById('taskCarModel');
@@ -439,7 +442,6 @@ copyCoordsBtn.addEventListener('click', () => {
     }
 });
 
-// Кнопка подтверждения литража – просто убираем фокус
 confirmLitersBtn.addEventListener('click', () => {
     litersInput.blur();
     tg.showAlert('Литраж зафиксирован');

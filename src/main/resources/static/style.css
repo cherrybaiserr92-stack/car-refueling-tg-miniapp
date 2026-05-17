@@ -349,7 +349,7 @@ body {
 .stat-item span { display: block; font-size: 12px; color: var(--tg-hint); margin-bottom: 4px; }
 .stat-item strong { font-size: 18px; font-weight: 700; }
 
-/* Всплывающая панель со списком (между кнопками и нижним меню) */
+/* Всплывающая панель со списком */
 .details-panel {
     position: fixed;
     bottom: var(--panel-height);
@@ -460,7 +460,7 @@ body {
 }
 .accept-btn { background: var(--tg-accent, #007aff); }
 .route-btn { background: rgba(0,0,0,0.55); }
-.photo-search-btn { background: rgba(0,0,0,0.65); }
+.panorama-btn { background: rgba(0,0,0,0.55); }
 
 /* Вид работы */
 #workView {
@@ -468,7 +468,7 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 20px 20px 100px 20px; /* добавлен нижний отступ, чтобы не перекрывало */
+    padding: 20px 20px 100px 20px;
     overflow-y: auto;
 }
 #workView.active { display: flex; }
@@ -488,10 +488,7 @@ body {
     overflow-y: auto;
 }
 
-.task-header {
-    display: flex;
-    gap: 8px;
-}
+.task-header { display: flex; gap: 8px; }
 .door-btn {
     flex: 1;
     padding: 10px;
@@ -505,14 +502,10 @@ body {
     justify-content: center;
     gap: 6px;
 }
-.door-open { background: #34c759; } /* зелёный */
-.door-close { background: #ff3b30; } /* красный */
-.door-btn svg { flex-shrink: 0; }
+.door-open { background: #34c759; }
+.door-close { background: #ff3b30; }
 
-.task-photos {
-    display: flex;
-    gap: 8px;
-}
+.task-photos { display: flex; gap: 8px; }
 .photo-btn-large {
     flex: 1;
     aspect-ratio: 1 / 1;
@@ -528,10 +521,7 @@ body {
     justify-content: center;
     gap: 4px;
 }
-.photo-label {
-    font-size: 12px;
-    opacity: 0.8;
-}
+.photo-label { font-size: 12px; opacity: 0.8; }
 
 .task-info {
     background: rgba(255,255,255,0.05);
@@ -556,7 +546,7 @@ body {
 }
 .info-row strong {
     font-weight: 600;
-    margin-left: auto; /* сдвигаем координаты вправо */
+    margin-left: auto;
     text-align: right;
 }
 .copy-btn {
@@ -652,6 +642,7 @@ body {
     width: 70px;
     height: 78px;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+    overflow: visible !important;
 }
 
 .popup-pin-body {
@@ -749,7 +740,7 @@ body {
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
 
-/* Облачко оценки под маркером */
+/* Облачко оценки */
 .estimate-cloud {
     position: absolute;
     bottom: -28px;
