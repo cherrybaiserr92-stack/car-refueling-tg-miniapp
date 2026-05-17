@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <!-- Карта (скрыта до входа) -->
+    <!-- Карта -->
     <div id="mapView" class="view">
         <div id="map"></div>
         <button id="locationBtn" class="location-btn">🧭</button>
@@ -30,7 +30,7 @@
         <button id="panoramaBtn" class="panorama-btn" title="Панорама">🌐</button>
     </div>
 
-    <!-- Остальные виды (account, work, details, actionPanel, segmentedPanel) без изменений -->
+    <!-- Остальные виды (без изменений) -->
     <div id="accountView" class="view">
         <div class="account-container">
             <div class="settings-wrapper">
@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <div class="segmented-panel">
+    <div class="segmented-panel" id="bottomPanel">
         <div class="segmented-control" id="segmentedControl">
             <button class="seg-btn active" data-view="mapView">Карта</button>
             <button class="seg-btn" data-view="accountView">Аккаунт</button>
