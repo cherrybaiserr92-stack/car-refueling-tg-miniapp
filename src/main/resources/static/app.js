@@ -92,7 +92,6 @@ const taskLocationBtn = document.getElementById('taskLocationBtn');
 let routeBuilderMode = false;
 let routeBuilderPoints = [];
 const MAX_ROUTE_POINTS = 10;
-
 const routeBuilderBtn = document.getElementById('routeBuilderBtn');
 
 routeBuilderBtn.addEventListener('click', () => {
@@ -150,7 +149,9 @@ function initMap() {
         zoom: 13,
         zoomControl: false,
         attributionControl: false,
-        preferCanvas: true
+        preferCanvas: true,
+        updateWhenIdle: false,      // дополнительная оптимизация
+        updateWhenZooming: false
     });
     L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -208,7 +209,6 @@ async function buildRoute(from, to) {
     } catch (e) { console.error(e); }
 }
 
-// Форматирование госномера
 function formatLicensePlate(licensePlate) {
     const parts = licensePlate.split(' ');
     const base = parts.length > 0 ? parts[0] : licensePlate;
@@ -450,14 +450,53 @@ const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
+// Свайп на кнопке координат
+let routeMode = 'route'; // 'route' или 'copy'
+let swipeStartX = 0;
+
+function updateRouteButton() {
+    if (routeMode === 'route') {
+        routeBtn.textContent = 'Построить маршрут';
+    } else {
+        routeBtn.textContent = 'Скопировать координаты';
+    }
+}
+
+routeBtn.addEventListener('touchstart', (e) => {
+    swipeStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+routeBtn.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].screenX - swipeStartX;
+    if (Math.abs(diff) > 30) {
+        if (diff > 0) {
+            routeMode = 'copy'; // свайп вправо – копировать
+        } else {
+            routeMode = 'route'; // свайп влево – маршрут
+        }
+        updateRouteButton();
+        tg.showAlert(routeMode === 'route' ? 'Режим: построить маршрут' : 'Режим: скопировать координаты');
+    }
+});
+
 function showActionPanel(req, marker) {
     if (currentTaskRequest) { acceptBtn.style.display = 'none'; }
     else { acceptBtn.style.display = 'block'; acceptBtn.onclick = () => startTask(req, marker); }
     actionPanel.classList.remove('hidden');
+    updateRouteButton();
     routeBtn.onclick = () => {
-        const coords = `${req.lat}, ${req.lng}`;
-        if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-        else tg.showAlert(`Координаты: ${coords}`);
+        if (routeMode === 'route') {
+            if (userLocation) {
+                const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${req.lat},${req.lng}`;
+                window.open(url, '_blank');
+            } else {
+                tg.showAlert('Местоположение не определено');
+            }
+        } else {
+            const coords = `${req.lat}, ${req.lng}`;
+            if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+            else tg.showAlert(`Координаты: ${coords}`);
+        }
     };
     photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
 }
@@ -465,7 +504,7 @@ function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.oncl
 
 // Таймер
 let timerInterval = null;
-const TOTAL_SECONDS = 1200; // 20 минут
+const TOTAL_SECONDS = 1200;
 const timerWrapper = document.getElementById('timerWrapper');
 const timerFill = document.getElementById('timerFill');
 const timerText = document.getElementById('timerText');
@@ -526,11 +565,10 @@ const closeDoorsBtn = document.getElementById('closeDoorsBtn');
 const closeTaskBtn = document.getElementById('closeTaskBtn');
 const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
-// Хранилища для выбранных файлов
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Наложение штампа и сохранение на устройство
+// Наложение штампа и сохранение (увеличенный штамп с именем водителя)
 function applyStampAndSave(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -546,6 +584,7 @@ function applyStampAndSave(file) {
             ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
             
             const timestamp = new Date().toLocaleString();
+            const driverName = 'Иван Петров';
             let geoText = 'Гео: -';
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
@@ -556,14 +595,18 @@ function applyStampAndSave(file) {
                 drawAndSave();
             }
             function drawAndSave() {
+                // Штамп увеличен в 10 раз (ширина 400px, высота 60px)
+                const stampWidth = 400;
+                const stampHeight = 60;
+                const x = size - stampWidth - 20;
+                const y = size - stampHeight - 20;
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(size-160, size-30, 155, 25);
+                ctx.fillRect(x, y, stampWidth, stampHeight);
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 10px sans-serif';
+                ctx.font = 'bold 24px sans-serif'; // крупный шрифт
                 ctx.textAlign = 'right';
-                ctx.fillText(geoText + ' | ' + timestamp, size-8, size-10);
+                ctx.fillText(`${driverName} | ${geoText} | ${timestamp}`, size-30, y + 40);
                 
-                // Сохраняем файл
                 canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -582,7 +625,6 @@ function applyStampAndSave(file) {
     reader.readAsDataURL(file);
 }
 
-// Настройка кнопки фото с сохранением
 function setupPhotoButton(btn, input, fileHolder) {
     btn.addEventListener('click', () => {
         if (fileHolder.current) {
@@ -598,10 +640,8 @@ function setupPhotoButton(btn, input, fileHolder) {
             const file = e.target.files[0];
             fileHolder.current = file;
 
-            // Сохраняем фото с штампом
             applyStampAndSave(file);
             
-            // Показываем миниатюру на кнопке (без штампа, чтобы не перегружать)
             const img = document.createElement('img');
             img.src = URL.createObjectURL(file);
             btn.innerHTML = '';
@@ -671,13 +711,12 @@ function completeTask(reason, liters = 0) {
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    // Сброс фото и литража
     beforeHolder.current = null;
     afterHolder.current = null;
     photoBeforeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ДО</span>';
     photoAfterBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ПОСЛЕ</span>';
     confirmLitersBtn.classList.remove('active');
-    litersInput.value = '';   // ЯВНЫЙ СБРОС ЛИТРАЖА
+    litersInput.value = '';
     commentInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
@@ -696,12 +735,11 @@ function startTask(req, marker) {
     taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
-    // Сброс фото и литража
     beforeHolder.current = null;
     afterHolder.current = null;
     photoBeforeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ДО</span>';
     photoAfterBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ПОСЛЕ</span>';
-    litersInput.value = '';   // ЯВНЫЙ СБРОС ЛИТРАЖА
+    litersInput.value = '';
     commentInput.value = '';
     confirmLitersBtn.classList.remove('active');
     workBtn.classList.add('visible');
@@ -715,7 +753,6 @@ function startTask(req, marker) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
-// Обработка клика по маркеру в режиме сложного маршрута
 function handleMarkerClickInRouteMode(req, marker) {
     const existingIndex = routeBuilderPoints.findIndex(p => p.req.id === req.id);
     if (existingIndex !== -1) {
@@ -731,7 +768,6 @@ function handleMarkerClickInRouteMode(req, marker) {
     }
 }
 
-// Рендер маркеров
 function renderMarkers(requests) {
     if (!map) return;
     markers.forEach(m => map.removeLayer(m));

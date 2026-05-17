@@ -33,7 +33,6 @@ public class RequestController {
             String status = statuses[random.nextInt(statuses.length)];
             int fuelLevel = random.nextInt(51);
             String licensePlate = generatePlate();
-            // 20% заявок получают признак долгой аренды
             boolean longRent = random.nextDouble() < 0.2;
             list.add(new RefuelRequest(i, lat, lng, model, fuelLevel, status, licensePlate, longRent));
         }

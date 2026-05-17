@@ -30,7 +30,7 @@
         <button id="panoramaBtn" class="panorama-btn" title="Панорама">🌐</button>
     </div>
 
-    <!-- Аккаунт (без изменений) -->
+    <!-- Аккаунт -->
     <div id="accountView" class="view">
         <div class="account-container">
             <div class="settings-wrapper">
@@ -99,7 +99,6 @@
     <!-- Работа -->
     <div id="workView" class="view">
         <div class="task-container">
-            <!-- Информационное поле -->
             <div class="task-info" id="taskInfo">
                 <div class="info-row"><span>Авто</span> <strong id="taskCarModel"></strong></div>
                 <div class="info-row"><span>Госномер</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
@@ -107,7 +106,6 @@
                 <div class="info-row"><span>Заявка №</span> <strong id="taskId"></strong></div>
             </div>
 
-            <!-- Таймер -->
             <div class="timer-bar-wrapper" id="timerWrapper" style="display:none;">
                 <div class="timer-bar">
                     <div class="timer-fill" id="timerFill"></div>
@@ -115,7 +113,6 @@
                 <div class="timer-text" id="timerText"></div>
             </div>
 
-            <!-- Кнопки дверей -->
             <div class="task-header">
                 <button id="openDoorsBtn" class="door-btn door-open">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,7 +135,6 @@
                 </button>
             </div>
 
-            <!-- Фото -->
             <div class="task-photos">
                 <button id="photoBeforeBtn" class="photo-btn-large">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -152,7 +148,6 @@
                 <input type="file" id="photoAfterInput" accept="image/*" capture="environment" style="display:none">
             </div>
 
-            <!-- Литраж -->
             <div class="task-field">
                 <label>Литраж заправки</label>
                 <div class="liters-row">
@@ -161,16 +156,13 @@
                 </div>
             </div>
 
-            <!-- Закрыть заявку -->
             <button id="closeTaskBtn" class="close-task-btn">Закрыть заявку</button>
 
-            <!-- Комментарий -->
             <div class="task-field">
                 <label>Комментарий (тех. состояние и др.)</label>
                 <textarea id="commentInput" class="comment-input" rows="3" placeholder="Необязательно"></textarea>
             </div>
 
-            <!-- Отменить заявку -->
             <button id="cancelTaskBtn" class="cancel-task-btn">Отменить заявку</button>
         </div>
     </div>
@@ -179,7 +171,7 @@
     <div id="actionPanel" class="action-panel hidden">
         <div class="action-buttons">
             <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
-            <button id="routeBtn" class="action-btn route-btn">Скопировать координаты</button>
+            <button id="routeBtn" class="action-btn route-btn">Построить маршрут</button>
             <button id="photoSearchBtn" class="action-btn photo-search-btn">Найти по фото</button>
         </div>
     </div>

@@ -319,29 +319,10 @@ body {
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
 
 /* Таймер */
-.timer-bar-wrapper {
-    margin-bottom: 8px;
-}
-.timer-bar {
-    height: 10px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 5px;
-    overflow: hidden;
-    position: relative;
-}
-.timer-fill {
-    height: 100%;
-    width: 100%;
-    background: #34c759;
-    border-radius: 5px;
-    transition: width 1s linear;
-}
-.timer-text {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 700;
-    margin-top: 2px;
-}
+.timer-bar-wrapper { margin-bottom: 8px; }
+.timer-bar { height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; position: relative; }
+.timer-fill { height: 100%; width: 100%; background: #34c759; border-radius: 5px; transition: width 1s linear; }
+.timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
 /* Попап */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
@@ -375,12 +356,21 @@ body {
 }
 /* Значок долгой аренды */
 .long-rent-icon {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #b366ff; /* фиолетовый */
-    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 14px;
+    border-radius: 7px;
+    background: #b366ff; /* насыщенный фиолетовый */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+    font-size: 8px;
+    font-weight: 800;
+    color: #00ff00; /* ярко-зелёный */
+    text-transform: uppercase;
+}
+.long-rent-icon::before {
+    content: 'Long';
 }
 .popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
@@ -412,6 +402,7 @@ body {
     position: relative;
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
+    margin-top: -4px; /* приподняли на 1 мм */
 }
 .popup-fuel-fill-mini {
     position: absolute;
