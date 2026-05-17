@@ -459,6 +459,51 @@ function showActionPanel(req, marker) {
 }
 function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
+// Таймер
+let timerInterval = null;
+const TOTAL_SECONDS = 1200; // 20 минут
+const timerWrapper = document.getElementById('timerWrapper');
+const timerFill = document.getElementById('timerFill');
+const timerText = document.getElementById('timerText');
+
+function startTimer() {
+    const startTime = Date.now();
+    timerWrapper.style.display = 'block';
+    updateTimer(startTime);
+    timerInterval = setInterval(() => updateTimer(startTime), 1000);
+}
+
+function updateTimer(startTime) {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const remaining = Math.max(0, TOTAL_SECONDS - elapsed);
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    timerText.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    const percent = (remaining / TOTAL_SECONDS) * 100;
+    timerFill.style.width = percent + '%';
+    // Цвет: зелёный (>50%), жёлтый (20-50%), красный (<20%)
+    if (percent > 50) {
+        timerFill.style.background = '#34c759';
+    } else if (percent > 20) {
+        timerFill.style.background = '#ff9500';
+    } else {
+        timerFill.style.background = '#ff3b30';
+    }
+    if (remaining <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        tg.showAlert('Время вышло!');
+    }
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    timerWrapper.style.display = 'none';
+}
+
 // Окно выполнения
 const taskCarModel = document.getElementById('taskCarModel');
 const taskPlate = document.getElementById('taskPlate');
@@ -482,15 +527,56 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Универсальная настройка кнопки фото с геометкой
+// Наложение штампа на фото
+function applyStampToImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const size = Math.min(img.width, img.height);
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            // Рисуем изображение по центру (если квадратное)
+            const sx = (img.width - size) / 2;
+            const sy = (img.height - size) / 2;
+            ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+            
+            // Штамп: координаты + время
+            const timestamp = new Date().toLocaleString();
+            let geoText = 'Гео: -';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    geoText = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                    drawStamp();
+                }, () => { drawStamp(); });
+            } else {
+                drawStamp();
+            }
+            function drawStamp() {
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(size-160, size-30, 155, 25);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(geoText + ' | ' + timestamp, size-8, size-10);
+                callback(canvas.toDataURL('image/jpeg'));
+            }
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// Настройка кнопки фото с штампом
 function setupPhotoButton(btn, input, fileHolder) {
     btn.addEventListener('click', () => {
         if (fileHolder.current) {
-            // Уже есть фото – открыть в новой вкладке
             const url = URL.createObjectURL(fileHolder.current);
             window.open(url, '_blank');
         } else {
-            input.click(); // открываем камеру
+            input.click();
         }
     });
 
@@ -499,45 +585,37 @@ function setupPhotoButton(btn, input, fileHolder) {
             const file = e.target.files[0];
             fileHolder.current = file;
 
-            // Отобразить миниатюру на кнопке
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-            btn.innerHTML = '';
-            btn.appendChild(img);
-
-            // Добавить иконку переснять
-            const retakeIcon = document.createElement('span');
-            retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;';
-            retakeIcon.innerHTML = '🔄';
-            retakeIcon.addEventListener('click', (ev) => {
-                ev.stopPropagation();
-                input.click();
+            // Создаём миниатюру с штампом
+            applyStampToImage(file, (dataUrl) => {
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                btn.innerHTML = '';
+                btn.appendChild(img);
+                
+                const retakeIcon = document.createElement('span');
+                retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;z-index:2;';
+                retakeIcon.innerHTML = '🔄';
+                retakeIcon.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    input.click();
+                });
+                btn.appendChild(retakeIcon);
+                
+                // Показать геометку (она уже в штампе)
+                const timestamp = new Date().toLocaleString();
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => tg.showAlert(`Геометка: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}\nВремя: ${timestamp}`),
+                        () => tg.showAlert(`Время: ${timestamp}`)
+                    );
+                } else {
+                    tg.showAlert(`Время: ${timestamp}`);
+                }
             });
-            btn.appendChild(retakeIcon);
-
-            // Геометка – фиксируем время и координаты
-            const timestamp = new Date().toLocaleString();
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude.toFixed(6);
-                        const lng = pos.coords.longitude.toFixed(6);
-                        tg.showAlert(`Геометка: ${lat}, ${lng}\nВремя: ${timestamp}`);
-                        // Здесь можно сохранить координаты в скрытое поле или добавить к комментарию
-                    },
-                    (err) => {
-                        tg.showAlert(`Геометка не определена\nВремя: ${timestamp}`);
-                    }
-                );
-            } else {
-                tg.showAlert(`Время: ${timestamp}`);
-            }
-            tg.showAlert('Фото выбрано');
         }
     });
 }
 
-// Инициализация кнопок
 setupPhotoButton(photoBeforeBtn, photoBeforeInput, beforeHolder);
 setupPhotoButton(photoAfterBtn, photoAfterInput, afterHolder);
 
@@ -599,6 +677,7 @@ function completeTask(reason, liters = 0) {
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     taskLocationBtn.classList.remove('visible');
+    stopTimer();
     switchView('mapView');
     segBtns.forEach(b => b.classList.remove('active'));
     document.querySelector('.seg-btn[data-view="mapView"]').classList.add('active');
@@ -624,6 +703,7 @@ function startTask(req, marker) {
     hideActionPanel();
     marker.setIcon(createMarkerIcon(req, true));
     map.closePopup();
+    startTimer();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
