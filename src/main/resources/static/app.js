@@ -5,22 +5,27 @@ tg.expand();
 // --- Авторизация ---
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
+const accountView = document.getElementById('accountView');
 const bottomPanel = document.getElementById('bottomPanel');
 let loggedIn = false;
-let clusterGroup = null; // для кластеризации
 
 function tryAutoLogin() {
     const stored = localStorage.getItem('refuel_loggedIn');
     loggedIn = stored === 'true';
     if (loggedIn) {
         loginView.classList.remove('active');
-        mapView.classList.add('active');
+        mapView.classList.remove('active');
+        accountView.classList.add('active');      // показываем аккаунт
         bottomPanel.style.display = 'flex';
+        // Устанавливаем активную кнопку "Аккаунт"
+        document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.seg-btn[data-view="accountView"]').classList.add('active');
         if (!map) initMap();
         loadRequests();
     } else {
         loginView.classList.add('active');
         mapView.classList.remove('active');
+        accountView.classList.remove('active');
         bottomPanel.style.display = 'none';
     }
 }
@@ -32,8 +37,11 @@ document.getElementById('loginBtn').addEventListener('click', () => {
         localStorage.setItem('refuel_loggedIn', 'true');
         loggedIn = true;
         loginView.classList.remove('active');
-        mapView.classList.add('active');
+        mapView.classList.remove('active');
+        accountView.classList.add('active');
         bottomPanel.style.display = 'flex';
+        document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.seg-btn[data-view="accountView"]').classList.add('active');
         if (!map) initMap();
         loadRequests();
     } else {
@@ -47,6 +55,7 @@ document.getElementById('menuLogout').addEventListener('click', () => {
     loggedIn = false;
     loginView.classList.add('active');
     mapView.classList.remove('active');
+    accountView.classList.remove('active');
     bottomPanel.style.display = 'none';
     if (map) {
         map.remove();
@@ -106,14 +115,11 @@ function initMap() {
         center: [59.9343, 30.3351],
         zoom: 13,
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        preferCanvas: true          // <-- Canvas-рендеринг для производительности
     });
     L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    // Инициализируем кластерную группу
-    clusterGroup = L.markerClusterGroup();
-    map.addLayer(clusterGroup);
 
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
@@ -532,14 +538,15 @@ function startTask(req, marker) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
+// Рендер маркеров (без кластеризации)
 function renderMarkers(requests) {
-    if (!clusterGroup) return;
-    clusterGroup.clearLayers();
+    if (!map) return;
+    markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
-        const marker = L.marker([req.lat, req.lng], { icon: icon });
+        const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
         marker.bindPopup(createPopupContent(req));
         marker.on('popupopen', () => {
             lastClickedCoords = { lat: req.lat, lng: req.lng };
@@ -548,7 +555,6 @@ function renderMarkers(requests) {
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
         marker.on('popupclose', () => { hideActionPanel(); clearRoute(); });
-        clusterGroup.addLayer(marker);
         markers.push(marker);
     });
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
