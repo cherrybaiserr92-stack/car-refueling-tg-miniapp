@@ -90,7 +90,7 @@ const taskLocationBtn = document.getElementById('taskLocationBtn');
 
 // Режим сложного маршрута
 let routeBuilderMode = false;
-let routeBuilderPoints = []; // [{lat, lng, req}, ...]
+let routeBuilderPoints = [];
 const MAX_ROUTE_POINTS = 10;
 
 const routeBuilderBtn = document.getElementById('routeBuilderBtn');
@@ -102,10 +102,10 @@ routeBuilderBtn.addEventListener('click', () => {
         routeBuilderPoints = [];
         tg.showAlert('Режим сложного маршрута включён. Выберите до 10 заявок. Нажмите повторно для построения.');
     } else {
-        if (routeBuilderPoints.length >= 1) { // достаточно хотя бы одной заявки, маршрут от пользователя
+        if (routeBuilderPoints.length >= 1) {
             if (!userLocation) {
-                tg.showAlert('Местоположение не определено. Невозможно построить маршрут.');
-                // выключаем режим
+                tg.showAlert('Местоположение не определено');
+                // выключаем режим, но не строим
                 routeBuilderBtn.classList.remove('active');
                 routeBuilderMode = false;
                 markers.forEach(m => {
@@ -116,15 +116,15 @@ routeBuilderBtn.addEventListener('click', () => {
                 routeBuilderPoints = [];
                 return;
             }
-            // Строим ссылку: первая точка — местоположение пользователя
             const points = [userLocation.lat, userLocation.lng].join(',') + '~' +
                 routeBuilderPoints.map(p => `${p.lat},${p.lng}`).join('~');
             const url = `https://yandex.ru/maps/?rtt=auto&rtext=${points}`;
             window.open(url, '_blank');
         } else {
-            tg.showAlert('Выберите хотя бы одну заявку');
+            // ни одной заявки не выбрано – просто выключаем режим
+            tg.showAlert('Режим сложного маршрута выключен');
         }
-        // Выключаем режим
+        // В любом случае выключаем
         routeBuilderBtn.classList.remove('active');
         routeBuilderMode = false;
         markers.forEach(m => {
@@ -221,7 +221,7 @@ async function buildRoute(from, to) {
     } catch (e) { console.error(e); }
 }
 
-// Вспомогательная функция для форматирования госномера (табличка с флагом)
+// Форматирование госномера (табличка с флагом)
 function formatLicensePlate(licensePlate) {
     const parts = licensePlate.split(' ');
     const base = parts.length > 0 ? parts[0] : licensePlate;
@@ -415,7 +415,7 @@ function createPopupContent(req) {
 
     const modelLine = document.createElement('div');
     modelLine.className = 'popup-model-line';
-    modelLine.innerHTML = `🚗 ${req.carModel}`; // иконка + модель
+    modelLine.textContent = req.carModel; // без иконки
 
     const mainRow = document.createElement('div');
     mainRow.className = 'popup-main-row';
@@ -572,9 +572,7 @@ function completeTask(reason, liters = 0) {
 function startTask(req, marker) {
     currentTaskRequest = req;
     activeTaskMarker = marker;
-    // Устанавливаем модель с иконкой
-    taskCarModel.innerHTML = `🚗 ${req.carModel}`;
-    // Устанавливаем госномер как табличку
+    taskCarModel.textContent = req.carModel; // без иконки, просто текст
     taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;

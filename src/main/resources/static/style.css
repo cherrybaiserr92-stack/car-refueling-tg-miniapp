@@ -60,13 +60,7 @@ body {
     flex-direction: column;
     gap: 16px;
 }
-.login-box h2 {
-    text-align: center;
-    font-size: 20px;
-    font-weight: 700;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-}
+.login-box h2 { text-align: center; font-size: 20px; font-weight: 700; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
 .login-input {
     background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.4);
@@ -89,7 +83,7 @@ body {
 .login-error { color: #ff3b30; text-align: center; font-size: 13px; }
 .hidden { display: none; }
 
-/* Правая колонка кнопок */
+/* Правая колонка */
 .route-builder-btn {
     position: absolute;
     top: 50%; right: 16px;
@@ -263,7 +257,7 @@ body {
     justify-content: center;
     gap: 6px;
 }
-.door-btn svg { width: 20px; height: 12px; stroke: white; }
+.door-btn svg { width: 16px; height: 16px; stroke: white; }
 .door-open { background: #34c759; }
 .door-close { background: #ff3b30; }
 .task-photos { display: flex; gap: 8px; }
@@ -272,21 +266,29 @@ body {
 .task-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
 .info-row { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .info-row span { color: var(--tg-hint); min-width: 70px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
-.info-row strong { font-weight: 600; margin-left: auto; text-align: right; display: flex; align-items: center; gap: 4px; }
-/* Стили для таблички госномера внутри workView */
+.info-row strong {
+    font-weight: 600;
+    margin-left: auto;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    max-width: 60%;
+}
 .plate-display {
-    background: white;
-    color: black;
+    background: transparent;
+    color: white;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 13px;
     letter-spacing: 0.5px;
     padding: 2px 6px;
-    border: 1px solid black;
+    border: 1px solid white;
     border-radius: 4px;
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
 }
 .copy-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 4px 6px; color: white; cursor: pointer; display: flex; align-items: center; margin-left: 6px; }
 .copy-btn svg { stroke: white; }
@@ -332,17 +334,16 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
-.popup-model-line { font-weight: 700; font-size: 10px; text-align: center; opacity: 0.9; display: flex; align-items: center; justify-content: center; gap: 4px; }
-.popup-model-line::before { content: '🚗'; font-size: 12px; }
+.popup-model-line { font-weight: 700; font-size: 10px; text-align: center; opacity: 0.9; }
 .popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
-    background: white;
-    color: black;
+    background: transparent;
+    color: white;
     font-weight: 800;
     font-size: 14px;
     letter-spacing: 0.5px;
     padding: 3px 6px;
-    border: 1px solid black;
+    border: 1px solid white;
     border-radius: 4px;
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
     flex: 1;
