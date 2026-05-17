@@ -33,7 +33,6 @@ if (!loggedIn) {
     loadRequests();
 }
 
-// Глобальные переменные
 let map, userMarker, accuracyCircle, userLocation;
 let currentRouteLayer;
 let allRequests = [], markers = [];
@@ -125,7 +124,6 @@ function initMap() {
     });
 }
 
-// Маршрут OSRM
 function clearRoute() { if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; } }
 async function buildRoute(from, to) {
     clearRoute();
@@ -141,7 +139,6 @@ async function buildRoute(from, to) {
     } catch (e) { console.error(e); }
 }
 
-// Управление статистикой и канистрами
 function updateAccountStats() {
     updateTank('ai92');
     updateTank('dt');
@@ -185,7 +182,6 @@ function updateTank(type) {
     if (textEl) textEl.textContent = fuel + ' л';
 }
 
-// Кнопки заправки
 document.getElementById('refuelA92Btn').addEventListener('click', () => {
     fuelTanks.ai92 = maxFuel.ai92;
     updateAccountStats();
@@ -197,14 +193,10 @@ document.getElementById('refuelDTBtn').addEventListener('click', () => {
     tg.showAlert('Канистра ДТ заправлена до полного');
 });
 
-// Пополнение произвольного литража
 document.getElementById('customRefuelBtn').addEventListener('click', () => {
     const input = document.getElementById('customLitersInput');
     const liters = parseInt(input.value, 10);
-    if (isNaN(liters) || liters <= 0) {
-        tg.showAlert('Введите корректное количество литров');
-        return;
-    }
+    if (isNaN(liters) || liters <= 0) { tg.showAlert('Введите корректное количество литров'); return; }
     const tankType = currentFuelType;
     const max = maxFuel[tankType];
     const newFuel = Math.min(fuelTanks[tankType] + liters, max);
@@ -214,7 +206,6 @@ document.getElementById('customRefuelBtn').addEventListener('click', () => {
     input.value = '';
 });
 
-// Карусель канистр
 const carousel = document.getElementById('tankCarousel');
 let touchStartX = 0, touchEndX = 0;
 carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
@@ -259,7 +250,6 @@ function initCarousel() {
 }
 initCarousel();
 
-// Шестерёнка и меню
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsMenu = document.getElementById('settingsMenu');
 settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsMenu.classList.toggle('hidden'); });
@@ -270,27 +260,20 @@ document.getElementById('menuSupport').addEventListener('click', () => { tg.show
 document.getElementById('menuInstructions').addEventListener('click', () => { tg.showAlert('Инструкция по заправке...'); settingsMenu.classList.add('hidden'); });
 document.getElementById('menuSOS').addEventListener('click', () => { tg.showAlert('SOS: помощь уже в пути'); settingsMenu.classList.add('hidden'); });
 
-// Всплывающая панель списков
 const detailsPanel = document.getElementById('detailsPanel');
 const detailsContent = document.getElementById('detailsContent');
 function showDetailsPanel(items) {
     detailsContent.innerHTML = items.map(item => `<div class="details-item">${item}</div>`).join('');
     detailsPanel.classList.remove('hidden');
 }
-function hideDetailsPanel() {
-    detailsPanel.classList.add('hidden');
-}
+function hideDetailsPanel() { detailsPanel.classList.add('hidden'); }
 document.addEventListener('click', (e) => {
-    if (!detailsPanel.contains(e.target) && e.target !== document.getElementById('litersDispensedBlock') && e.target !== document.getElementById('totalNeededBlock')) {
-        hideDetailsPanel();
-    }
+    if (!detailsPanel.contains(e.target) && e.target !== document.getElementById('litersDispensedBlock') && e.target !== document.getElementById('totalNeededBlock')) hideDetailsPanel();
 });
 document.getElementById('litersDispensedBlock').addEventListener('click', (e) => {
     e.stopPropagation();
     if (refuelLog.length === 0) { tg.showAlert('Нет заправленных машин'); return; }
-    const items = refuelLog.map(entry => 
-        `<span>${entry.plate} ${entry.model}</span> <strong>${entry.liters} л</strong> <span style="font-size:11px">${entry.time}</span>`
-    );
+    const items = refuelLog.map(entry => `<span>${entry.plate} ${entry.model}</span> <strong>${entry.liters} л</strong> <span style="font-size:11px">${entry.time}</span>`);
     showDetailsPanel(items);
 });
 document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
@@ -304,7 +287,6 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     showDetailsPanel(items);
 });
 
-// ИИ-оценка с fallback
 async function fetchEstimate(lat, lng) {
     try {
         const res = await fetch(`/api/estimate?lat=${lat}&lng=${lng}`);
@@ -318,7 +300,6 @@ async function fetchEstimate(lat, lng) {
     }
 }
 
-// Загрузка заявок
 async function loadRequests() {
     try {
         const res = await fetch('/api/requests');
@@ -328,7 +309,6 @@ async function loadRequests() {
     } catch (e) { console.error(e); }
 }
 
-// Маркеры и попапы
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
@@ -352,8 +332,7 @@ function createMarkerIcon(req, isActive = false) {
     });
 }
 async function createPopupContent(req) {
-    const container = document.createElement('div');
-    container.className = 'popup-pin';
+    const container = document.createElement('div'); container.className = 'popup-pin';
     const body = document.createElement('div'); body.className = 'popup-pin-body';
     const fill = document.createElement('div'); fill.className = 'popup-pin-fill';
     fill.style.height = req.fuelLevel + '%'; fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
@@ -368,8 +347,7 @@ async function createPopupContent(req) {
     if (estimateMode) {
         const data = await fetchEstimate(req.lat, req.lng);
         if (data && data.score >= 0) {
-            const cloud = document.createElement('div');
-            cloud.className = 'estimate-cloud';
+            const cloud = document.createElement('div'); cloud.className = 'estimate-cloud';
             let color;
             if (data.score <= 3) color = '#34c759';
             else if (data.score <= 6) color = '#ff9500';
@@ -382,7 +360,6 @@ async function createPopupContent(req) {
     return container;
 }
 
-// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -401,7 +378,6 @@ function showActionPanel(req, marker) {
 }
 function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
-// Элементы окна выполнения
 const taskCarModel = document.getElementById('taskCarModel');
 const taskPlate = document.getElementById('taskPlate');
 const taskCoords = document.getElementById('taskCoords');
@@ -449,10 +425,7 @@ copyCoordsBtn.addEventListener('click', () => {
     }
 });
 
-confirmLitersBtn.addEventListener('click', () => {
-    litersInput.blur();
-    tg.showAlert('Литраж зафиксирован');
-});
+confirmLitersBtn.addEventListener('click', () => { litersInput.blur(); tg.showAlert('Литраж зафиксирован'); });
 
 closeTaskBtn.addEventListener('click', () => {
     if (!currentTaskRequest) return;
@@ -533,5 +506,4 @@ function renderMarkers(requests) {
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
-
 map && map.on('click', () => hideActionPanel());
