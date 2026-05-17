@@ -15,9 +15,8 @@ function tryAutoLogin() {
     if (loggedIn) {
         loginView.classList.remove('active');
         mapView.classList.remove('active');
-        accountView.classList.add('active');      // показываем аккаунт
+        accountView.classList.add('active');
         bottomPanel.style.display = 'flex';
-        // Устанавливаем активную кнопку "Аккаунт"
         document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.seg-btn[data-view="accountView"]').classList.add('active');
         if (!map) initMap();
@@ -89,6 +88,33 @@ const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 
+// Режим сложного маршрута
+let routeBuilderMode = false;
+let routeBuilderPoints = []; // [{lat, lng, req}, ...]
+const MAX_ROUTE_POINTS = 10;
+
+const routeBuilderBtn = document.getElementById('routeBuilderBtn');
+
+routeBuilderBtn.addEventListener('click', () => {
+    routeBuilderMode = !routeBuilderMode;
+    if (routeBuilderMode) {
+        routeBuilderBtn.classList.add('active');
+        routeBuilderPoints = [];
+        tg.showAlert('Режим сложного маршрута включён. Выберите от 2 до 10 заявок.');
+    } else {
+        routeBuilderBtn.classList.remove('active');
+        // Очищаем подсветку у всех маркеров
+        markers.forEach(m => m.setIcon(createMarkerIcon(m.req, false)));
+        routeBuilderPoints = [];
+        tg.showAlert('Режим сложного маршрута выключен.');
+    }
+    // Обновить иконки заявок (активная остаётся чёрной)
+    if (currentTaskRequest) {
+        const activeMarker = markers.find(m => m.req && m.req.id === currentTaskRequest.id);
+        if (activeMarker) activeMarker.setIcon(createMarkerIcon(currentTaskRequest, true));
+    }
+});
+
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -116,7 +142,7 @@ function initMap() {
         zoom: 13,
         zoomControl: false,
         attributionControl: false,
-        preferCanvas: true          // <-- Canvas-рендеринг для производительности
+        preferCanvas: true
     });
     L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -150,9 +176,11 @@ function initMap() {
         window.open(url, '_blank');
     });
 
+    // Кнопка бензоколонки: центрируем активную заявку
     taskLocationBtn.addEventListener('click', () => {
         if (!activeTaskMarker) { tg.showAlert('Нет активной заявки'); return; }
-        map.panTo(activeTaskMarker.getLatLng(), { animate: true, duration: 0.5 });
+        const latlng = activeTaskMarker.getLatLng();
+        map.panTo(latlng, { animate: true, duration: 0.5 });
         activeTaskMarker.openPopup();
     });
 }
@@ -332,9 +360,10 @@ function lightenColor(hex, f) {
     const to = c => Math.min(255, Math.floor(c + (255-c)*f));
     return `rgb(${to(r)},${to(g)},${to(b)})`;
 }
-function createMarkerIcon(req, isActive = false) {
+function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     let gradient;
-    if (isActive) gradient = '#000000';
+    if (isActive) gradient = '#000000'; // чёрный для активной заявки
+    else if (isRoutePoint) gradient = '#007aff'; // синий для точки маршрута
     else {
         const color = markerColor(req.fuelLevel);
         gradient = `radial-gradient(circle at 30% 30%, ${lightenColor(color,0.4)}, ${color})`;
@@ -538,27 +567,82 @@ function startTask(req, marker) {
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
-// Рендер маркеров (без кластеризации)
+// Обработка клика по маркеру в режиме сложного маршрута
+function handleMarkerClickInRouteMode(req, marker) {
+    // Проверяем, не выбрана ли уже эта точка
+    const existing = routeBuilderPoints.find(p => p.req.id === req.id);
+    if (existing) {
+        // Убираем точку
+        routeBuilderPoints = routeBuilderPoints.filter(p => p.req.id !== req.id);
+        marker.setIcon(createMarkerIcon(req, false));
+    } else {
+        if (routeBuilderPoints.length >= MAX_ROUTE_POINTS) {
+            tg.showAlert(`Максимум ${MAX_ROUTE_POINTS} точек`);
+            return;
+        }
+        routeBuilderPoints.push({ lat: req.lat, lng: req.lng, req });
+        marker.setIcon(createMarkerIcon(req, false, true)); // синяя иконка
+    }
+
+    if (routeBuilderPoints.length >= 2) {
+        // Строим ссылку на Яндекс.Маршруты
+        const points = routeBuilderPoints.map(p => `${p.lat},${p.lng}`).join('~');
+        const url = `https://yandex.ru/maps/?rtt=auto&rtext=${points}`;
+        window.open(url, '_blank');
+        // Выключаем режим
+        routeBuilderBtn.classList.remove('active');
+        routeBuilderMode = false;
+        // Возвращаем иконки к исходным
+        markers.forEach(m => {
+            if (!m.req) return;
+            const isActive = currentTaskRequest && m.req.id === currentTaskRequest.id;
+            m.setIcon(createMarkerIcon(m.req, isActive, false));
+        });
+        routeBuilderPoints = [];
+    }
+}
+
+// Рендер маркеров
 function renderMarkers(requests) {
     if (!map) return;
     markers.forEach(m => map.removeLayer(m));
     markers = [];
     requests.forEach(req => {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
-        const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
+        const isRoutePoint = routeBuilderPoints.some(p => p.req.id === req.id);
+        const icon = createMarkerIcon(req, isActive, isRoutePoint);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
+        marker.req = req; // сохраняем ссылку на заявку
+
         marker.bindPopup(createPopupContent(req));
+
         marker.on('popupopen', () => {
             lastClickedCoords = { lat: req.lat, lng: req.lng };
-            map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
-            showActionPanel(req, marker);
-            if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
+
+            if (routeBuilderMode) {
+                // В режиме сложного маршрута – добавляем/убираем точку
+                handleMarkerClickInRouteMode(req, marker);
+                // Закрываем попап, чтобы не мешал
+                map.closePopup();
+            } else {
+                // Обычный режим
+                map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
+                showActionPanel(req, marker);
+                if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
+            }
         });
-        marker.on('popupclose', () => { hideActionPanel(); clearRoute(); });
+
+        marker.on('popupclose', () => {
+            hideActionPanel();
+            clearRoute();
+        });
+
         markers.push(marker);
     });
+
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
-        activeTaskMarker = null; taskLocationBtn.classList.remove('visible');
+        activeTaskMarker = null;
+        taskLocationBtn.classList.remove('visible');
     }
 }
 

@@ -51,8 +51,7 @@ body {
 .login-box {
     position: relative;
     z-index: 1;
-    background: transparent;              /* полностью прозрачный */
-    backdrop-filter: none;
+    background: transparent;
     border-radius: 20px;
     padding: 30px 20px;
     width: 90%;
@@ -69,7 +68,7 @@ body {
     text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 .login-input {
-    background: rgba(0,0,0,0.3);          /* полупрозрачные поля */
+    background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 10px;
     padding: 12px;
@@ -90,7 +89,37 @@ body {
 .login-error { color: #ff3b30; text-align: center; font-size: 13px; }
 .hidden { display: none; }
 
-/* Правая колонка */
+/* Правая колонка кнопок (расположена вертикально, сдвинута вниз от центра) */
+/* Кнопка построения маршрута (над компасом) */
+.route-builder-btn {
+    position: absolute;
+    top: 50%; right: 16px;
+    transform: translateY(calc(-50% - 56px));  /* над location-btn */
+    z-index: 800;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(30,30,32,0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    outline: none;
+}
+.route-builder-btn.active {
+    background: #007aff;
+    border-color: #007aff;
+}
+.route-builder-btn:active {
+    transform: scale(0.92) translateY(calc(-50% - 56px));
+    background: rgba(60,60,64,0.8);
+}
+
 .location-btn {
     position: absolute;
     top: 50%; right: 16px;

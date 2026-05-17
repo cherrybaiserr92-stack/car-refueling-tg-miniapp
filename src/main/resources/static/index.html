@@ -9,7 +9,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Экран входа (всегда поверх) -->
+    <!-- Экран входа -->
     <div id="loginView" class="view active">
         <div class="login-bg"></div>
         <div class="login-box">
@@ -21,9 +21,11 @@
         </div>
     </div>
 
-    <!-- Карта (изначально скрыта) -->
+    <!-- Карта -->
     <div id="mapView" class="view">
         <div id="map"></div>
+        <!-- Правая колонка кнопок -->
+        <button id="routeBuilderBtn" class="route-builder-btn" title="Сложный маршрут">🧠</button>
         <button id="locationBtn" class="location-btn">🧭</button>
         <button id="taskLocationBtn" class="task-location-btn hidden">⛽</button>
         <button id="panoramaBtn" class="panorama-btn" title="Панорама">🌐</button>
@@ -145,7 +147,7 @@
         </div>
     </div>
 
-    <!-- Нижняя панель (изначально скрыта) -->
+    <!-- Нижняя панель -->
     <div class="segmented-panel" id="bottomPanel" style="display: none;">
         <div class="segmented-control" id="segmentedControl">
             <button class="seg-btn" data-view="mapView">Карта</button>
