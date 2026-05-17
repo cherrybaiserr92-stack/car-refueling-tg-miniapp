@@ -1,0 +1,6 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "packages": {
+    "maven": "3.9.15"
+  }
+}
