@@ -110,6 +110,32 @@ body {
     transform: scale(0.92) translateY(calc(-50% + 112px));
 }
 
+/* Кнопка панорамы */
+.panorama-btn {
+    position: absolute;
+    top: 50%; right: 16px;
+    transform: translateY(calc(-50% + 168px));
+    z-index: 800;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(30,30,32,0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    outline: none;
+}
+.panorama-btn:active {
+    transform: scale(0.92) translateY(calc(-50% + 168px));
+    background: rgba(60,60,64,0.8);
+}
+
 /* Аккаунт */
 #accountView {
     background: var(--tg-bg);
@@ -460,7 +486,7 @@ body {
 }
 .accept-btn { background: var(--tg-accent, #007aff); }
 .route-btn { background: rgba(0,0,0,0.55); }
-.panorama-btn { background: rgba(0,0,0,0.55); }
+.photo-search-btn { background: rgba(0,0,0,0.55); }
 
 /* Вид работы */
 #workView {
@@ -702,17 +728,25 @@ body {
     font-weight: 700;
     font-size: 9px;
     text-shadow: 0 1px 2px black;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
+
+/* Табличка госномера */
 .popup-plate {
     position: relative;
     z-index: 2;
+    background: white;
+    color: black;
     font-weight: 800;
-    font-size: 9px;
-    letter-spacing: 0.2px;
-    text-shadow: 0 1px 2px black;
-    margin-bottom: 1px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    padding: 1px 5px;
+    border: 1px solid black;
+    border-radius: 3px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    margin-bottom: 2px;
 }
+
 .popup-percent {
     position: relative;
     z-index: 2;

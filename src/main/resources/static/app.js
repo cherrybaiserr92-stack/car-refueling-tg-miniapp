@@ -24,8 +24,21 @@ estimateBtn.addEventListener('click', () => {
         tg.showAlert('Режим оценки сложности включён');
     } else {
         estimateBtn.classList.remove('active');
-        // Убираем все облачка
         document.querySelectorAll('.estimate-cloud').forEach(el => el.remove());
+    }
+});
+
+// Панорама (теперь в правой колонке)
+document.getElementById('panoramaBtn').addEventListener('click', () => {
+    if (activeTaskMarker) {
+        const latlng = activeTaskMarker.getLatLng();
+        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+        window.open(url, '_blank');
+    } else {
+        // Если нет активной заявки, открыть панораму по центру карты или по местоположению
+        const center = userLocation || map.getCenter();
+        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${center.lat},${center.lng}`;
+        window.open(url, '_blank');
     }
 });
 
@@ -290,7 +303,7 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     showDetailsPanel(items);
 });
 
-// Функция ИИ-оценки
+// Функция ИИ-оценки (исправленный endpoint)
 async function fetchEstimate(lat, lng) {
     try {
         const res = await fetch(`/api/estimate?lat=${lat}&lng=${lng}`);
@@ -353,7 +366,6 @@ async function createPopupContent(req) {
     const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
     container.appendChild(body); container.appendChild(tip);
 
-    // Если включён режим оценки, добавляем облачко
     if (estimateMode) {
         const data = await fetchEstimate(req.lat, req.lng);
         if (data && data.score >= 0) {
@@ -376,7 +388,7 @@ async function createPopupContent(req) {
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
-const panoramaBtn = document.getElementById('panoramaBtn');
+const photoSearchBtn = document.getElementById('photoSearchBtn');
 
 function showActionPanel(req, marker) {
     if (currentTaskRequest) { acceptBtn.style.display = 'none'; }
@@ -387,12 +399,9 @@ function showActionPanel(req, marker) {
         if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
         else tg.showAlert(`Координаты: ${coords}`);
     };
-    panoramaBtn.onclick = () => {
-        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${req.lat},${req.lng}`;
-        window.open(url, '_blank');
-    };
+    photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
 }
-function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = panoramaBtn.onclick = null; }
+function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
 // Элементы окна выполнения
 const taskCarModel = document.getElementById('taskCarModel');
