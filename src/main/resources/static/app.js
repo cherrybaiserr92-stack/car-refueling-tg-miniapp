@@ -42,7 +42,7 @@ const fuelTanks = { ai92: 210, dt: 600, ai95: 0 };
 const maxFuel = { ai92: 320, dt: 1000, ai95: 0 };
 let currentFuelType = 'ai92';
 let currentTaskRequest = null, activeTaskMarker = null;
-let estimateMode = false;
+let lastClickedCoords = null;
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
@@ -99,21 +99,12 @@ function initMap() {
         map.setView(userLocation, map.getZoom(), { animate: true, duration: 0.5 });
     });
 
-    document.getElementById('estimateBtn').addEventListener('click', () => {
-        estimateMode = !estimateMode;
-        const btn = document.getElementById('estimateBtn');
-        if (estimateMode) {
-            btn.classList.add('active');
-            tg.showAlert('Режим оценки сложности включён');
-        } else {
-            btn.classList.remove('active');
-            document.querySelectorAll('.estimate-cloud').forEach(el => el.remove());
-        }
-    });
-
     document.getElementById('panoramaBtn').addEventListener('click', () => {
-        const center = userLocation || map.getCenter();
-        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${center.lat},${center.lng}`;
+        if (!lastClickedCoords) {
+            tg.showAlert('Сначала нажмите на заявку');
+            return;
+        }
+        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lastClickedCoords.lat},${lastClickedCoords.lng}`;
         window.open(url, '_blank');
     });
 
@@ -145,9 +136,7 @@ function updateAccountStats() {
     updateTank('ai95');
     document.getElementById('carsRefueled').textContent = carsRefueled;
     document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
-    const totalNeeded = allRequests
-        .filter(r => r.status !== 'done')
-        .reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
+    const totalNeeded = allRequests.filter(r => r.status !== 'done').reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
     document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
 }
 
@@ -192,7 +181,6 @@ document.getElementById('refuelDTBtn').addEventListener('click', () => {
     updateAccountStats();
     tg.showAlert('Канистра ДТ заправлена до полного');
 });
-
 document.getElementById('customRefuelBtn').addEventListener('click', () => {
     const input = document.getElementById('customLitersInput');
     const liters = parseInt(input.value, 10);
@@ -206,6 +194,7 @@ document.getElementById('customRefuelBtn').addEventListener('click', () => {
     input.value = '';
 });
 
+// Карусель
 const carousel = document.getElementById('tankCarousel');
 let touchStartX = 0, touchEndX = 0;
 carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
@@ -250,6 +239,7 @@ function initCarousel() {
 }
 initCarousel();
 
+// Шестерёнка
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsMenu = document.getElementById('settingsMenu');
 settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsMenu.classList.toggle('hidden'); });
@@ -260,6 +250,7 @@ document.getElementById('menuSupport').addEventListener('click', () => { tg.show
 document.getElementById('menuInstructions').addEventListener('click', () => { tg.showAlert('Инструкция по заправке...'); settingsMenu.classList.add('hidden'); });
 document.getElementById('menuSOS').addEventListener('click', () => { tg.showAlert('SOS: помощь уже в пути'); settingsMenu.classList.add('hidden'); });
 
+// Детали
 const detailsPanel = document.getElementById('detailsPanel');
 const detailsContent = document.getElementById('detailsContent');
 function showDetailsPanel(items) {
@@ -287,19 +278,7 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     showDetailsPanel(items);
 });
 
-async function fetchEstimate(lat, lng) {
-    try {
-        const res = await fetch(`/api/estimate?lat=${lat}&lng=${lng}`);
-        if (!res.ok) throw new Error('Network error');
-        return await res.json();
-    } catch (e) {
-        const score = Math.floor(Math.random() * 10) + 1;
-        const texts = ['Свободно', 'Умеренно', 'Тесный двор', 'Узко', 'Нет парковки'];
-        const text = texts[Math.floor(Math.random() * texts.length)];
-        return { score, text };
-    }
-}
-
+// Загрузка заявок
 async function loadRequests() {
     try {
         const res = await fetch('/api/requests');
@@ -309,6 +288,7 @@ async function loadRequests() {
     } catch (e) { console.error(e); }
 }
 
+// Маркеры
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
@@ -343,23 +323,10 @@ async function createPopupContent(req) {
     body.appendChild(fill); body.appendChild(bubbles); body.appendChild(model); body.appendChild(plate);
     const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
     container.appendChild(body); container.appendChild(tip);
-
-    if (estimateMode) {
-        const data = await fetchEstimate(req.lat, req.lng);
-        if (data && data.score >= 0) {
-            const cloud = document.createElement('div'); cloud.className = 'estimate-cloud';
-            let color;
-            if (data.score <= 3) color = '#34c759';
-            else if (data.score <= 6) color = '#ff9500';
-            else color = '#ff3b30';
-            cloud.style.backgroundColor = color;
-            cloud.textContent = data.text || `Сложность: ${data.score}/10`;
-            container.appendChild(cloud);
-        }
-    }
     return container;
 }
 
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -378,6 +345,7 @@ function showActionPanel(req, marker) {
 }
 function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
+// Окно выполнения
 const taskCarModel = document.getElementById('taskCarModel');
 const taskPlate = document.getElementById('taskPlate');
 const taskCoords = document.getElementById('taskCoords');
@@ -424,7 +392,6 @@ copyCoordsBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы'));
     }
 });
-
 confirmLitersBtn.addEventListener('click', () => { litersInput.blur(); tg.showAlert('Литраж зафиксирован'); });
 
 closeTaskBtn.addEventListener('click', () => {
@@ -491,6 +458,7 @@ function renderMarkers(requests) {
         marker.on('popupopen', async () => {
             const content = await createPopupContent(req);
             marker.setPopupContent(content);
+            lastClickedCoords = { lat: req.lat, lng: req.lng };
             map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
             showActionPanel(req, marker);
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
