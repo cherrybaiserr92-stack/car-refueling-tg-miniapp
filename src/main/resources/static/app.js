@@ -2,39 +2,68 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Элементы авторизации
+// --- Авторизация ---
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const bottomPanel = document.getElementById('bottomPanel');
-let loggedIn = localStorage.getItem('refuel_loggedIn') === 'true';
+let loggedIn = false;
 
-// Если не авторизованы – показываем только экран входа
-if (!loggedIn) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    loginView.classList.add('active');
-    bottomPanel.style.display = 'none'; // панель скрыта
-
-    document.getElementById('loginBtn').addEventListener('click', () => {
-        const acc = document.getElementById('loginAcc').value.trim();
-        const pass = document.getElementById('loginPass').value.trim();
-        if (acc === 'admin' && pass === 'admin') {
-            localStorage.setItem('refuel_loggedIn', 'true');
-            loginView.classList.remove('active');
-            mapView.classList.add('active');
-            bottomPanel.style.display = 'flex';
-            initMap();
-            loadRequests();
-        } else {
-            document.getElementById('loginError').classList.remove('hidden');
-        }
-    });
-} else {
-    // Уже вошли – сразу показываем карту
-    mapView.classList.add('active');
-    bottomPanel.style.display = 'flex';
-    initMap();
-    loadRequests();
+function tryAutoLogin() {
+    const stored = localStorage.getItem('refuel_loggedIn');
+    loggedIn = stored === 'true';
+    if (loggedIn) {
+        loginView.classList.remove('active');
+        mapView.classList.add('active');
+        bottomPanel.style.display = 'flex';
+        if (!map) initMap();
+        loadRequests();
+    } else {
+        loginView.classList.add('active');
+        mapView.classList.remove('active');
+        bottomPanel.style.display = 'none';
+    }
 }
+
+// Обработчик входа
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const acc = document.getElementById('loginAcc').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    if (acc === 'admin' && pass === 'admin') {
+        localStorage.setItem('refuel_loggedIn', 'true');
+        loggedIn = true;
+        loginView.classList.remove('active');
+        mapView.classList.add('active');
+        bottomPanel.style.display = 'flex';
+        if (!map) initMap();
+        loadRequests();
+    } else {
+        document.getElementById('loginError').classList.remove('hidden');
+    }
+});
+
+// Завершение смены
+document.getElementById('menuLogout').addEventListener('click', () => {
+    localStorage.removeItem('refuel_loggedIn');
+    loggedIn = false;
+    loginView.classList.add('active');
+    mapView.classList.remove('active');
+    bottomPanel.style.display = 'none';
+    // сброс данных
+    if (map) {
+        map.remove();
+        map = null;
+    }
+    allRequests = [];
+    markers = [];
+    carsRefueled = 0;
+    litersDispensed = 0;
+    refuelLog.length = 0;
+    fuelTanks.ai92 = 210;
+    fuelTanks.dt = 600;
+    fuelTanks.ai95 = 0;
+    updateAccountStats();
+    document.getElementById('settingsMenu').classList.add('hidden');
+});
 
 // Глобальные переменные
 let map, userMarker, accuracyCircle, userLocation;
@@ -46,7 +75,7 @@ const fuelTanks = { ai92: 210, dt: 600, ai95: 0 };
 const maxFuel = { ai92: 320, dt: 1000, ai95: 0 };
 let currentFuelType = 'ai92';
 let currentTaskRequest = null, activeTaskMarker = null;
-let lastClickedCoords = null; // для панорамы
+let lastClickedCoords = null;
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
@@ -55,8 +84,8 @@ const taskLocationBtn = document.getElementById('taskLocationBtn');
 function switchView(viewId) {
     views.forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-    if (viewId === 'mapView') setTimeout(() => map.invalidateSize(), 100);
-    if (viewId !== 'mapView') {
+    if (viewId === 'mapView' && map) setTimeout(() => map.invalidateSize(), 100);
+    if (viewId !== 'mapView' && map) {
         map.closePopup();
         hideActionPanel();
         clearRoute();
@@ -108,7 +137,7 @@ function initMap() {
             tg.showAlert('Сначала нажмите на заявку');
             return;
         }
-        const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lastClickedCoords.lat},${lastClickedCoords.lng}`;
+        const url = `https://yandex.ru/maps/?ll=${lastClickedCoords.lng},${lastClickedCoords.lat}&z=17&mode=panorama&panorama%5Bpoint%5D=${lastClickedCoords.lng},${lastClickedCoords.lat}`;
         window.open(url, '_blank');
     });
 
@@ -306,21 +335,52 @@ function createMarkerIcon(req, isActive = false) {
         iconSize: [22,22], iconAnchor: [11,11], className: ''
     });
 }
-async function createPopupContent(req) {
-    const container = document.createElement('div'); container.className = 'popup-pin';
-    const body = document.createElement('div'); body.className = 'popup-pin-body';
-    const fill = document.createElement('div'); fill.className = 'popup-pin-fill';
-    fill.style.height = req.fuelLevel + '%'; fill.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
-    const bubbles = document.createElement('div'); bubbles.className = 'popup-pin-bubbles';
-    for (let i=0; i<4; i++) { const b = document.createElement('div'); b.className = 'popup-bubble'; bubbles.appendChild(b); }
-    const model = document.createElement('div'); model.className = 'popup-model'; model.textContent = req.carModel;
-    const plate = document.createElement('div'); plate.className = 'popup-plate'; plate.textContent = req.licensePlate;
-    body.appendChild(fill); body.appendChild(bubbles); body.appendChild(model); body.appendChild(plate);
-    const tip = document.createElement('div'); tip.className = 'popup-pin-tip';
-    container.appendChild(body); container.appendChild(tip);
+
+function createPopupContent(req) {
+    const container = document.createElement('div');
+    container.className = 'popup-plate-card';
+
+    const modelLine = document.createElement('div');
+    modelLine.className = 'popup-model-line';
+    modelLine.textContent = req.carModel;
+
+    const mainRow = document.createElement('div');
+    mainRow.className = 'popup-main-row';
+
+    const plate = document.createElement('div');
+    plate.className = 'popup-license-plate';
+    plate.textContent = req.licensePlate;
+
+    const fuelBox = document.createElement('div');
+    fuelBox.className = 'popup-fuel-indicator';
+    const fillMini = document.createElement('div');
+    fillMini.className = 'popup-fuel-fill-mini';
+    fillMini.style.height = req.fuelLevel + '%';
+    fillMini.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
+    const bubblesMini = document.createElement('div');
+    bubblesMini.className = 'popup-fuel-bubbles-mini';
+    for (let i = 0; i < 3; i++) {
+        const b = document.createElement('div');
+        b.className = 'popup-fuel-bubble-mini';
+        bubblesMini.appendChild(b);
+    }
+    const percentMini = document.createElement('div');
+    percentMini.className = 'popup-fuel-percent-mini';
+    percentMini.textContent = req.fuelLevel + '%';
+
+    fuelBox.appendChild(fillMini);
+    fuelBox.appendChild(bubblesMini);
+    fuelBox.appendChild(percentMini);
+
+    mainRow.appendChild(plate);
+    mainRow.appendChild(fuelBox);
+
+    container.appendChild(modelLine);
+    container.appendChild(mainRow);
     return container;
 }
 
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -339,6 +399,7 @@ function showActionPanel(req, marker) {
 }
 function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
+// Окно выполнения
 const taskCarModel = document.getElementById('taskCarModel');
 const taskPlate = document.getElementById('taskPlate');
 const taskCoords = document.getElementById('taskCoords');
@@ -440,10 +501,8 @@ function renderMarkers(requests) {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
         const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
-        marker.bindPopup('');
-        marker.on('popupopen', async () => {
-            const content = await createPopupContent(req);
-            marker.setPopupContent(content);
+        marker.bindPopup(createPopupContent(req));
+        marker.on('popupopen', () => {
             lastClickedCoords = { lat: req.lat, lng: req.lng };
             map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
             showActionPanel(req, marker);
@@ -457,7 +516,15 @@ function renderMarkers(requests) {
     }
 }
 
+// Стиль Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
+
+// Запуск после загрузки DOM
+tryAutoLogin();
+if (loggedIn) {
+    if (!map) initMap();
+    loadRequests();
+}
 map && map.on('click', () => hideActionPanel());

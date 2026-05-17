@@ -62,12 +62,7 @@ body {
     gap: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
-.login-box h2 {
-    text-align: center;
-    font-size: 20px;
-    font-weight: 700;
-    color: white;
-}
+.login-box h2 { text-align: center; font-size: 20px; font-weight: 700; color: white; }
 .login-input {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.2);
@@ -171,6 +166,7 @@ body {
 .menu-item { padding: 12px 16px; font-size: 14px; color: white; cursor: pointer; transition: background 0.2s; }
 .menu-item:active { background: rgba(255,255,255,0.1); }
 .menu-sos { color: #ff3b30; font-weight: 700; }
+.menu-logout { color: #ff3b30; }
 
 /* Карусель канистр */
 .tank-carousel { position: relative; width: 100%; height: 180px; overflow: hidden; touch-action: pan-x; margin-top: 30px; }
@@ -248,18 +244,106 @@ body {
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
 
-/* Попап */
+/* Попап в виде прямоугольной таблички */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
 
-.popup-pin { position: relative; width: 90px; height: 78px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); overflow: visible !important; }
-.popup-pin-body { position: absolute; top: 0; left: 0; width: 90px; height: 70px; background: rgba(20,20,22,0.8); backdrop-filter: blur(15px); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.4); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 4px; }
-.popup-pin-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--fuel-color, #34c759); transition: height 0.5s ease; z-index: 0; border-radius: 0 0 50% 50%; }
-.popup-pin-bubbles { position: absolute; bottom: 0; left: 0; width: 100%; pointer-events: none; z-index: 1; }
-.popup-bubble { position: absolute; background: rgba(255,255,255,0.7); border-radius: 50%; animation: floatBubble 2.5s infinite ease-in-out; }
-@keyframes floatBubble { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 50% { transform: translateY(-6px) scale(1.2); opacity: 1; } 100% { transform: translateY(-12px) scale(0.9); opacity: 0; } }
-.popup-model { position: relative; z-index: 2; font-weight: 700; font-size: 9px; text-shadow: 0 1px 2px black; margin-top: 4px; margin-bottom: 2px; }
-.popup-plate { position: relative; z-index: 2; background: rgba(255,255,255,0.85); color: black; font-weight: 800; font-size: 12px; letter-spacing: 1px; padding: 3px 8px; border: 1px solid black; border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,0.5); white-space: nowrap; }
-.popup-percent { display: none; }
-.popup-pin-tip { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid rgba(20,20,22,0.8); backdrop-filter: blur(15px); filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+.popup-plate-card {
+    background: rgba(20,20,22,0.85);
+    backdrop-filter: blur(15px);
+    border: 2px solid white;
+    border-radius: 12px;
+    padding: 8px 10px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 130px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    position: relative;
+}
+
+.popup-model-line {
+    font-weight: 700;
+    font-size: 11px;
+    text-align: center;
+    opacity: 0.9;
+}
+
+.popup-main-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.popup-license-plate {
+    background: white;
+    color: black;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border: 1px solid black;
+    border-radius: 4px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    flex: 1;
+    text-align: center;
+}
+
+.popup-fuel-indicator {
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.3);
+    flex-shrink: 0;
+}
+
+.popup-fuel-fill-mini {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--fuel-color, #34c759);
+    transition: height 0.5s ease;
+    z-index: 0;
+    border-radius: 0 0 7px 7px;
+}
+
+.popup-fuel-bubbles-mini {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.popup-fuel-bubble-mini {
+    position: absolute;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    animation: bubbleMini 2s infinite ease-in-out;
+}
+.popup-fuel-bubble-mini:nth-child(1) { width: 2px; height: 2px; left: 30%; bottom: 20%; animation-delay: 0s; }
+.popup-fuel-bubble-mini:nth-child(2) { width: 1.5px; height: 1.5px; left: 60%; bottom: 40%; animation-delay: 0.5s; }
+.popup-fuel-bubble-mini:nth-child(3) { width: 2px; height: 2px; left: 45%; bottom: 60%; animation-delay: 1s; }
+
+@keyframes bubbleMini {
+    0% { transform: translateY(0) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-4px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-8px) scale(0.9); opacity: 0; }
+}
+
+.popup-fuel-percent-mini {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 1px 2px black;
+    z-index: 2;
+}

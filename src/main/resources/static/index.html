@@ -9,7 +9,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Экран входа (поверх всего) -->
+    <!-- Экран входа (всегда поверх) -->
     <div id="loginView" class="view active">
         <div class="login-bg"></div>
         <div class="login-box">
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <!-- Карта -->
+    <!-- Карта (изначально скрыта) -->
     <div id="mapView" class="view">
         <div id="map"></div>
         <button id="locationBtn" class="location-btn">🧭</button>
@@ -45,6 +45,7 @@
                     <div class="menu-item" id="menuSupport">📞 Поддержка</div>
                     <div class="menu-item" id="menuInstructions">📖 Инструкции</div>
                     <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
+                    <div class="menu-item menu-logout" id="menuLogout">🚪 Завершить смену</div>
                 </div>
             </div>
             <div class="tank-carousel" id="tankCarousel">
@@ -144,7 +145,7 @@
         </div>
     </div>
 
-    <!-- Нижняя панель (скрыта на экране входа) -->
+    <!-- Нижняя панель (изначально скрыта) -->
     <div class="segmented-panel" id="bottomPanel" style="display: none;">
         <div class="segmented-control" id="segmentedControl">
             <button class="seg-btn active" data-view="mapView">Карта</button>
