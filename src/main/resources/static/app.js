@@ -90,31 +90,43 @@ const taskLocationBtn = document.getElementById('taskLocationBtn');
 
 // Режим сложного маршрута
 let routeBuilderMode = false;
-let routeBuilderPoints = [];
+let routeBuilderPoints = []; // [{lat, lng, req}, ...]
 const MAX_ROUTE_POINTS = 10;
 
 const routeBuilderBtn = document.getElementById('routeBuilderBtn');
 
 routeBuilderBtn.addEventListener('click', () => {
     if (!routeBuilderMode) {
-        // Включаем режим
         routeBuilderMode = true;
         routeBuilderBtn.classList.add('active');
         routeBuilderPoints = [];
-        tg.showAlert('Режим сложного маршрута включён. Выберите от 2 до 10 заявок. Нажмите повторно для построения.');
+        tg.showAlert('Режим сложного маршрута включён. Выберите до 10 заявок. Нажмите повторно для построения.');
     } else {
-        // Если уже включён и набрано ≥2 точек – строим маршрут
-        if (routeBuilderPoints.length >= 2) {
-            const points = routeBuilderPoints.map(p => `${p.lat},${p.lng}`).join('~');
+        if (routeBuilderPoints.length >= 1) { // достаточно хотя бы одной заявки, маршрут от пользователя
+            if (!userLocation) {
+                tg.showAlert('Местоположение не определено. Невозможно построить маршрут.');
+                // выключаем режим
+                routeBuilderBtn.classList.remove('active');
+                routeBuilderMode = false;
+                markers.forEach(m => {
+                    if (!m.req) return;
+                    const isActive = currentTaskRequest && m.req.id === currentTaskRequest.id;
+                    m.setIcon(createMarkerIcon(m.req, isActive, false));
+                });
+                routeBuilderPoints = [];
+                return;
+            }
+            // Строим ссылку: первая точка — местоположение пользователя
+            const points = [userLocation.lat, userLocation.lng].join(',') + '~' +
+                routeBuilderPoints.map(p => `${p.lat},${p.lng}`).join('~');
             const url = `https://yandex.ru/maps/?rtt=auto&rtext=${points}`;
             window.open(url, '_blank');
         } else {
-            tg.showAlert('Нужно выбрать минимум 2 заявки');
+            tg.showAlert('Выберите хотя бы одну заявку');
         }
-        // Выключаем режим и сбрасываем всё
+        // Выключаем режим
         routeBuilderBtn.classList.remove('active');
         routeBuilderMode = false;
-        // Возвращаем иконки маркеров к исходным цветам
         markers.forEach(m => {
             if (!m.req) return;
             const isActive = currentTaskRequest && m.req.id === currentTaskRequest.id;
@@ -185,12 +197,10 @@ function initMap() {
         window.open(url, '_blank');
     });
 
-    // Кнопка бензоколонки: всегда центрируем и открываем попап, даже если уже открыт
     taskLocationBtn.addEventListener('click', () => {
         if (!activeTaskMarker) { tg.showAlert('Нет активной заявки'); return; }
         const latlng = activeTaskMarker.getLatLng();
         map.panTo(latlng, { animate: true, duration: 0.5 });
-        // Закрываем все попапы и открываем заново
         map.closePopup();
         activeTaskMarker.openPopup();
     });
@@ -209,6 +219,20 @@ async function buildRoute(from, to) {
             style: { color: '#007aff', weight: 5, opacity: 0.8 }
         }).addTo(map);
     } catch (e) { console.error(e); }
+}
+
+// Вспомогательная функция для форматирования госномера (табличка с флагом)
+function formatLicensePlate(licensePlate) {
+    const parts = licensePlate.split(' ');
+    const base = parts.length > 0 ? parts[0] : licensePlate;
+    const region = parts.length > 1 ? parts[1] : '';
+    let html = `<span>${base}</span>`;
+    if (region) {
+        html += `<span style="display:flex;align-items:center;gap:2px;"> ${region} <span class="plate-flag">🇷🇺</span></span>`;
+    } else {
+        html += ` <span class="plate-flag">🇷🇺</span>`;
+    }
+    return `<div class="plate-display">${html}</div>`;
 }
 
 function updateAccountStats() {
@@ -391,30 +415,14 @@ function createPopupContent(req) {
 
     const modelLine = document.createElement('div');
     modelLine.className = 'popup-model-line';
-    modelLine.textContent = req.carModel;
+    modelLine.innerHTML = `🚗 ${req.carModel}`; // иконка + модель
 
     const mainRow = document.createElement('div');
     mainRow.className = 'popup-main-row';
 
     const plate = document.createElement('div');
     plate.className = 'popup-license-plate';
-
-    const parts = req.licensePlate.split(' ');
-    const base = parts.length > 0 ? parts[0] : req.licensePlate;
-    const region = parts.length > 1 ? parts[1] : '';
-
-    const plateBase = document.createElement('span');
-    plateBase.textContent = base;
-
-    const plateRegion = document.createElement('span');
-    plateRegion.style.display = 'flex';
-    plateRegion.style.alignItems = 'center';
-    plateRegion.style.gap = '2px';
-    plateRegion.innerHTML = ` ${region} <span class="plate-flag">🇷🇺</span>`;
-
-    plate.appendChild(plateBase);
-    if (region) plate.appendChild(plateRegion);
-    else plate.innerHTML = req.licensePlate + ' <span class="plate-flag">🇷🇺</span>';
+    plate.innerHTML = formatLicensePlate(req.licensePlate);
 
     const fuelBox = document.createElement('div');
     fuelBox.className = 'popup-fuel-indicator';
@@ -549,7 +557,7 @@ function completeTask(reason, liters = 0) {
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    taskCarModel.textContent = ''; taskPlate.textContent = ''; taskCoords.textContent = ''; taskId.textContent = '';
+    taskCarModel.textContent = ''; taskPlate.innerHTML = ''; taskCoords.textContent = ''; taskId.textContent = '';
     litersInput.value = ''; commentInput.value = ''; photoBeforeInput.value = ''; photoAfterInput.value = '';
     confirmLitersBtn.classList.remove('active');
     currentTaskRequest = null;
@@ -564,8 +572,10 @@ function completeTask(reason, liters = 0) {
 function startTask(req, marker) {
     currentTaskRequest = req;
     activeTaskMarker = marker;
-    taskCarModel.textContent = req.carModel;
-    taskPlate.textContent = req.licensePlate;
+    // Устанавливаем модель с иконкой
+    taskCarModel.innerHTML = `🚗 ${req.carModel}`;
+    // Устанавливаем госномер как табличку
+    taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
     workBtn.classList.add('visible');
@@ -582,7 +592,6 @@ function startTask(req, marker) {
 function handleMarkerClickInRouteMode(req, marker) {
     const existingIndex = routeBuilderPoints.findIndex(p => p.req.id === req.id);
     if (existingIndex !== -1) {
-        // Удаляем точку
         routeBuilderPoints.splice(existingIndex, 1);
         marker.setIcon(createMarkerIcon(req, false, false));
     } else {
@@ -593,7 +602,6 @@ function handleMarkerClickInRouteMode(req, marker) {
         routeBuilderPoints.push({ lat: req.lat, lng: req.lng, req });
         marker.setIcon(createMarkerIcon(req, false, true));
     }
-    // Не переходим в Яндекс автоматически
 }
 
 // Рендер маркеров
@@ -614,11 +622,9 @@ function renderMarkers(requests) {
             lastClickedCoords = { lat: req.lat, lng: req.lng };
 
             if (routeBuilderMode) {
-                // Режим сложного маршрута: добавляем/убираем точку, попап закрываем
                 handleMarkerClickInRouteMode(req, marker);
                 map.closePopup();
             } else {
-                // Обычный режим
                 map.panTo([req.lat, req.lng], { animate: true, duration: 0.5 });
                 showActionPanel(req, marker);
                 if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });

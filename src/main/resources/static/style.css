@@ -93,7 +93,7 @@ body {
 .route-builder-btn {
     position: absolute;
     top: 50%; right: 16px;
-    transform: translateY(calc(-50% - 56px));  /* над location-btn */
+    transform: translateY(calc(-50% - 56px));
     z-index: 800;
     width: 44px; height: 44px;
     border-radius: 50%;
@@ -110,14 +110,8 @@ body {
     transition: transform 0.2s, background 0.2s;
     outline: none;
 }
-.route-builder-btn.active {
-    background: #007aff;
-    border-color: #007aff;
-}
-.route-builder-btn:active {
-    transform: scale(0.92) translateY(calc(-50% - 56px));
-    background: rgba(60,60,64,0.8);
-}
+.route-builder-btn.active { background: #007aff; border-color: #007aff; }
+.route-builder-btn:active { transform: scale(0.92) translateY(calc(-50% - 56px)); background: rgba(60,60,64,0.8); }
 
 .location-btn {
     position: absolute;
@@ -256,7 +250,20 @@ body {
 #workView.active { display: flex; }
 .task-container { background: rgba(30,30,32,0.5); backdrop-filter: blur(25px); border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); color: white; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 140px); overflow-y: auto; }
 .task-header { display: flex; gap: 8px; }
-.door-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 600; font-size: 13px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.door-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600; font-size: 13px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.door-btn svg { width: 20px; height: 12px; stroke: white; }
 .door-open { background: #34c759; }
 .door-close { background: #ff3b30; }
 .task-photos { display: flex; gap: 8px; }
@@ -265,7 +272,22 @@ body {
 .task-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
 .info-row { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .info-row span { color: var(--tg-hint); min-width: 70px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
-.info-row strong { font-weight: 600; margin-left: auto; text-align: right; }
+.info-row strong { font-weight: 600; margin-left: auto; text-align: right; display: flex; align-items: center; gap: 4px; }
+/* Стили для таблички госномера внутри workView */
+.plate-display {
+    background: white;
+    color: black;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border: 1px solid black;
+    border-radius: 4px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 .copy-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 4px 6px; color: white; cursor: pointer; display: flex; align-items: center; margin-left: 6px; }
 .copy-btn svg { stroke: white; }
 .task-field { display: flex; flex-direction: column; gap: 6px; }
@@ -310,7 +332,8 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
-.popup-model-line { font-weight: 700; font-size: 10px; text-align: center; opacity: 0.9; }
+.popup-model-line { font-weight: 700; font-size: 10px; text-align: center; opacity: 0.9; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.popup-model-line::before { content: '🚗'; font-size: 12px; }
 .popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
     background: white;
