@@ -2,16 +2,18 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Авторизация
+// Элементы авторизации
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const bottomPanel = document.getElementById('bottomPanel');
 let loggedIn = localStorage.getItem('refuel_loggedIn') === 'true';
 
+// Если не авторизованы – показываем только экран входа
 if (!loggedIn) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     loginView.classList.add('active');
-    bottomPanel.style.display = 'none';
+    bottomPanel.style.display = 'none'; // панель скрыта
+
     document.getElementById('loginBtn').addEventListener('click', () => {
         const acc = document.getElementById('loginAcc').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
@@ -27,12 +29,14 @@ if (!loggedIn) {
         }
     });
 } else {
+    // Уже вошли – сразу показываем карту
     mapView.classList.add('active');
     bottomPanel.style.display = 'flex';
     initMap();
     loadRequests();
 }
 
+// Глобальные переменные
 let map, userMarker, accuracyCircle, userLocation;
 let currentRouteLayer;
 let allRequests = [], markers = [];
@@ -42,7 +46,7 @@ const fuelTanks = { ai92: 210, dt: 600, ai95: 0 };
 const maxFuel = { ai92: 320, dt: 1000, ai95: 0 };
 let currentFuelType = 'ai92';
 let currentTaskRequest = null, activeTaskMarker = null;
-let lastClickedCoords = null;
+let lastClickedCoords = null; // для панорамы
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
@@ -198,10 +202,7 @@ document.getElementById('customRefuelBtn').addEventListener('click', () => {
 const carousel = document.getElementById('tankCarousel');
 let touchStartX = 0, touchEndX = 0;
 carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-carousel.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-});
+carousel.addEventListener('touchend', (e) => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); });
 function handleSwipe() {
     const diff = touchEndX - touchStartX;
     if (Math.abs(diff) < 50) return;
@@ -243,9 +244,7 @@ initCarousel();
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsMenu = document.getElementById('settingsMenu');
 settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsMenu.classList.toggle('hidden'); });
-document.addEventListener('click', (e) => {
-    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) settingsMenu.classList.add('hidden');
-});
+document.addEventListener('click', (e) => { if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) settingsMenu.classList.add('hidden'); });
 document.getElementById('menuSupport').addEventListener('click', () => { tg.showAlert('Поддержка: звоните диспетчеру'); settingsMenu.classList.add('hidden'); });
 document.getElementById('menuInstructions').addEventListener('click', () => { tg.showAlert('Инструкция по заправке...'); settingsMenu.classList.add('hidden'); });
 document.getElementById('menuSOS').addEventListener('click', () => { tg.showAlert('SOS: помощь уже в пути'); settingsMenu.classList.add('hidden'); });
@@ -258,9 +257,7 @@ function showDetailsPanel(items) {
     detailsPanel.classList.remove('hidden');
 }
 function hideDetailsPanel() { detailsPanel.classList.add('hidden'); }
-document.addEventListener('click', (e) => {
-    if (!detailsPanel.contains(e.target) && e.target !== document.getElementById('litersDispensedBlock') && e.target !== document.getElementById('totalNeededBlock')) hideDetailsPanel();
-});
+document.addEventListener('click', (e) => { if (!detailsPanel.contains(e.target) && e.target !== document.getElementById('litersDispensedBlock') && e.target !== document.getElementById('totalNeededBlock')) hideDetailsPanel(); });
 document.getElementById('litersDispensedBlock').addEventListener('click', (e) => {
     e.stopPropagation();
     if (refuelLog.length === 0) { tg.showAlert('Нет заправленных машин'); return; }
@@ -278,7 +275,6 @@ document.getElementById('totalNeededBlock').addEventListener('click', (e) => {
     showDetailsPanel(items);
 });
 
-// Загрузка заявок
 async function loadRequests() {
     try {
         const res = await fetch('/api/requests');
@@ -288,7 +284,6 @@ async function loadRequests() {
     } catch (e) { console.error(e); }
 }
 
-// Маркеры
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
@@ -326,7 +321,6 @@ async function createPopupContent(req) {
     return container;
 }
 
-// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -345,7 +339,6 @@ function showActionPanel(req, marker) {
 }
 function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
 
-// Окно выполнения
 const taskCarModel = document.getElementById('taskCarModel');
 const taskPlate = document.getElementById('taskPlate');
 const taskCoords = document.getElementById('taskCoords');
@@ -383,15 +376,8 @@ setupPhotoButton(photoAfterBtn, photoAfterInput);
 
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
-copyPlateBtn.addEventListener('click', () => {
-    if (currentTaskRequest) navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован'));
-});
-copyCoordsBtn.addEventListener('click', () => {
-    if (currentTaskRequest) {
-        const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`;
-        navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы'));
-    }
-});
+copyPlateBtn.addEventListener('click', () => { if (currentTaskRequest) navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован')); });
+copyCoordsBtn.addEventListener('click', () => { if (currentTaskRequest) { const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`; navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы')); } });
 confirmLitersBtn.addEventListener('click', () => { litersInput.blur(); tg.showAlert('Литраж зафиксирован'); });
 
 closeTaskBtn.addEventListener('click', () => {

@@ -29,7 +29,7 @@ public class RequestController {
             double lng = 30.10 + random.nextDouble() * 0.50;
             String model = models[random.nextInt(models.length)];
             String status = statuses[random.nextInt(statuses.length)];
-            int fuelLevel = random.nextInt(51);
+            int fuelLevel = random.nextInt(51); // 0..50%
             String licensePlate = generatePlate();
             list.add(new RefuelRequest(i, lat, lng, model, fuelLevel, status, licensePlate));
         }
