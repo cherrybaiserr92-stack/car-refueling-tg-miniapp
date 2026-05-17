@@ -239,7 +239,21 @@ body {
 .task-field label { font-size: 13px; color: var(--tg-hint); }
 .liters-row { display: flex; gap: 6px; align-items: center; }
 .liters-input { flex: 1; background: rgba(255,255,255,0.12); border: 2px solid var(--tg-accent); border-radius: 10px; padding: 12px; color: white; font-size: 18px; font-weight: 700; outline: none; text-align: center; }
-.confirm-liters-btn { width: 44px; height: 44px; border-radius: 10px; border: none; background: var(--tg-accent); color: white; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.confirm-liters-btn {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    border: none;
+    background: #ff3b30;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.confirm-liters-btn.active { background: #34c759; }
 .comment-input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; color: white; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
@@ -253,20 +267,20 @@ body {
     background: rgba(20,20,22,0.85);
     backdrop-filter: blur(15px);
     border: 2px solid white;
-    border-radius: 12px;
-    padding: 8px 10px;
+    border-radius: 10px;
+    padding: 6px 8px;
     color: white;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 130px;
+    gap: 3px;
+    min-width: 120px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
 
 .popup-model-line {
     font-weight: 700;
-    font-size: 11px;
+    font-size: 10px;
     text-align: center;
     opacity: 0.9;
 }
@@ -274,28 +288,37 @@ body {
 .popup-main-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .popup-license-plate {
     background: white;
     color: black;
     font-weight: 800;
-    font-size: 16px;
-    letter-spacing: 1px;
-    padding: 4px 10px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    padding: 3px 6px;
     border: 1px solid black;
     border-radius: 4px;
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
     flex: 1;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.plate-flag {
+    font-size: 10px;
+    margin-left: 2px;
 }
 
 .popup-fuel-indicator {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     background: rgba(0,0,0,0.3);
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
     position: relative;
     border: 1px solid rgba(255,255,255,0.3);
@@ -310,7 +333,7 @@ body {
     background: var(--fuel-color, #34c759);
     transition: height 0.5s ease;
     z-index: 0;
-    border-radius: 0 0 7px 7px;
+    border-radius: 0 0 5px 5px;
 }
 
 .popup-fuel-bubbles-mini {
@@ -341,7 +364,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 800;
     color: white;
     text-shadow: 0 1px 2px black;

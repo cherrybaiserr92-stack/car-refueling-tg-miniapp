@@ -24,7 +24,6 @@ function tryAutoLogin() {
     }
 }
 
-// Обработчик входа
 document.getElementById('loginBtn').addEventListener('click', () => {
     const acc = document.getElementById('loginAcc').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
@@ -48,7 +47,6 @@ document.getElementById('menuLogout').addEventListener('click', () => {
     loginView.classList.add('active');
     mapView.classList.remove('active');
     bottomPanel.style.display = 'none';
-    // сброс данных
     if (map) {
         map.remove();
         map = null;
@@ -349,7 +347,24 @@ function createPopupContent(req) {
 
     const plate = document.createElement('div');
     plate.className = 'popup-license-plate';
-    plate.textContent = req.licensePlate;
+
+    // Разделяем номер на части: "А123ВС" и "178" с флагом
+    const parts = req.licensePlate.split(' ');
+    const base = parts.length > 0 ? parts[0] : req.licensePlate;
+    const region = parts.length > 1 ? parts[1] : '';
+
+    const plateBase = document.createElement('span');
+    plateBase.textContent = base;
+
+    const plateRegion = document.createElement('span');
+    plateRegion.style.display = 'flex';
+    plateRegion.style.alignItems = 'center';
+    plateRegion.style.gap = '2px';
+    plateRegion.innerHTML = ` ${region} <span class="plate-flag">🇷🇺</span>`;
+
+    plate.appendChild(plateBase);
+    if (region) plate.appendChild(plateRegion);
+    else plate.innerHTML = req.licensePlate + ' <span class="plate-flag">🇷🇺</span>';
 
     const fuelBox = document.createElement('div');
     fuelBox.className = 'popup-fuel-indicator';
@@ -439,7 +454,26 @@ openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери откры
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
 copyPlateBtn.addEventListener('click', () => { if (currentTaskRequest) navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован')); });
 copyCoordsBtn.addEventListener('click', () => { if (currentTaskRequest) { const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`; navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы')); } });
-confirmLitersBtn.addEventListener('click', () => { litersInput.blur(); tg.showAlert('Литраж зафиксирован'); });
+
+// Переключение цвета галочки при вводе литража
+function updateConfirmBtn() {
+    const val = litersInput.value.trim();
+    if (val && parseFloat(val) > 0) {
+        confirmLitersBtn.classList.add('active');
+    } else {
+        confirmLitersBtn.classList.remove('active');
+    }
+}
+litersInput.addEventListener('input', updateConfirmBtn);
+confirmLitersBtn.addEventListener('click', () => {
+    updateConfirmBtn();
+    if (confirmLitersBtn.classList.contains('active')) {
+        litersInput.blur();
+        tg.showAlert('Литраж зафиксирован');
+    } else {
+        tg.showAlert('Введите корректный литраж');
+    }
+});
 
 closeTaskBtn.addEventListener('click', () => {
     if (!currentTaskRequest) return;
@@ -468,6 +502,7 @@ function completeTask(reason, liters = 0) {
     updateAccountStats();
     taskCarModel.textContent = ''; taskPlate.textContent = ''; taskCoords.textContent = ''; taskId.textContent = '';
     litersInput.value = ''; commentInput.value = ''; photoBeforeInput.value = ''; photoAfterInput.value = '';
+    confirmLitersBtn.classList.remove('active');
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     taskLocationBtn.classList.remove('visible');
@@ -516,12 +551,10 @@ function renderMarkers(requests) {
     }
 }
 
-// Стиль Leaflet
 const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
 
-// Запуск после загрузки DOM
 tryAutoLogin();
 if (loggedIn) {
     if (!map) initMap();
