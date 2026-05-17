@@ -402,7 +402,11 @@ function createPopupContent(req) {
 
     const modelLine = document.createElement('div');
     modelLine.className = 'popup-model-line';
-    modelLine.textContent = req.carModel;
+    if (req.longRent) {
+        modelLine.innerHTML = `<span class="long-rent-icon"></span> ${req.carModel}`;
+    } else {
+        modelLine.textContent = req.carModel;
+    }
 
     const mainRow = document.createElement('div');
     mainRow.className = 'popup-main-row';
@@ -481,7 +485,6 @@ function updateTimer(startTime) {
     timerText.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
     const percent = (remaining / TOTAL_SECONDS) * 100;
     timerFill.style.width = percent + '%';
-    // Цвет: зелёный (>50%), жёлтый (20-50%), красный (<20%)
     if (percent > 50) {
         timerFill.style.background = '#34c759';
     } else if (percent > 20) {
@@ -527,8 +530,8 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Наложение штампа на фото
-function applyStampToImage(file, callback) {
+// Наложение штампа и сохранение на устройство
+function applyStampAndSave(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
@@ -538,30 +541,40 @@ function applyStampToImage(file, callback) {
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
-            // Рисуем изображение по центру (если квадратное)
             const sx = (img.width - size) / 2;
             const sy = (img.height - size) / 2;
             ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
             
-            // Штамп: координаты + время
             const timestamp = new Date().toLocaleString();
             let geoText = 'Гео: -';
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
                     geoText = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
-                    drawStamp();
-                }, () => { drawStamp(); });
+                    drawAndSave();
+                }, () => { drawAndSave(); });
             } else {
-                drawStamp();
+                drawAndSave();
             }
-            function drawStamp() {
+            function drawAndSave() {
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillRect(size-160, size-30, 155, 25);
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 10px sans-serif';
                 ctx.textAlign = 'right';
                 ctx.fillText(geoText + ' | ' + timestamp, size-8, size-10);
-                callback(canvas.toDataURL('image/jpeg'));
+                
+                // Сохраняем файл
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `photo_${Date.now()}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    tg.showAlert('Фото сохранено с штампом');
+                }, 'image/jpeg');
             }
         };
         img.src = e.target.result;
@@ -569,7 +582,7 @@ function applyStampToImage(file, callback) {
     reader.readAsDataURL(file);
 }
 
-// Настройка кнопки фото с штампом
+// Настройка кнопки фото с сохранением
 function setupPhotoButton(btn, input, fileHolder) {
     btn.addEventListener('click', () => {
         if (fileHolder.current) {
@@ -585,33 +598,23 @@ function setupPhotoButton(btn, input, fileHolder) {
             const file = e.target.files[0];
             fileHolder.current = file;
 
-            // Создаём миниатюру с штампом
-            applyStampToImage(file, (dataUrl) => {
-                const img = document.createElement('img');
-                img.src = dataUrl;
-                btn.innerHTML = '';
-                btn.appendChild(img);
-                
-                const retakeIcon = document.createElement('span');
-                retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;z-index:2;';
-                retakeIcon.innerHTML = '🔄';
-                retakeIcon.addEventListener('click', (ev) => {
-                    ev.stopPropagation();
-                    input.click();
-                });
-                btn.appendChild(retakeIcon);
-                
-                // Показать геометку (она уже в штампе)
-                const timestamp = new Date().toLocaleString();
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => tg.showAlert(`Геометка: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}\nВремя: ${timestamp}`),
-                        () => tg.showAlert(`Время: ${timestamp}`)
-                    );
-                } else {
-                    tg.showAlert(`Время: ${timestamp}`);
-                }
+            // Сохраняем фото с штампом
+            applyStampAndSave(file);
+            
+            // Показываем миниатюру на кнопке (без штампа, чтобы не перегружать)
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            btn.innerHTML = '';
+            btn.appendChild(img);
+            
+            const retakeIcon = document.createElement('span');
+            retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;z-index:2;';
+            retakeIcon.innerHTML = '🔄';
+            retakeIcon.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                input.click();
             });
+            btn.appendChild(retakeIcon);
         }
     });
 }
@@ -668,12 +671,14 @@ function completeTask(reason, liters = 0) {
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    // Сброс фото
+    // Сброс фото и литража
     beforeHolder.current = null;
     afterHolder.current = null;
     photoBeforeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ДО</span>';
     photoAfterBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ПОСЛЕ</span>';
     confirmLitersBtn.classList.remove('active');
+    litersInput.value = '';   // ЯВНЫЙ СБРОС ЛИТРАЖА
+    commentInput.value = '';
     currentTaskRequest = null;
     workBtn.classList.remove('visible');
     taskLocationBtn.classList.remove('visible');
@@ -691,11 +696,14 @@ function startTask(req, marker) {
     taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
-    // Сброс фото
+    // Сброс фото и литража
     beforeHolder.current = null;
     afterHolder.current = null;
     photoBeforeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ДО</span>';
     photoAfterBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ПОСЛЕ</span>';
+    litersInput.value = '';   // ЯВНЫЙ СБРОС ЛИТРАЖА
+    commentInput.value = '';
+    confirmLitersBtn.classList.remove('active');
     workBtn.classList.add('visible');
     taskLocationBtn.classList.add('visible');
     switchView('workView');

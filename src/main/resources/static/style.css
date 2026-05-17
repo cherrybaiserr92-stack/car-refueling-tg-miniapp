@@ -353,12 +353,12 @@ body {
     backdrop-filter: blur(15px);
     border: 2px solid white;
     border-radius: 10px;
-    padding: 1px 4px 2px 3px;   /* уменьшено слева и сверху */
+    padding: 1px 4px 2px 3px;
     color: white;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 114px;           /* чуть меньше */
+    min-width: 114px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
@@ -367,7 +367,20 @@ body {
     font-size: 11px;
     text-align: center;
     opacity: 0.9;
-    margin-top: 3px;            /* опущена на 1 мм */
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+/* Значок долгой аренды */
+.long-rent-icon {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #b366ff; /* фиолетовый */
+    flex-shrink: 0;
 }
 .popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
