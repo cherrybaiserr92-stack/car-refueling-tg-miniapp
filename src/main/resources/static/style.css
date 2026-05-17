@@ -45,14 +45,14 @@ body {
     position: absolute;
     inset: 0;
     background: url('https://i.ibb.co/pjzKKSzB/IMG-20260517-074302-126.PNG') center/cover no-repeat;
-    opacity: 0.4;
+    opacity: 0.6; /* чуть ярче, чтобы лучше видно через форму */
     z-index: 0;
 }
 .login-box {
     position: relative;
     z-index: 1;
-    background: rgba(30,30,32,0.8);
-    backdrop-filter: blur(20px);
+    background: rgba(30,30,32,0.4); /* более прозрачный */
+    backdrop-filter: blur(15px);
     border-radius: 20px;
     padding: 30px 20px;
     width: 90%;
@@ -64,8 +64,8 @@ body {
 }
 .login-box h2 { text-align: center; font-size: 20px; font-weight: 700; color: white; }
 .login-input {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
     border-radius: 10px;
     padding: 12px;
     color: white;
@@ -258,7 +258,7 @@ body {
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
 
-/* Попап в виде прямоугольной таблички */
+/* Попап в виде прямоугольной таблички (без изменений) */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
@@ -277,20 +277,8 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
-
-.popup-model-line {
-    font-weight: 700;
-    font-size: 10px;
-    text-align: center;
-    opacity: 0.9;
-}
-
-.popup-main-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
+.popup-model-line { font-weight: 700; font-size: 10px; text-align: center; opacity: 0.9; }
+.popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
     background: white;
     color: black;
@@ -308,11 +296,7 @@ body {
     justify-content: center;
     gap: 4px;
 }
-
-.plate-flag {
-    font-size: 10px;
-    margin-left: 2px;
-}
+.plate-flag { font-size: 10px; margin-left: 2px; }
 
 .popup-fuel-indicator {
     width: 32px;
@@ -324,7 +308,6 @@ body {
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
 }
-
 .popup-fuel-fill-mini {
     position: absolute;
     bottom: 0;
@@ -335,38 +318,10 @@ body {
     z-index: 0;
     border-radius: 0 0 5px 5px;
 }
-
-.popup-fuel-bubbles-mini {
-    position: absolute;
-    bottom: 0; left: 0; width: 100%;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.popup-fuel-bubble-mini {
-    position: absolute;
-    background: rgba(255,255,255,0.8);
-    border-radius: 50%;
-    animation: bubbleMini 2s infinite ease-in-out;
-}
+.popup-fuel-bubbles-mini { position: absolute; bottom: 0; left: 0; width: 100%; pointer-events: none; z-index: 1; }
+.popup-fuel-bubble-mini { position: absolute; background: rgba(255,255,255,0.8); border-radius: 50%; animation: bubbleMini 2s infinite ease-in-out; }
 .popup-fuel-bubble-mini:nth-child(1) { width: 2px; height: 2px; left: 30%; bottom: 20%; animation-delay: 0s; }
 .popup-fuel-bubble-mini:nth-child(2) { width: 1.5px; height: 1.5px; left: 60%; bottom: 40%; animation-delay: 0.5s; }
 .popup-fuel-bubble-mini:nth-child(3) { width: 2px; height: 2px; left: 45%; bottom: 60%; animation-delay: 1s; }
-
-@keyframes bubbleMini {
-    0% { transform: translateY(0) scale(1); opacity: 0.8; }
-    50% { transform: translateY(-4px) scale(1.2); opacity: 1; }
-    100% { transform: translateY(-8px) scale(0.9); opacity: 0; }
-}
-
-.popup-fuel-percent-mini {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 8px;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 1px 2px black;
-    z-index: 2;
-}
+@keyframes bubbleMini { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 50% { transform: translateY(-4px) scale(1.2); opacity: 1; } 100% { transform: translateY(-8px) scale(0.9); opacity: 0; } }
+.popup-fuel-percent-mini { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; font-weight: 800; color: white; text-shadow: 0 1px 2px black; z-index: 2; }

@@ -7,6 +7,7 @@ const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const bottomPanel = document.getElementById('bottomPanel');
 let loggedIn = false;
+let clusterGroup = null; // для кластеризации
 
 function tryAutoLogin() {
     const stored = localStorage.getItem('refuel_loggedIn');
@@ -109,6 +110,10 @@ function initMap() {
     });
     L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Инициализируем кластерную группу
+    clusterGroup = L.markerClusterGroup();
+    map.addLayer(clusterGroup);
 
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
@@ -348,7 +353,6 @@ function createPopupContent(req) {
     const plate = document.createElement('div');
     plate.className = 'popup-license-plate';
 
-    // Разделяем номер на части: "А123ВС" и "178" с флагом
     const parts = req.licensePlate.split(' ');
     const base = parts.length > 0 ? parts[0] : req.licensePlate;
     const region = parts.length > 1 ? parts[1] : '';
@@ -455,7 +459,6 @@ closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закр�
 copyPlateBtn.addEventListener('click', () => { if (currentTaskRequest) navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован')); });
 copyCoordsBtn.addEventListener('click', () => { if (currentTaskRequest) { const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`; navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы')); } });
 
-// Переключение цвета галочки при вводе литража
 function updateConfirmBtn() {
     const val = litersInput.value.trim();
     if (val && parseFloat(val) > 0) {
@@ -530,12 +533,13 @@ function startTask(req, marker) {
 }
 
 function renderMarkers(requests) {
-    markers.forEach(m => map.removeLayer(m));
+    if (!clusterGroup) return;
+    clusterGroup.clearLayers();
     markers = [];
     requests.forEach(req => {
         const isActive = currentTaskRequest && req.id === currentTaskRequest.id;
         const icon = isActive ? createMarkerIcon(req, true) : createMarkerIcon(req);
-        const marker = L.marker([req.lat, req.lng], { icon: icon }).addTo(map);
+        const marker = L.marker([req.lat, req.lng], { icon: icon });
         marker.bindPopup(createPopupContent(req));
         marker.on('popupopen', () => {
             lastClickedCoords = { lat: req.lat, lng: req.lng };
@@ -544,6 +548,7 @@ function renderMarkers(requests) {
             if (userLocation) buildRoute({ lat: userLocation.lat, lng: userLocation.lng }, { lat: req.lat, lng: req.lng });
         });
         marker.on('popupclose', () => { hideActionPanel(); clearRoute(); });
+        clusterGroup.addLayer(marker);
         markers.push(marker);
     });
     if (activeTaskMarker && !allRequests.find(r => r.id === currentTaskRequest?.id)) {
