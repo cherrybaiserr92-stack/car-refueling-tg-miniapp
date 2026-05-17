@@ -89,8 +89,7 @@ body {
 .login-error { color: #ff3b30; text-align: center; font-size: 13px; }
 .hidden { display: none; }
 
-/* Правая колонка кнопок (расположена вертикально, сдвинута вниз от центра) */
-/* Кнопка построения маршрута (над компасом) */
+/* Правая колонка кнопок */
 .route-builder-btn {
     position: absolute;
     top: 50%; right: 16px;
