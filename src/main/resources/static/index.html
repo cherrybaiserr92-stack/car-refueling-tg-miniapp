@@ -9,7 +9,20 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div id="mapView" class="view active">
+    <!-- Экран входа -->
+    <div id="loginView" class="view active">
+        <div class="login-bg"></div>
+        <div class="login-box">
+            <h2>Вход в систему</h2>
+            <input type="text" id="loginAcc" placeholder="Аккаунт" class="login-input">
+            <input type="password" id="loginPass" placeholder="Пароль" class="login-input">
+            <button id="loginBtn" class="login-btn">Войти</button>
+            <p id="loginError" class="login-error hidden">Неверный аккаунт или пароль</p>
+        </div>
+    </div>
+
+    <!-- Карта (скрыта до входа) -->
+    <div id="mapView" class="view">
         <div id="map"></div>
         <button id="locationBtn" class="location-btn">🧭</button>
         <button id="taskLocationBtn" class="task-location-btn hidden">⛽</button>
@@ -17,6 +30,7 @@
         <button id="panoramaBtn" class="panorama-btn" title="Панорама">🌐</button>
     </div>
 
+    <!-- Остальные виды (account, work, details, actionPanel, segmentedPanel) без изменений -->
     <div id="accountView" class="view">
         <div class="account-container">
             <div class="settings-wrapper">
