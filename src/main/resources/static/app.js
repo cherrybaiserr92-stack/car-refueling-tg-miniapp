@@ -478,46 +478,44 @@ const closeDoorsBtn = document.getElementById('closeDoorsBtn');
 const closeTaskBtn = document.getElementById('closeTaskBtn');
 const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
-// Объекты для хранения выбранных файлов
+// Хранилища для выбранных файлов
 let beforeFile = null;
 let afterFile = null;
 
-// Настройка кнопки фото: первый клик – открыть камеру, после выбора – показать превью, повторный клик – открыть сделанное фото или переснять
-function setupPhotoButton(btn, input, storageRef) {
+// Универсальная настройка кнопки фото
+function setupPhotoButton(btn, input, fileHolder) {
+    // fileHolder будет объектом { current: File | null }
     btn.addEventListener('click', () => {
-        if (storageRef.file) {
-            // Уже есть фото – открываем его в новой вкладке (или модально)
-            const url = URL.createObjectURL(storageRef.file);
+        if (fileHolder.current) {
+            // Уже есть фото – открыть в новой вкладке
+            const url = URL.createObjectURL(fileHolder.current);
             window.open(url, '_blank');
-            // Предлагаем переснять (можно через confirm, но для UX просто снова откроем камеру при следующем клике после просмотра? Упростим: добавим кнопку "Переснять" внутри кнопки? Пока оставим так, что повторный клик открывает фото, а чтобы переснять – нужно нажать и удерживать или использовать контекстное меню? Но мы можем добавить поверх кнопки маленькую иконку пересъёмки.)
         } else {
-            input.click(); // открываем камеру
+            input.click();
         }
     });
+
     input.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             const file = e.target.files[0];
-            storageRef.file = file;
-            // Отображаем миниатюру на кнопке
+            fileHolder.current = file;
+
+            // Отобразить миниатюру на кнопке
             const img = document.createElement('img');
             img.src = URL.createObjectURL(file);
-            btn.innerHTML = ''; // очищаем кнопку
+            btn.innerHTML = '';
             btn.appendChild(img);
-            // Добавляем иконку переснять
+
+            // Добавить иконку переснять
             const retakeIcon = document.createElement('span');
-            retakeIcon.style.position = 'absolute';
-            retakeIcon.style.bottom = '4px';
-            retakeIcon.style.right = '4px';
-            retakeIcon.style.background = 'rgba(0,0,0,0.6)';
-            retakeIcon.style.borderRadius = '50%';
-            retakeIcon.style.padding = '2px';
-            retakeIcon.style.cursor = 'pointer';
+            retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;';
             retakeIcon.innerHTML = '🔄';
             retakeIcon.addEventListener('click', (ev) => {
                 ev.stopPropagation();
-                input.click(); // открыть камеру заново
+                input.click();
             });
             btn.appendChild(retakeIcon);
+
             // Геометка
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -530,8 +528,11 @@ function setupPhotoButton(btn, input, storageRef) {
     });
 }
 
-setupPhotoButton(photoBeforeBtn, photoBeforeInput, beforeFile);
-setupPhotoButton(photoAfterBtn, photoAfterInput, afterFile);
+// Инициализация кнопок
+const beforeHolder = { current: null };
+const afterHolder = { current: null };
+setupPhotoButton(photoBeforeBtn, photoBeforeInput, beforeHolder);
+setupPhotoButton(photoAfterBtn, photoAfterInput, afterHolder);
 
 openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
 closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
@@ -582,8 +583,9 @@ function completeTask(reason, liters = 0) {
         renderMarkers(allRequests);
     }
     updateAccountStats();
-    taskCarModel.textContent = ''; taskPlate.innerHTML = ''; taskCoords.textContent = ''; taskId.textContent = '';
-    litersInput.value = ''; commentInput.value = ''; beforeFile = {}; afterFile = {};
+    // Сброс фото
+    beforeHolder.current = null;
+    afterHolder.current = null;
     photoBeforeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ДО</span>';
     photoAfterBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ПОСЛЕ</span>';
     confirmLitersBtn.classList.remove('active');
@@ -603,8 +605,9 @@ function startTask(req, marker) {
     taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
-    beforeFile = {};
-    afterFile = {};
+    // Сброс фото
+    beforeHolder.current = null;
+    afterHolder.current = null;
     photoBeforeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ДО</span>';
     photoAfterBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="photo-label">ПОСЛЕ</span>';
     workBtn.classList.add('visible');

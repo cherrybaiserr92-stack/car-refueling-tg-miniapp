@@ -318,7 +318,7 @@ body {
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
 
-/* Попап – убрана лишняя рамка вокруг номера, уменьшен на 1мм (~4px) с каждой стороны */
+/* Попап – убрана лишняя рамка вокруг номера, уменьшен ещё на 1 мм */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
@@ -326,14 +326,14 @@ body {
 .popup-plate-card {
     background: rgba(20,20,22,0.85);
     backdrop-filter: blur(15px);
-    border: 2px solid white;
+    border: 2px solid white;            /* основная рамка попапа */
     border-radius: 10px;
-    padding: 4px 6px;          /* уменьшено на 2px с каждой стороны (было 6px 8px) */
+    padding: 2px 4px;                  /* уменьшено на 2px со всех сторон */
     color: white;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 122px;          /* уменьшено со 130 */
+    min-width: 118px;                  /* уменьшена ширина */
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
@@ -346,9 +346,9 @@ body {
     font-size: 13px;
     letter-spacing: 0.5px;
     padding: 2px 5px;
-    border: 1px solid white;   /* оставляем только тонкую рамку самого номера */
+    border: none;                      /* убрана рамка, теперь только тень */
+    box-shadow: 0 0 0 1px white;       /* тонкая белая обводка, имитирующая номерной знак */
     border-radius: 3px;
-    box-shadow: none;          /* убираем тень, которая создавала иллюзию второй рамки */
     flex: 1;
     text-align: center;
     display: flex;
