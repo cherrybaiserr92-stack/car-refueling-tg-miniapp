@@ -97,36 +97,27 @@ const routeBuilderBtn = document.getElementById('routeBuilderBtn');
 
 routeBuilderBtn.addEventListener('click', () => {
     if (!routeBuilderMode) {
+        // Включаем режим
         routeBuilderMode = true;
         routeBuilderBtn.classList.add('active');
         routeBuilderPoints = [];
         tg.showAlert('Режим сложного маршрута включён. Выберите до 10 заявок. Нажмите повторно для построения.');
     } else {
-        if (routeBuilderPoints.length >= 1) {
-            if (!userLocation) {
-                tg.showAlert('Местоположение не определено');
-                // выключаем режим, но не строим
-                routeBuilderBtn.classList.remove('active');
-                routeBuilderMode = false;
-                markers.forEach(m => {
-                    if (!m.req) return;
-                    const isActive = currentTaskRequest && m.req.id === currentTaskRequest.id;
-                    m.setIcon(createMarkerIcon(m.req, isActive, false));
-                });
-                routeBuilderPoints = [];
-                return;
-            }
+        // Режим уже включён – выключаем
+        routeBuilderBtn.classList.remove('active');
+        routeBuilderMode = false;
+        // Если были набраны точки, строим маршрут (от пользователя)
+        if (routeBuilderPoints.length >= 1 && userLocation) {
             const points = [userLocation.lat, userLocation.lng].join(',') + '~' +
                 routeBuilderPoints.map(p => `${p.lat},${p.lng}`).join('~');
             const url = `https://yandex.ru/maps/?rtt=auto&rtext=${points}`;
             window.open(url, '_blank');
+        } else if (routeBuilderPoints.length >= 1 && !userLocation) {
+            tg.showAlert('Местоположение не определено');
         } else {
-            // ни одной заявки не выбрано – просто выключаем режим
             tg.showAlert('Режим сложного маршрута выключен');
         }
-        // В любом случае выключаем
-        routeBuilderBtn.classList.remove('active');
-        routeBuilderMode = false;
+        // Очищаем точки и восстанавливаем иконки
         markers.forEach(m => {
             if (!m.req) return;
             const isActive = currentTaskRequest && m.req.id === currentTaskRequest.id;
@@ -502,6 +493,7 @@ function setupPhotoButton(btn, input) {
                 );
             }
             tg.showAlert('Фото выбрано');
+            // Здесь можно отправить файл на сервер для сохранения (тестово)
         }
     });
 }
@@ -572,7 +564,7 @@ function completeTask(reason, liters = 0) {
 function startTask(req, marker) {
     currentTaskRequest = req;
     activeTaskMarker = marker;
-    taskCarModel.textContent = req.carModel; // без иконки, просто текст
+    taskCarModel.textContent = req.carModel; // без иконки
     taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;
