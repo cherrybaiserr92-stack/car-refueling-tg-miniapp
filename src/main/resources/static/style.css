@@ -261,7 +261,8 @@ body {
 .door-open { background: #34c759; }
 .door-close { background: #ff3b30; }
 .task-photos { display: flex; gap: 8px; }
-.photo-btn-large { flex: 1; aspect-ratio: 1 / 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.photo-btn-large { flex: 1; aspect-ratio: 1 / 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; overflow: hidden; }
+.photo-btn-large img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
 .photo-label { font-size: 12px; opacity: 0.8; }
 .task-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
 .info-row { display: flex; align-items: center; gap: 6px; font-size: 14px; }
@@ -317,7 +318,7 @@ body {
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
 
-/* Попап – восстановленная версия с тонкой рамкой и корректным топливом */
+/* Попап – убрана лишняя рамка вокруг номера, уменьшен на 1мм (~4px) с каждой стороны */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
@@ -325,14 +326,14 @@ body {
 .popup-plate-card {
     background: rgba(20,20,22,0.85);
     backdrop-filter: blur(15px);
-    border: 2px solid white;            /* основная рамка попапа */
+    border: 2px solid white;
     border-radius: 10px;
-    padding: 6px 8px;
+    padding: 4px 6px;          /* уменьшено на 2px с каждой стороны (было 6px 8px) */
     color: white;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    min-width: 130px;
+    gap: 2px;
+    min-width: 122px;          /* уменьшено со 130 */
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
@@ -345,9 +346,9 @@ body {
     font-size: 13px;
     letter-spacing: 0.5px;
     padding: 2px 5px;
-    border: 1px solid white;           /* тонкая рамка только у номера, без внешней */
+    border: 1px solid white;   /* оставляем только тонкую рамку самого номера */
     border-radius: 3px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    box-shadow: none;          /* убираем тень, которая создавала иллюзию второй рамки */
     flex: 1;
     text-align: center;
     display: flex;
