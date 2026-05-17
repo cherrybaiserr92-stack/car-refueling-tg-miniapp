@@ -97,16 +97,13 @@ const routeBuilderBtn = document.getElementById('routeBuilderBtn');
 
 routeBuilderBtn.addEventListener('click', () => {
     if (!routeBuilderMode) {
-        // Включаем режим
         routeBuilderMode = true;
         routeBuilderBtn.classList.add('active');
         routeBuilderPoints = [];
         tg.showAlert('Режим сложного маршрута включён. Выберите до 10 заявок. Нажмите повторно для построения.');
     } else {
-        // Режим уже включён – выключаем
         routeBuilderBtn.classList.remove('active');
         routeBuilderMode = false;
-        // Если были набраны точки, строим маршрут (от пользователя)
         if (routeBuilderPoints.length >= 1 && userLocation) {
             const points = [userLocation.lat, userLocation.lng].join(',') + '~' +
                 routeBuilderPoints.map(p => `${p.lat},${p.lng}`).join('~');
@@ -117,7 +114,6 @@ routeBuilderBtn.addEventListener('click', () => {
         } else {
             tg.showAlert('Режим сложного маршрута выключен');
         }
-        // Очищаем точки и восстанавливаем иконки
         markers.forEach(m => {
             if (!m.req) return;
             const isActive = currentTaskRequest && m.req.id === currentTaskRequest.id;
@@ -406,7 +402,7 @@ function createPopupContent(req) {
 
     const modelLine = document.createElement('div');
     modelLine.className = 'popup-model-line';
-    modelLine.textContent = req.carModel; // без иконки
+    modelLine.textContent = req.carModel;
 
     const mainRow = document.createElement('div');
     mainRow.className = 'popup-main-row';
@@ -493,7 +489,6 @@ function setupPhotoButton(btn, input) {
                 );
             }
             tg.showAlert('Фото выбрано');
-            // Здесь можно отправить файл на сервер для сохранения (тестово)
         }
     });
 }
@@ -564,7 +559,7 @@ function completeTask(reason, liters = 0) {
 function startTask(req, marker) {
     currentTaskRequest = req;
     activeTaskMarker = marker;
-    taskCarModel.textContent = req.carModel; // без иконки
+    taskCarModel.textContent = req.carModel;
     taskPlate.innerHTML = formatLicensePlate(req.licensePlate);
     taskCoords.textContent = `${req.lat}, ${req.lng}`;
     taskId.textContent = req.id;

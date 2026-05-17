@@ -289,7 +289,7 @@ body {
     align-items: center;
     gap: 4px;
     white-space: nowrap;
-    max-width: 120px;   /* ограничим ширину */
+    max-width: 120px;
 }
 .plate-display span { overflow: hidden; text-overflow: ellipsis; }
 .copy-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 4px 6px; color: white; cursor: pointer; display: flex; align-items: center; margin-left: 6px; }
@@ -317,7 +317,7 @@ body {
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
 .cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
 
-/* Попап – без белой рамки, уменьшенный */
+/* Попап – восстановленная версия с тонкой рамкой и корректным топливом */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
@@ -325,46 +325,44 @@ body {
 .popup-plate-card {
     background: rgba(20,20,22,0.85);
     backdrop-filter: blur(15px);
-    border: 1.5px solid rgba(255,255,255,0.4);   /* тонкая полупрозрачная рамка */
-    border-radius: 8px;
-    padding: 4px 6px;
+    border: 2px solid white;            /* основная рамка попапа */
+    border-radius: 10px;
+    padding: 6px 8px;
     color: white;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    min-width: 100px;
-    max-width: 140px;
+    gap: 3px;
+    min-width: 130px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
-    font-size: 10px;
 }
 .popup-model-line { font-weight: 700; font-size: 10px; text-align: center; opacity: 0.9; }
-.popup-main-row { display: flex; align-items: center; gap: 4px; }
+.popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
     background: transparent;
     color: white;
     font-weight: 800;
-    font-size: 12px;
-    letter-spacing: 0.3px;
-    padding: 1px 4px;
-    border: 1px solid white;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    padding: 2px 5px;
+    border: 1px solid white;           /* тонкая рамка только у номера, без внешней */
     border-radius: 3px;
-    box-shadow: 0 0 3px rgba(0,0,0,0.5);
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
     flex: 1;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     white-space: nowrap;
 }
-.plate-flag { font-size: 8px; margin-left: 1px; }
+.plate-flag { font-size: 9px; margin-left: 1px; }
 
 .popup-fuel-indicator {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     background: rgba(0,0,0,0.3);
-    border-radius: 5px;
+    border-radius: 6px;
     overflow: hidden;
     position: relative;
     border: 1px solid rgba(255,255,255,0.3);
@@ -378,7 +376,7 @@ body {
     background: var(--fuel-color, #34c759);
     transition: height 0.5s ease;
     z-index: 0;
-    border-radius: 0 0 4px 4px;
+    border-radius: 0 0 5px 5px;
 }
 .popup-fuel-bubbles-mini { position: absolute; bottom: 0; left: 0; width: 100%; pointer-events: none; z-index: 1; }
 .popup-fuel-bubble-mini { position: absolute; background: rgba(255,255,255,0.8); border-radius: 50%; animation: bubbleMini 2s infinite ease-in-out; }
@@ -386,4 +384,4 @@ body {
 .popup-fuel-bubble-mini:nth-child(2) { width: 1.5px; height: 1.5px; left: 60%; bottom: 40%; animation-delay: 0.5s; }
 .popup-fuel-bubble-mini:nth-child(3) { width: 2px; height: 2px; left: 45%; bottom: 60%; animation-delay: 1s; }
 @keyframes bubbleMini { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 50% { transform: translateY(-4px) scale(1.2); opacity: 1; } 100% { transform: translateY(-8px) scale(0.9); opacity: 0; } }
-.popup-fuel-percent-mini { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 7px; font-weight: 800; color: white; text-shadow: 0 1px 2px black; z-index: 2; }
+.popup-fuel-percent-mini { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; font-weight: 800; color: white; text-shadow: 0 1px 2px black; z-index: 2; }
