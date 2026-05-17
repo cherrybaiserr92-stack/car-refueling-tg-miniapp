@@ -208,7 +208,7 @@ async function buildRoute(from, to) {
     } catch (e) { console.error(e); }
 }
 
-// Форматирование госномера (табличка с флагом)
+// Форматирование госномера
 function formatLicensePlate(licensePlate) {
     const parts = licensePlate.split(' ');
     const base = parts.length > 0 ? parts[0] : licensePlate;
@@ -479,19 +479,18 @@ const closeTaskBtn = document.getElementById('closeTaskBtn');
 const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
 // Хранилища для выбранных файлов
-let beforeFile = null;
-let afterFile = null;
+const beforeHolder = { current: null };
+const afterHolder = { current: null };
 
-// Универсальная настройка кнопки фото
+// Универсальная настройка кнопки фото с геометкой
 function setupPhotoButton(btn, input, fileHolder) {
-    // fileHolder будет объектом { current: File | null }
     btn.addEventListener('click', () => {
         if (fileHolder.current) {
             // Уже есть фото – открыть в новой вкладке
             const url = URL.createObjectURL(fileHolder.current);
             window.open(url, '_blank');
         } else {
-            input.click();
+            input.click(); // открываем камеру
         }
     });
 
@@ -516,12 +515,22 @@ function setupPhotoButton(btn, input, fileHolder) {
             });
             btn.appendChild(retakeIcon);
 
-            // Геометка
+            // Геометка – фиксируем время и координаты
+            const timestamp = new Date().toLocaleString();
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => tg.showAlert(`Геометка: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}\nВремя: ${new Date(pos.timestamp).toLocaleString()}`),
-                    () => tg.showAlert('Не удалось получить координаты')
+                    (pos) => {
+                        const lat = pos.coords.latitude.toFixed(6);
+                        const lng = pos.coords.longitude.toFixed(6);
+                        tg.showAlert(`Геометка: ${lat}, ${lng}\nВремя: ${timestamp}`);
+                        // Здесь можно сохранить координаты в скрытое поле или добавить к комментарию
+                    },
+                    (err) => {
+                        tg.showAlert(`Геометка не определена\nВремя: ${timestamp}`);
+                    }
                 );
+            } else {
+                tg.showAlert(`Время: ${timestamp}`);
             }
             tg.showAlert('Фото выбрано');
         }
@@ -529,8 +538,6 @@ function setupPhotoButton(btn, input, fileHolder) {
 }
 
 // Инициализация кнопок
-const beforeHolder = { current: null };
-const afterHolder = { current: null };
 setupPhotoButton(photoBeforeBtn, photoBeforeInput, beforeHolder);
 setupPhotoButton(photoAfterBtn, photoAfterInput, afterHolder);
 

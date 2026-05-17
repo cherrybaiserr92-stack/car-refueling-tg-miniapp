@@ -96,9 +96,18 @@
         <div class="details-content" id="detailsContent"></div>
     </div>
 
-    <!-- Работа -->
+    <!-- Работа (изменён порядок элементов) -->
     <div id="workView" class="view">
         <div class="task-container">
+            <!-- 1. Информационное поле -->
+            <div class="task-info" id="taskInfo">
+                <div class="info-row"><span>Авто</span> <strong id="taskCarModel"></strong></div>
+                <div class="info-row"><span>Госномер</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
+                <div class="info-row"><span>Координаты</span> <strong id="taskCoords"></strong> <button id="copyCoordsBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
+                <div class="info-row"><span>Заявка №</span> <strong id="taskId"></strong></div>
+            </div>
+
+            <!-- 2. Кнопки дверей -->
             <div class="task-header">
                 <button id="openDoorsBtn" class="door-btn door-open">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -120,6 +129,8 @@
                     Закрыть
                 </button>
             </div>
+
+            <!-- 3. Кнопки фото -->
             <div class="task-photos">
                 <button id="photoBeforeBtn" class="photo-btn-large">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -132,12 +143,8 @@
                 <input type="file" id="photoBeforeInput" accept="image/*" capture="environment" style="display:none">
                 <input type="file" id="photoAfterInput" accept="image/*" capture="environment" style="display:none">
             </div>
-            <div class="task-info" id="taskInfo">
-                <div class="info-row"><span>Авто</span> <strong id="taskCarModel"></strong></div>
-                <div class="info-row"><span>Госномер</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
-                <div class="info-row"><span>Координаты</span> <strong id="taskCoords"></strong> <button id="copyCoordsBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
-                <div class="info-row"><span>Заявка №</span> <strong id="taskId"></strong></div>
-            </div>
+
+            <!-- 4. Литраж -->
             <div class="task-field">
                 <label>Литраж заправки</label>
                 <div class="liters-row">
@@ -145,11 +152,17 @@
                     <button id="confirmLitersBtn" class="confirm-liters-btn">✓</button>
                 </div>
             </div>
+
+            <!-- 5. Закрыть заявку -->
+            <button id="closeTaskBtn" class="close-task-btn">Закрыть заявку</button>
+
+            <!-- 6. Комментарий -->
             <div class="task-field">
                 <label>Комментарий (тех. состояние и др.)</label>
                 <textarea id="commentInput" class="comment-input" rows="3" placeholder="Необязательно"></textarea>
             </div>
-            <button id="closeTaskBtn" class="close-task-btn">Закрыть заявку</button>
+
+            <!-- 7. Отменить заявку -->
             <button id="cancelTaskBtn" class="cancel-task-btn">Отменить заявку</button>
         </div>
     </div>
