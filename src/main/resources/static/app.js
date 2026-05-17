@@ -7,7 +7,7 @@ const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const accountView = document.getElementById('accountView');
 const bottomPanel = document.getElementById('bottomPanel');
-let loggedIn = false;
+let loggedIn = true;
 
 function tryAutoLogin() {
     const stored = localStorage.getItem('refuel_loggedIn');
