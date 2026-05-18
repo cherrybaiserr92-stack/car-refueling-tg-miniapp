@@ -33,7 +33,6 @@
     <!-- Аккаунт -->
     <div id="accountView" class="view">
         <div class="account-container">
-            <!-- Пульт Hardmode (общий фон) -->
             <div class="top-controls">
                 <div class="hardmode-remote">
                     <div class="remote-shell">
@@ -181,7 +180,11 @@
     <div id="actionPanel" class="action-panel hidden">
         <div class="action-buttons">
             <button id="acceptBtn" class="action-btn accept-btn">Взять в работу</button>
-            <button id="routeBtn" class="action-btn route-btn">Построить маршрут</button>
+            <button id="routeBtn" class="action-btn route-btn">
+                <span class="route-label">Копировать</span>
+                <span class="route-label route-label-right">В Яндекс</span>
+                <div class="route-slider"></div>
+            </button>
             <button id="photoSearchBtn" class="action-btn photo-search-btn">Найти по фото</button>
         </div>
     </div>
