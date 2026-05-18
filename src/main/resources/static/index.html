@@ -33,65 +33,70 @@
     <!-- Аккаунт -->
     <div id="accountView" class="view">
         <div class="account-container">
-            <div class="top-controls">
-                <div class="hardmode-remote">
-                    <div class="remote-shell">
-                        <button id="hardmodeOnBtn" class="remote-btn on-btn">ON</button>
-                        <button id="hardmodeOffBtn" class="remote-btn off-btn active">OFF</button>
+            <!-- Новая обёртка с фоновой картинкой -->
+            <div class="fuel-background">
+                <div class="top-controls">
+                    <div class="hardmode-remote">
+                        <div class="remote-shell">
+                            <button id="hardmodeOnBtn" class="remote-btn on-btn">ON</button>
+                            <button id="hardmodeOffBtn" class="remote-btn off-btn active">OFF</button>
+                        </div>
+                        <span class="hardmode-label">Hardmode</span>
                     </div>
-                    <span class="hardmode-label">Hardmode</span>
+                    <div class="settings-wrapper">
+                        <button id="settingsBtn" class="settings-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                            </svg>
+                        </button>
+                        <div id="settingsMenu" class="settings-menu hidden">
+                            <div class="menu-item" id="menuDriver">👤 Иван Петров</div>
+                            <div class="menu-item" id="menuTruck">🚛 БелАЗ А123ВС 178</div>
+                            <div class="menu-item" id="menuSupport">📞 Поддержка</div>
+                            <div class="menu-item" id="menuInstructions">📖 Инструкции</div>
+                            <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
+                            <div class="menu-item menu-logout" id="menuLogout">🚪 Завершить смену</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="settings-wrapper">
-                    <button id="settingsBtn" class="settings-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                        </svg>
-                    </button>
-                    <div id="settingsMenu" class="settings-menu hidden">
-                        <div class="menu-item" id="menuDriver">👤 Иван Петров</div>
-                        <div class="menu-item" id="menuTruck">🚛 БелАЗ А123ВС 178</div>
-                        <div class="menu-item" id="menuSupport">📞 Поддержка</div>
-                        <div class="menu-item" id="menuInstructions">📖 Инструкции</div>
-                        <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
-                        <div class="menu-item menu-logout" id="menuLogout">🚪 Завершить смену</div>
+                <div class="tank-carousel" id="tankCarousel">
+                    <div class="tank-panel tank-left" data-fuel="ai95">
+                        <div class="fuel-tank" id="tankAi95">
+                            <div class="fuel-tank-fill" id="fillAi95"></div>
+                            <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
+                            <span class="fuel-tank-text" id="textAi95">0 л</span>
+                        </div>
+                        <div class="fuel-label">АИ-95</div>
                     </div>
+                    <div class="tank-panel tank-center" data-fuel="ai92">
+                        <div class="fuel-tank" id="tankAi92">
+                            <div class="fuel-tank-fill" id="fillAi92"></div>
+                            <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
+                            <span class="fuel-tank-text" id="textAi92">0 л</span>
+                        </div>
+                        <div class="fuel-label">АИ-92</div>
+                    </div>
+                    <div class="tank-panel tank-right" data-fuel="dt">
+                        <div class="fuel-tank" id="tankDt">
+                            <div class="fuel-tank-fill" id="fillDt"></div>
+                            <div class="fuel-tank-bubbles" id="bubblesDt"></div>
+                            <span class="fuel-tank-text" id="textDt">0 л</span>
+                        </div>
+                        <div class="fuel-label">ДТ</div>
+                    </div>
+                </div>
+                <div class="refuel-custom">
+                    <input type="number" id="customLitersInput" class="custom-liters-input" placeholder="Литры" step="1" min="1">
+                    <button id="customRefuelBtn" class="refuel-btn">Пополнить</button>
+                </div>
+                <div class="refuel-buttons">
+                    <button id="refuelA92Btn" class="refuel-btn">Заправить АИ-92</button>
+                    <button id="refuelDTBtn" class="refuel-btn">Заправить ДТ</button>
                 </div>
             </div>
-            <div class="tank-carousel" id="tankCarousel">
-                <div class="tank-panel tank-left" data-fuel="ai95">
-                    <div class="fuel-tank" id="tankAi95">
-                        <div class="fuel-tank-fill" id="fillAi95"></div>
-                        <div class="fuel-tank-bubbles" id="bubblesAi95"></div>
-                        <span class="fuel-tank-text" id="textAi95">0 л</span>
-                    </div>
-                    <div class="fuel-label">АИ-95</div>
-                </div>
-                <div class="tank-panel tank-center" data-fuel="ai92">
-                    <div class="fuel-tank" id="tankAi92">
-                        <div class="fuel-tank-fill" id="fillAi92"></div>
-                        <div class="fuel-tank-bubbles" id="bubblesAi92"></div>
-                        <span class="fuel-tank-text" id="textAi92">0 л</span>
-                    </div>
-                    <div class="fuel-label">АИ-92</div>
-                </div>
-                <div class="tank-panel tank-right" data-fuel="dt">
-                    <div class="fuel-tank" id="tankDt">
-                        <div class="fuel-tank-fill" id="fillDt"></div>
-                        <div class="fuel-tank-bubbles" id="bubblesDt"></div>
-                        <span class="fuel-tank-text" id="textDt">0 л</span>
-                    </div>
-                    <div class="fuel-label">ДТ</div>
-                </div>
-            </div>
-            <div class="refuel-custom">
-                <input type="number" id="customLitersInput" class="custom-liters-input" placeholder="Литры" step="1" min="1">
-                <button id="customRefuelBtn" class="refuel-btn">Пополнить</button>
-            </div>
-            <div class="refuel-buttons">
-                <button id="refuelA92Btn" class="refuel-btn">Заправить АИ-92</button>
-                <button id="refuelDTBtn" class="refuel-btn">Заправить ДТ</button>
-            </div>
+            <!-- Конец обёртки -->
+
             <div class="account-stats">
                 <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
                 <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
@@ -107,73 +112,7 @@
 
     <!-- Работа -->
     <div id="workView" class="view">
-        <div class="task-container">
-            <div class="task-info" id="taskInfo">
-                <div class="info-row"><span>Авто</span> <strong id="taskCarModel"></strong></div>
-                <div class="info-row"><span>Госномер</span> <strong id="taskPlate"></strong> <button id="copyPlateBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
-                <div class="info-row"><span>Координаты</span> <strong id="taskCoords"></strong> <button id="copyCoordsBtn" class="copy-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v2H6a2 2 0 0 0-2 2v12H2V6a4 4 0 0 1 4-4h10z"/></svg></button></div>
-                <div class="info-row"><span>Заявка №</span> <strong id="taskId"></strong></div>
-            </div>
-
-            <div class="timer-bar-wrapper" id="timerWrapper" style="display:none;">
-                <div class="timer-bar">
-                    <div class="timer-fill" id="timerFill"></div>
-                </div>
-                <div class="timer-text" id="timerText"></div>
-            </div>
-
-            <div class="task-header">
-                <button id="openDoorsBtn" class="door-btn door-open">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="10" width="18" height="11" rx="2"/>
-                        <path d="M7 10V7a5 5 0 0 1 10 0v3"/>
-                        <circle cx="12" cy="14" r="1"/>
-                        <line x1="12" y1="12" x2="12" y2="16"/>
-                    </svg>
-                    Открыть
-                </button>
-                <button id="closeDoorsBtn" class="door-btn door-close">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="10" width="18" height="11" rx="2"/>
-                        <path d="M7 10V7a5 5 0 0 1 10 0v3"/>
-                        <circle cx="12" cy="14" r="1"/>
-                        <line x1="12" y1="12" x2="12" y2="16"/>
-                        <line x1="8" y1="10" x2="16" y2="10"/>
-                    </svg>
-                    Закрыть
-                </button>
-            </div>
-
-            <div class="task-photos">
-                <button id="photoBeforeBtn" class="photo-btn-large">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    <span class="photo-label">ДО</span>
-                </button>
-                <button id="photoAfterBtn" class="photo-btn-large">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    <span class="photo-label">ПОСЛЕ</span>
-                </button>
-                <input type="file" id="photoBeforeInput" accept="image/*" capture="environment" style="display:none">
-                <input type="file" id="photoAfterInput" accept="image/*" capture="environment" style="display:none">
-            </div>
-
-            <div class="task-field">
-                <label>Литраж заправки</label>
-                <div class="liters-row">
-                    <input type="number" id="litersInput" class="liters-input" placeholder="0.0" step="0.1" min="0">
-                    <button id="confirmLitersBtn" class="confirm-liters-btn">✓</button>
-                </div>
-            </div>
-
-            <button id="closeTaskBtn" class="close-task-btn">Закрыть заявку</button>
-
-            <div class="task-field">
-                <label>Комментарий (тех. состояние и др.)</label>
-                <textarea id="commentInput" class="comment-input" rows="3" placeholder="Необязательно"></textarea>
-            </div>
-
-            <button id="cancelTaskBtn" class="cancel-task-btn">Отменить заявку</button>
-        </div>
+        <!-- ... содержимое без изменений ... -->
     </div>
 
     <!-- Панель действий -->

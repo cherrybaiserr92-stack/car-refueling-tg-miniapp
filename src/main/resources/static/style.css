@@ -179,6 +179,17 @@ body {
 #accountView.active { display: flex; }
 .account-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; position: relative; }
 
+/* === ФОНОВАЯ КАРТИНКА ДЛЯ БЛОКА КАНИСТР === */
+.fuel-background {
+    background: url('https://i.ibb.co/vxyxLCbc/IMG-20260518-223256-249.png') center/cover no-repeat;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
 .top-controls {
     display: flex;
     align-items: center;
