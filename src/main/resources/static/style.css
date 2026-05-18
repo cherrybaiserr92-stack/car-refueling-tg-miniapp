@@ -280,31 +280,31 @@ body {
 .custom-liters-input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; color: white; font-size: 15px; outline: none; }
 .refuel-custom .refuel-btn { flex: 0 0 auto; padding: 10px 16px; }
 
-/* Кнопки заправки в стиле киберпанк */
-.refuel-buttons { display: flex; gap: 10px; }
-.refuel-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; background: var(--tg-accent); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); outline: none; }
-.refuel-btn:active { opacity: 0.8; }
-.refuel-btn {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #0ff;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 14px;
-    color: #0ff;
-    cursor: pointer;
-    background: #0d0d0d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff inset;
-    transition: all 0.3s;
-    outline: none;
-}
-.refuel-btn:active {
-    background: #0ff;
-    color: #000;
-    box-shadow: 0 0 20px #0ff;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .account-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .stat-item { flex: 1; min-width: 80px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); outline: none; }
@@ -643,3 +643,6 @@ body {
     min-width: 24px;
     text-align: right;
 }
+.refuel-buttons { display: flex; gap: 10px; }
+.refuel-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; background: var(--tg-accent); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); outline: none; }
+.refuel-btn:active { opacity: 0.8; }
