@@ -267,7 +267,7 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    background: var(--fuel-color, #34c759);
+    background: var(--fuel-color, #2ecc71);
     transition: height 0.5s ease;
     z-index: 0;
     border-radius: 0 0 10px 10px;
@@ -280,9 +280,33 @@ body {
 .custom-liters-input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; color: white; font-size: 15px; outline: none; }
 .refuel-custom .refuel-btn { flex: 0 0 auto; padding: 10px 16px; }
 
-.refuel-buttons { display: flex; gap: 10px; }
-.refuel-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; background: var(--tg-accent); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); outline: none; }
-.refuel-btn:active { opacity: 0.8; }
+/* Кнопки заправки в стиле киберпанк */
+.refuel-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px; /* опускаем */
+}
+.refuel-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #0ff;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #0ff;
+    cursor: pointer;
+    background: #0d0d0d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff inset;
+    transition: all 0.3s;
+    outline: none;
+}
+.refuel-btn:active {
+    background: #0ff;
+    color: #000;
+    box-shadow: 0 0 20px #0ff;
+}
 
 .account-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .stat-item { flex: 1; min-width: 80px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); outline: none; }
@@ -347,7 +371,7 @@ body {
 }
 .door-btn:active { transform: scale(0.96); }
 .door-btn svg { width: 16px; height: 16px; stroke: white; }
-.door-open { background: #34c759; }
+.door-open { background: #2ecc71; }
 .door-close { background: #ff3b30; }
 .task-photos { display: flex; gap: 8px; }
 .photo-btn-large { flex: 1; aspect-ratio: 1 / 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; overflow: hidden; outline: none; transition: background 0.2s, transform 0.1s; }
@@ -406,7 +430,7 @@ body {
     outline: none;
 }
 .confirm-liters-btn:active { transform: scale(0.92); }
-.confirm-liters-btn.active { background: #34c759; }
+.confirm-liters-btn.active { background: #2ecc71; }
 .comment-input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; color: white; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
 .close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; outline: none; transition: background 0.2s, transform 0.1s; }
 .close-task-btn:active { transform: scale(0.97); }
@@ -416,10 +440,10 @@ body {
 /* Таймер */
 .timer-bar-wrapper { margin-bottom: 8px; }
 .timer-bar { height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; position: relative; }
-.timer-fill { height: 100%; width: 100%; background: #34c759; border-radius: 5px; transition: width 1s linear; }
+.timer-fill { height: 100%; width: 100%; background: #2ecc71; border-radius: 5px; transition: width 1s linear; }
 .timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-/* ===== СУПЕРКОМПАКТНЫЙ ПОПАП (140px) ===== */
+/* ===== СУПЕРКОМПАКТНЫЙ ПОПАП (130px) ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -437,53 +461,52 @@ body {
 }
 
 .popup-dashboard {
-    width: 140px;
+    width: 130px;
     background: rgba(18, 18, 20, 0.8);
-    backdrop-filter: blur(12px) saturate(150%);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    border-radius: 10px;
-    padding: 6px 8px;
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border-radius: 8px;
+    padding: 4px 6px;
     color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
 }
 
 /* Модель + Rent бейдж */
 .dash-model-row {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
+    gap: 3px;
+    font-size: 10px;
     font-weight: 600;
     opacity: 0.9;
 }
 .dash-rent-badge {
     background: #b366ff;
     color: #00ff00;
-    font-size: 7px;
+    font-size: 6px;
     font-weight: 800;
-    padding: 1px 3px;
-    border-radius: 3px;
+    padding: 1px 2px;
+    border-radius: 2px;
     text-transform: uppercase;
-    line-height: 1;
 }
 
 /* Номерной знак на белом фоне */
 .dash-plate {
     background: #fff;
     color: #000;
-    border-radius: 4px;
-    padding: 2px 5px;
+    border-radius: 3px;
+    padding: 1px 4px;
     font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.4px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
     border: 1px solid rgba(0,0,0,0.2);
 }
 .dash-plate-text {
@@ -496,29 +519,29 @@ body {
 /* Индикатор топлива */
 .dash-fuel-section {
     background: rgba(0,0,0,0.25);
-    border-radius: 5px;
-    padding: 3px 5px;
+    border-radius: 4px;
+    padding: 2px 4px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
 }
 .dash-fuel-bar-bg {
     flex: 1;
-    height: 4px;
+    height: 3px;
     background: rgba(255,255,255,0.15);
-    border-radius: 2px;
+    border-radius: 1px;
     overflow: hidden;
 }
 .dash-fuel-bar-fill {
     height: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #34c759, #a8e6cf);
-    box-shadow: 0 0 5px rgba(52,199,89,0.5);
+    border-radius: 1px;
+    background: linear-gradient(90deg, #2ecc71, #a8e6cf);
+    box-shadow: 0 0 4px rgba(46,204,113,0.5);
     transition: width 0.5s ease;
 }
 .dash-fuel-percent {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    min-width: 28px;
+    min-width: 24px;
     text-align: right;
 }

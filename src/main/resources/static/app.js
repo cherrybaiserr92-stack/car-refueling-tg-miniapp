@@ -83,6 +83,8 @@ const maxFuel = { ai92: 320, dt: 1000, ai95: 0 };
 let currentFuelType = 'ai92';
 let currentTaskRequest = null, activeTaskMarker = null;
 let lastClickedCoords = null;
+let currentPopupRequest = null;
+let currentPopupMarker = null;
 const segBtns = document.querySelectorAll('.seg-btn');
 const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
@@ -264,7 +266,7 @@ function updateTank(type) {
         let color;
         if (percentage <= 15) color = '#ff3b30';
         else if (percentage <= 25) color = '#ff9500';
-        else color = '#34c759';
+        else color = '#2ecc71';
         fillEl.style.backgroundColor = color;
     }
     const bubblesEl = document.getElementById(`bubbles${type.charAt(0).toUpperCase() + type.slice(1)}`);
@@ -397,7 +399,7 @@ async function loadRequests() {
 function markerColor(fuel) {
     if (fuel <= 15) return '#ff3b30';
     if (fuel <= 25) return '#ff9500';
-    return '#34c759';
+    return '#2ecc71';
 }
 function lightenColor(hex, f) {
     const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
@@ -418,12 +420,11 @@ function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     });
 }
 
-// ===== НОВЫЙ КОМПАКТНЫЙ ПОПАП (140px, без иконок) =====
+// ===== ПОПАП 130px =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-dashboard';
 
-    // Модель + Rent бейдж (если есть)
     const modelRow = document.createElement('div');
     modelRow.className = 'dash-model-row';
     const modelText = document.createElement('span');
@@ -437,7 +438,6 @@ function createPopupContent(req) {
         modelRow.appendChild(rentBadge);
     }
 
-    // Номерной знак на белом фоне (без флага)
     const plateDiv = document.createElement('div');
     plateDiv.className = 'dash-plate';
     const plateText = document.createElement('span');
@@ -445,7 +445,6 @@ function createPopupContent(req) {
     plateText.textContent = req.licensePlate;
     plateDiv.appendChild(plateText);
 
-    // Индикатор топлива
     const fuelSection = document.createElement('div');
     fuelSection.className = 'dash-fuel-section';
     const fuelBarBg = document.createElement('div');
@@ -465,9 +464,8 @@ function createPopupContent(req) {
     container.appendChild(fuelSection);
     return container;
 }
-// ===== КОНЕЦ ПОПАПА =====
 
-// Панель действий
+// Панель действий (исправленная логика)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -494,6 +492,47 @@ function updateRouteButton() {
     }
 }
 
+// Единые обработчики для кнопок (не переопределяются)
+acceptBtn.addEventListener('click', () => {
+    if (!currentPopupRequest || !currentPopupMarker) return;
+    startTask(currentPopupRequest, currentPopupMarker);
+    hideActionPanel();
+});
+
+routeBtn.addEventListener('click', (e) => {
+    if (swiped) {
+        e.preventDefault();
+        e.stopPropagation();
+        swiped = false;
+        return;
+    }
+    if (!currentPopupRequest) return;
+    if (routeMode === 'route') {
+        // Построить маршрут в Яндекс.Картах
+        if (userLocation) {
+            const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${currentPopupRequest.lat},${currentPopupRequest.lng}`;
+            window.open(url, '_blank');
+        } else {
+            tg.showAlert('Местоположение не определено');
+        }
+    } else {
+        // Скопировать координаты
+        const coords = `${currentPopupRequest.lat}, ${currentPopupRequest.lng}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+        } else {
+            tg.showAlert(`Координаты: ${coords}`);
+        }
+    }
+});
+
+photoSearchBtn.addEventListener('click', () => {
+    if (currentPopupRequest) {
+        tg.showAlert(`Поиск фото "${currentPopupRequest.carModel}" появится позже`);
+    }
+});
+
+// Свайп для переключения режима кнопки маршрута
 let swipeStartX = 0;
 routeBtn.addEventListener('touchstart', (e) => {
     swiped = false;
@@ -521,41 +560,17 @@ routeBtn.addEventListener('touchend', (e) => {
 
 updateRouteButton();
 
-routeBtn.addEventListener('click', (e) => {
-    if (swiped) {
-        e.preventDefault();
-        e.stopPropagation();
-        swiped = false;
-    }
-});
-
 function showActionPanel(req, marker) {
-    if (currentTaskRequest) { acceptBtn.style.display = 'none'; }
-    else { acceptBtn.style.display = 'block'; acceptBtn.onclick = () => startTask(req, marker); }
+    currentPopupRequest = req;
+    currentPopupMarker = marker;
+    acceptBtn.style.display = currentTaskRequest ? 'none' : 'block';
     actionPanel.classList.remove('hidden');
-    updateRouteButton();
-    routeBtn.onclick = () => {
-        if (routeMode === 'route') {
-            // Построить маршрут в Яндекс.Картах
-            if (userLocation) {
-                const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${req.lat},${req.lng}`;
-                window.open(url, '_blank');
-            } else {
-                tg.showAlert('Местоположение не определено');
-            }
-        } else {
-            // Скопировать координаты
-            const coords = `${req.lat}, ${req.lng}`;
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-            } else {
-                tg.showAlert(`Координаты: ${coords}`);
-            }
-        }
-    };
-    photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
 }
-function hideActionPanel() { actionPanel.classList.add('hidden'); acceptBtn.onclick = routeBtn.onclick = photoSearchBtn.onclick = null; }
+function hideActionPanel() {
+    actionPanel.classList.add('hidden');
+    currentPopupRequest = null;
+    currentPopupMarker = null;
+}
 
 // Таймер
 let timerInterval = null;
@@ -580,7 +595,7 @@ function updateTimer(startTime) {
     const percent = (remaining / TOTAL_SECONDS) * 100;
     timerFill.style.width = percent + '%';
     if (percent > 50) {
-        timerFill.style.background = '#34c759';
+        timerFill.style.background = '#2ecc71';
     } else if (percent > 20) {
         timerFill.style.background = '#ff9500';
     } else {
@@ -623,73 +638,62 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
+// Ускоренная загрузка фото
 function applyStampAndGetUrl(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const size = Math.min(img.width, img.height);
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const sx = (img.width - size) / 2;
-            const sy = (img.height - size) / 2;
-            ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
-            
-            const timestamp = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const driverName = 'Иван Петров';
-            const truck = 'БелАЗ А123ВС 178';
-            const taskModel = currentTaskRequest ? currentTaskRequest.carModel : '';
-            const taskPlateVal = currentTaskRequest ? currentTaskRequest.licensePlate : '';
-            const taskIdVal = currentTaskRequest ? currentTaskRequest.id : '';
-            let geoText = 'Гео: -';
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    geoText = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
-                    drawAndFinalize();
-                }, () => { drawAndFinalize(); });
-            } else {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const size = Math.min(img.width, img.height, 800); // ограничение размера
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+
+        const timestamp = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const driverName = 'Иван Петров';
+        const truck = 'БелАЗ А123ВС 178';
+        const taskModel = currentTaskRequest ? currentTaskRequest.carModel : '';
+        const taskPlateVal = currentTaskRequest ? currentTaskRequest.licensePlate : '';
+        const taskIdVal = currentTaskRequest ? currentTaskRequest.id : '';
+        let geoText = 'Гео: -';
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                geoText = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
                 drawAndFinalize();
-            }
-            function drawAndFinalize() {
-                const stampWidth = size * 0.95;
-                const stampHeight = size * 0.15;
-                const x = (size - stampWidth) / 2;
-                const y = size - stampHeight - 10;
-                
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = 'white';
-                ctx.font = `bold ${size * 0.04}px sans-serif`;
-                ctx.textAlign = 'center';
-                const lines = [
-                    `${driverName}  |  ${truck}`,
-                    `${geoText}  |  Заявка №${taskIdVal}`,
-                    `${taskModel} · ${taskPlateVal}  |  ${timestamp}`
-                ];
-                const lineHeight = size * 0.045;
-                lines.forEach((line, idx) => {
-                    ctx.fillText(line, size/2, y + 30 + idx * lineHeight);
-                });
-                
-                const dataUrl = canvas.toDataURL('image/jpeg');
-                canvas.toBlob((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `photo_${Date.now()}.jpg`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 'image/jpeg');
-                callback(dataUrl);
-            }
-        };
-        img.src = e.target.result;
+            }, () => { drawAndFinalize(); });
+        } else {
+            drawAndFinalize();
+        }
+        function drawAndFinalize() {
+            const stampWidth = size * 0.95;
+            const stampHeight = size * 0.15;
+            const x = (size - stampWidth) / 2;
+            const y = size - stampHeight - 10;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.04}px sans-serif`;
+            ctx.textAlign = 'center';
+            const lines = [
+                `${driverName}  |  ${truck}`,
+                `${geoText}  |  Заявка №${taskIdVal}`,
+                `${taskModel} · ${taskPlateVal}  |  ${timestamp}`
+            ];
+            const lineHeight = size * 0.045;
+            lines.forEach((line, idx) => {
+                ctx.fillText(line, size/2, y + 30 + idx * lineHeight);
+            });
+
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            URL.revokeObjectURL(url);
+            callback(dataUrl);
+        }
     };
-    reader.readAsDataURL(file);
+    img.src = url;
 }
 
 const retakeSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
@@ -714,7 +718,7 @@ function setupPhotoButton(btn, input, fileHolder) {
                 img.src = dataUrl;
                 btn.innerHTML = '';
                 btn.appendChild(img);
-                
+
                 const retakeIcon = document.createElement('span');
                 retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:4px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;';
                 retakeIcon.innerHTML = retakeSVG;
