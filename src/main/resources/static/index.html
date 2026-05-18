@@ -95,9 +95,40 @@
                 </div>
             </div>
             <div class="account-stats">
-                <div class="stat-item"><span>Заправлено машин</span><strong id="carsRefueled">0</strong></div>
+                <div class="stat-item clickable" id="xgBlock"><span>XG водителя</span><strong id="xgValue">-</strong></div>
                 <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item clickable" id="totalNeededBlock"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Окно XG водителя -->
+    <div id="xgView" class="view">
+        <div class="xg-container">
+            <div class="xg-header">
+                <button id="xgBackBtn" class="back-btn">← Назад</button>
+                <h2>XG Водителя</h2>
+            </div>
+            <div class="xg-stats">
+                <div class="xg-stat-row"><span>Смена</span><strong id="xgShiftType">-</strong></div>
+                <div class="xg-stat-row"><span>Осталось времени</span><strong id="xgTimeLeft">--:--</strong></div>
+                <div class="xg-stat-row"><span>Слито литров</span><strong id="xgLiters">0 л</strong></div>
+                <div class="xg-stat-row"><span>Машин заправлено</span><strong id="xgCars">0</strong></div>
+                <div class="xg-stat-row"><span>Темп</span><strong id="xgPace">0 л/ч</strong></div>
+                <div class="xg-stat-row"><span>Текущий коэф.</span><strong id="xgCurrentRate">- ₽/л</strong></div>
+                <div class="xg-stat-row"><span>След. уровень</span><strong id="xgNextLevel">-</strong></div>
+                <div class="xg-stat-row"><span>Осталось до повышения</span><strong id="xgToNext">-</strong></div>
+                <div class="xg-stat-row"><span>Прогноз литров</span><strong id="xgForecast">0 л</strong></div>
+            </div>
+            <div class="xg-progress-section">
+                <div class="xg-progress-bar">
+                    <div class="xg-progress-fill" id="xgProgressFill"></div>
+                </div>
+                <div class="xg-progress-text" id="xgProgressText">0%</div>
+                <div class="xg-progress-target">Цель: <span id="xgTarget">-</span></div>
+            </div>
+            <div class="xg-rates-table" id="xgRatesTable">
+                <!-- динамически -->
             </div>
         </div>
     </div>

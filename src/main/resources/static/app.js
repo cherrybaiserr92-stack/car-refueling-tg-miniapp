@@ -6,8 +6,11 @@ tg.expand();
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const accountView = document.getElementById('accountView');
+const xgView = document.getElementById('xgView');
 const bottomPanel = document.getElementById('bottomPanel');
 let loggedIn = false;
+let previousViewId = 'accountView';
+let shiftStart = null;
 
 function tryAutoLogin() {
     const stored = localStorage.getItem('refuel_loggedIn');
@@ -21,6 +24,16 @@ function tryAutoLogin() {
         document.querySelector('.seg-btn[data-view="accountView"]').classList.add('active');
         if (!map) initMap();
         loadRequests();
+        // Инициализация начала смены
+        const savedShift = localStorage.getItem('shiftStart');
+        if (savedShift) {
+            shiftStart = parseInt(savedShift);
+        } else {
+            shiftStart = Date.now();
+            localStorage.setItem('shiftStart', shiftStart);
+        }
+        updateXgStats();
+        setInterval(updateXgStats, 60000); // обновление каждую минуту
     } else {
         loginView.classList.add('active');
         mapView.classList.remove('active');
@@ -43,6 +56,15 @@ document.getElementById('loginBtn').addEventListener('click', () => {
         document.querySelector('.seg-btn[data-view="accountView"]').classList.add('active');
         if (!map) initMap();
         loadRequests();
+        const savedShift = localStorage.getItem('shiftStart');
+        if (savedShift) {
+            shiftStart = parseInt(savedShift);
+        } else {
+            shiftStart = Date.now();
+            localStorage.setItem('shiftStart', shiftStart);
+        }
+        updateXgStats();
+        setInterval(updateXgStats, 60000);
     } else {
         document.getElementById('loginError').classList.remove('hidden');
     }
@@ -51,10 +73,13 @@ document.getElementById('loginBtn').addEventListener('click', () => {
 // Завершение смены
 document.getElementById('menuLogout').addEventListener('click', () => {
     localStorage.removeItem('refuel_loggedIn');
+    localStorage.removeItem('shiftStart');
+    shiftStart = null;
     loggedIn = false;
     loginView.classList.add('active');
     mapView.classList.remove('active');
     accountView.classList.remove('active');
+    xgView.classList.remove('active');
     bottomPanel.style.display = 'none';
     if (map) {
         map.remove();
@@ -157,6 +182,19 @@ function switchView(viewId) {
     }
 }
 
+// Обработчик для перехода в XG
+document.getElementById('xgBlock').addEventListener('click', () => {
+    previousViewId = Array.from(views).find(v => v.classList.contains('active'))?.id || 'accountView';
+    views.forEach(v => v.classList.remove('active'));
+    xgView.classList.add('active');
+    updateXgStats();
+});
+document.getElementById('xgBackBtn').addEventListener('click', () => {
+    xgView.classList.remove('active');
+    document.getElementById(previousViewId).classList.add('active');
+    if (previousViewId === 'mapView' && map) map.invalidateSize();
+});
+
 segBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
         const viewId = btn.dataset.view;
@@ -250,10 +288,10 @@ function updateAccountStats() {
     updateTank('ai92');
     updateTank('dt');
     updateTank('ai95');
-    document.getElementById('carsRefueled').textContent = carsRefueled;
     document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
     const totalNeeded = allRequests.filter(r => r.status !== 'done').reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
     document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
+    updateXgStats(); // обновляем XG при каждом изменении
 }
 
 function updateTank(type) {
@@ -285,6 +323,112 @@ function updateTank(type) {
     }
     const textEl = document.getElementById(`text${type.charAt(0).toUpperCase() + type.slice(1)}`);
     if (textEl) textEl.textContent = fuel + ' л';
+}
+
+// XG Водителя
+const RATES_DAY = [
+    { max: 1199, rate: 2.90 },
+    { max: 1699, rate: 3.20 },
+    { max: 1999, rate: 3.70 },
+    { max: Infinity, rate: 4.00 }
+];
+const RATES_NIGHT = [
+    { max: 1699, rate: 2.70 },
+    { max: 2099, rate: 3.00 },
+    { max: 2599, rate: 3.30 },
+    { max: Infinity, rate: 3.50 }
+];
+
+function getShiftInfo() {
+    const now = new Date();
+    const hour = now.getHours();
+    let isDay = hour >= 7 && hour < 19;
+    let shiftEnd = new Date(now);
+    if (isDay) {
+        shiftEnd.setHours(19, 0, 0, 0);
+    } else {
+        shiftEnd.setHours(7, 0, 0, 0);
+        if (hour >= 19) shiftEnd.setDate(shiftEnd.getDate() + 1); // если уже после 19, то завтра 7 утра
+    }
+    const timeLeftMs = shiftEnd - now;
+    const hoursLeft = Math.max(0, timeLeftMs / 3600000);
+    return { isDay, shiftEnd, hoursLeft, timeLeftMs };
+}
+
+function getCurrentRateInfo(totalLiters, isDay) {
+    const rates = isDay ? RATES_DAY : RATES_NIGHT;
+    let currentRate = rates[0].rate;
+    let nextLevel = null;
+    for (let i = 0; i < rates.length; i++) {
+        if (totalLiters <= rates[i].max) {
+            currentRate = rates[i].rate;
+            if (i < rates.length - 1) {
+                nextLevel = {
+                    from: rates[i].max + 1,
+                    to: rates[i+1].max === Infinity ? '∞' : rates[i+1].max,
+                    rate: rates[i+1].rate,
+                    need: (rates[i].max + 1) - totalLiters
+                };
+            }
+            break;
+        }
+    }
+    return { currentRate, nextLevel };
+}
+
+function updateXgStats() {
+    if (!shiftStart) return;
+    const { isDay, hoursLeft, timeLeftMs } = getShiftInfo();
+    const totalLiters = litersDispensed;
+    const cars = carsRefueled;
+    const elapsedHours = Math.max(0.1, (Date.now() - shiftStart) / 3600000);
+    const pace = totalLiters / elapsedHours; // л/ч
+    const forecast = pace * hoursLeft;
+    const { currentRate, nextLevel } = getCurrentRateInfo(totalLiters, isDay);
+
+    document.getElementById('xgShiftType').textContent = isDay ? 'Дневная (07-19)' : 'Ночная (19-07)';
+    const h = Math.floor(hoursLeft);
+    const m = Math.floor((hoursLeft - h) * 60);
+    document.getElementById('xgTimeLeft').textContent = `${h} ч ${m} мин`;
+    document.getElementById('xgLiters').textContent = totalLiters + ' л';
+    document.getElementById('xgCars').textContent = cars;
+    document.getElementById('xgPace').textContent = pace.toFixed(1) + ' л/ч';
+    document.getElementById('xgCurrentRate').textContent = currentRate.toFixed(2) + ' ₽/л';
+    document.getElementById('xgForecast').textContent = forecast.toFixed(0) + ' л';
+
+    // Следующий уровень
+    if (nextLevel) {
+        document.getElementById('xgNextLevel').textContent = `${nextLevel.from}-${nextLevel.to} л (${nextLevel.rate} ₽/л)`;
+        document.getElementById('xgToNext').textContent = `${nextLevel.need} л`;
+    } else {
+        document.getElementById('xgNextLevel').textContent = 'Максимум';
+        document.getElementById('xgToNext').textContent = '-';
+    }
+
+    // Прогресс-бар: процент от верхней границы текущей ставки или от 2000/2600
+    const rates = isDay ? RATES_DAY : RATES_NIGHT;
+    const maxTarget = isDay ? 2000 : 2600;
+    const progress = Math.min(100, (totalLiters / maxTarget) * 100);
+    document.getElementById('xgProgressFill').style.width = progress + '%';
+    document.getElementById('xgProgressText').textContent = progress.toFixed(1) + '%';
+    document.getElementById('xgTarget').textContent = `${maxTarget} л (макс. ставка)`;
+
+    // Таблица ставок
+    const tableContainer = document.getElementById('xgRatesTable');
+    let html = '<table><tr><th>Объём, л</th><th>Ставка, ₽/л</th></tr>';
+    rates.forEach((r, i) => {
+        const range = r.max === Infinity ? `≥${rates[i-1].max+1}` : `0 – ${r.max}`;
+        const isCurrent = totalLiters <= r.max && (i === 0 || totalLiters > rates[i-1].max);
+        html += `<tr class="${isCurrent ? 'highlight' : ''}"><td>${range}</td><td>${r.rate.toFixed(2)}</td></tr>`;
+    });
+    html += '</table>';
+    tableContainer.innerHTML = html;
+
+    // Обновление значения в аккаунте
+    const xgValueEl = document.getElementById('xgValue');
+    if (xgValueEl) {
+        xgValueEl.textContent = progress.toFixed(0) + '%';
+    }
 }
 
 document.getElementById('refuelA92Btn').addEventListener('click', () => {
@@ -465,13 +609,13 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий (исправленная логика)
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
-let routeMode = 'route'; // 'route' = Построить маршрут, 'copy' = Скопировать координаты
+let routeMode = 'route';
 let swiped = false;
 
 const slider = document.createElement('div');
@@ -492,7 +636,6 @@ function updateRouteButton() {
     }
 }
 
-// Единые обработчики для кнопок (не переопределяются)
 acceptBtn.addEventListener('click', () => {
     if (!currentPopupRequest || !currentPopupMarker) return;
     startTask(currentPopupRequest, currentPopupMarker);
@@ -508,7 +651,6 @@ routeBtn.addEventListener('click', (e) => {
     }
     if (!currentPopupRequest) return;
     if (routeMode === 'route') {
-        // Построить маршрут в Яндекс.Картах
         if (userLocation) {
             const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${currentPopupRequest.lat},${currentPopupRequest.lng}`;
             window.open(url, '_blank');
@@ -516,7 +658,6 @@ routeBtn.addEventListener('click', (e) => {
             tg.showAlert('Местоположение не определено');
         }
     } else {
-        // Скопировать координаты
         const coords = `${currentPopupRequest.lat}, ${currentPopupRequest.lng}`;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
@@ -532,7 +673,6 @@ photoSearchBtn.addEventListener('click', () => {
     }
 });
 
-// Свайп для переключения режима кнопки маршрута
 let swipeStartX = 0;
 routeBtn.addEventListener('touchstart', (e) => {
     swiped = false;
@@ -638,13 +778,12 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Ускоренная загрузка фото
 function applyStampAndGetUrl(file, callback) {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = function() {
         const canvas = document.createElement('canvas');
-        const size = Math.min(img.width, img.height, 800); // ограничение размера
+        const size = Math.min(img.width, img.height, 800);
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
