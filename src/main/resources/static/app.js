@@ -88,7 +88,7 @@ const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 
-// Пульт Hardmode (по умолчанию выключен)
+// Пульт Hardmode
 const hardmodeOnBtn = document.getElementById('hardmodeOnBtn');
 const hardmodeOffBtn = document.getElementById('hardmodeOffBtn');
 let hardmode = false;
@@ -308,7 +308,7 @@ document.getElementById('customRefuelBtn').addEventListener('click', () => {
     input.value = '';
 });
 
-// Карусель (без анимации жидкости)
+// Карусель
 const carousel = document.getElementById('tankCarousel');
 let touchStartX = 0, touchEndX = 0;
 carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
@@ -418,19 +418,14 @@ function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     });
 }
 
-// ===== НОВЫЙ ПОПАП (БЕЗ КНОПОК) =====
+// ===== НОВЫЙ КОМПАКТНЫЙ ПОПАП (БЕЗ ИКОНОК И ФЛАГА) =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-dashboard';
 
-    // Строка с моделью и иконкой Rent
+    // Модель + Rent бейдж (если есть)
     const modelRow = document.createElement('div');
     modelRow.className = 'dash-model-row';
-    const carIcon = document.createElement('span');
-    carIcon.className = 'dash-model-icon';
-    carIcon.textContent = '🚗';
-    modelRow.appendChild(carIcon);
-
     const modelText = document.createElement('span');
     modelText.textContent = req.carModel;
     modelRow.appendChild(modelText);
@@ -442,17 +437,13 @@ function createPopupContent(req) {
         modelRow.appendChild(rentBadge);
     }
 
-    // Номерной знак на белом фоне
+    // Номерной знак на белом фоне (без флага)
     const plateDiv = document.createElement('div');
     plateDiv.className = 'dash-plate';
     const plateText = document.createElement('span');
     plateText.className = 'dash-plate-text';
     plateText.textContent = req.licensePlate;
-    const flagSpan = document.createElement('span');
-    flagSpan.className = 'dash-plate-flag';
-    flagSpan.textContent = '🇷🇺';
     plateDiv.appendChild(plateText);
-    plateDiv.appendChild(flagSpan);
 
     // Индикатор топлива
     const fuelSection = document.createElement('div');
@@ -476,7 +467,7 @@ function createPopupContent(req) {
 }
 // ===== КОНЕЦ ПОПАПА =====
 
-// Панель действий (откат к простому переключению свайпом)
+// Панель действий
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
