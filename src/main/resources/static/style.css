@@ -237,8 +237,25 @@ body {
 .action-buttons { display: flex; flex-direction: column; gap: 6px; }
 .action-btn { padding: 10px 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 13px; color: white; cursor: pointer; text-shadow: 0 0 4px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
 .accept-btn { background: var(--tg-accent); }
-.route-btn { background: rgba(0,0,0,0.55); }
+.route-btn {
+    background: rgba(0,0,0,0.55);
+    position: relative;
+    overflow: hidden;
+}
 .photo-search-btn { background: rgba(0,0,0,0.55); }
+
+/* Ползунок на кнопке координат */
+.route-slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+    pointer-events: none;
+}
 
 #workView { background: var(--tg-bg); display: none; align-items: center; justify-content: center; padding: 20px 20px 100px 20px; overflow-y: auto; }
 #workView.active { display: flex; }
@@ -351,10 +368,10 @@ body {
     margin-top: 3px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* сдвинуто левее */
+    padding-left: 4px;           /* немного отступа */
     gap: 4px;
 }
-/* Значок Rent */
 .long-rent-icon {
     display: inline-flex;
     align-items: center;
@@ -370,7 +387,7 @@ body {
     text-transform: uppercase;
 }
 .long-rent-icon::before {
-    content: 'Rent';   /* заменено на Rent */
+    content: 'Rent';
 }
 .popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
@@ -394,15 +411,16 @@ body {
 .plate-flag { font-size: 9px; margin-left: 1px; }
 
 .popup-fuel-indicator {
-    width: 32px;
-    height: 32px;
+    width: 28px;                /* уменьшено на 4px (1мм) */
+    height: 28px;               /* уменьшено на 4px */
     background: rgba(0,0,0,0.3);
-    border-radius: 6px;
+    border-radius: 5px;
     overflow: hidden;
     position: relative;
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
     margin-top: -4px;
+    margin-left: -3mm;          /* сдвинут влево на 3 мм */
 }
 .popup-fuel-fill-mini {
     position: absolute;
@@ -412,7 +430,7 @@ body {
     background: var(--fuel-color, #34c759);
     transition: height 0.5s ease;
     z-index: 0;
-    border-radius: 0 0 5px 5px;
+    border-radius: 0 0 4px 4px;
 }
 .popup-fuel-bubbles-mini { position: absolute; bottom: 0; left: 0; width: 100%; pointer-events: none; z-index: 1; }
 .popup-fuel-bubble-mini { position: absolute; background: rgba(255,255,255,0.8); border-radius: 50%; animation: bubbleMini 2s infinite ease-in-out; }
@@ -420,12 +438,12 @@ body {
 .popup-fuel-bubble-mini:nth-child(2) { width: 1.5px; height: 1.5px; left: 60%; bottom: 40%; animation-delay: 0.5s; }
 .popup-fuel-bubble-mini:nth-child(3) { width: 2px; height: 2px; left: 45%; bottom: 60%; animation-delay: 1s; }
 @keyframes bubbleMini { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 50% { transform: translateY(-4px) scale(1.2); opacity: 1; } 100% { transform: translateY(-8px) scale(0.9); opacity: 0; } }
-.popup-fuel-percent-mini { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; font-weight: 800; color: white; text-shadow: 0 1px 2px black; z-index: 2; }
+.popup-fuel-percent-mini { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 7px; font-weight: 800; color: white; text-shadow: 0 1px 2px black; z-index: 2; }
 
 /* Подсказка свайпа */
 .swipe-tooltip {
     position: fixed;
-    bottom: calc(var(--panel-height) + 80px); /* над кнопкой координат */
+    bottom: calc(var(--panel-height) + 80px);
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0,0,0,0.8);

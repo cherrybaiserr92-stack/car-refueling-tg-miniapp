@@ -2,7 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// --- Авторизация (возвращена) ---
+// --- Авторизация ---
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const accountView = document.getElementById('accountView');
@@ -444,49 +444,79 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с свайпом
+// Панель действий с визуальной шторкой
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 const swipeTooltip = document.getElementById('swipeTooltip');
 
-let routeMode = 'route';
-let swipeStartX = 0;
+let routeMode = 'route'; // 'route' или 'copy'
 
-function updateRouteButton() {
+// Создаём ползунок внутри кнопки
+const slider = document.createElement('div');
+slider.className = 'route-slider';
+routeBtn.appendChild(slider);
+
+function updateRouteButton(animate = false) {
     if (routeMode === 'route') {
-        routeBtn.textContent = 'Построить маршрут';
+        slider.style.transform = 'translateX(0)';
+        if (!animate) routeBtn.textContent = 'Построить маршрут';
     } else {
-        routeBtn.textContent = 'Скопировать координаты';
+        slider.style.transform = 'translateX(calc(100% + 8px))';
+        if (!animate) routeBtn.textContent = 'Скопировать координаты';
     }
-}
-
-function showSwipeTooltip(text) {
-    swipeTooltip.textContent = text;
-    swipeTooltip.classList.remove('hidden');
-    clearTimeout(swipeTooltip._timeout);
-    swipeTooltip._timeout = setTimeout(() => {
-        swipeTooltip.classList.add('hidden');
-    }, 1000);
 }
 
 routeBtn.addEventListener('touchstart', (e) => {
     swipeStartX = e.changedTouches[0].screenX;
+    // показываем подсказку
+    swipeTooltip.classList.remove('hidden');
+    clearTimeout(swipeTooltip._timeout);
 }, { passive: true });
+
+routeBtn.addEventListener('touchmove', (e) => {
+    const diff = e.changedTouches[0].screenX - swipeStartX;
+    const maxOffset = routeBtn.offsetWidth * 0.4;
+    let offset = Math.max(-maxOffset, Math.min(maxOffset, diff));
+    if (offset > 0) {
+        // тянем вправо – показываем режим "Скопировать"
+        slider.style.transform = `translateX(${Math.min(offset, routeBtn.offsetWidth - slider.offsetWidth)}px)`;
+        if (offset > maxOffset * 0.8) {
+            routeBtn.textContent = 'Скопировать координаты';
+        } else {
+            routeBtn.textContent = 'Построить маршрут';
+        }
+    } else {
+        // тянем влево – остаёмся в "Построить маршрут"
+        slider.style.transform = 'translateX(0)';
+        routeBtn.textContent = 'Построить маршрут';
+    }
+});
 
 routeBtn.addEventListener('touchend', (e) => {
     const diff = e.changedTouches[0].screenX - swipeStartX;
-    if (Math.abs(diff) > 30) {
-        if (diff > 0) {
-            routeMode = 'copy';
-        } else {
-            routeMode = 'route';
-        }
-        updateRouteButton();
-        showSwipeTooltip(routeMode === 'route' ? 'Построить маршрут' : 'Скопировать координаты');
+    const threshold = routeBtn.offsetWidth * 0.3;
+    if (diff > threshold) {
+        routeMode = 'copy';
+    } else {
+        routeMode = 'route';
     }
+    updateRouteButton(true);
+    // прячем подсказку через 1 сек
+    swipeTooltip._timeout = setTimeout(() => {
+        swipeTooltip.classList.add('hidden');
+    }, 1000);
+    if (routeMode === 'route') {
+        swipeTooltip.textContent = 'Построить маршрут';
+    } else {
+        swipeTooltip.textContent = 'Скопировать координаты';
+    }
+    swipeTooltip.classList.remove('hidden');
 });
+
+// Инициализация
+updateRouteButton();
 
 function showActionPanel(req, marker) {
     if (currentTaskRequest) { acceptBtn.style.display = 'none'; }
@@ -638,7 +668,6 @@ function applyStampAndGetUrl(file, callback) {
 function setupPhotoButton(btn, input, fileHolder) {
     btn.addEventListener('click', () => {
         if (fileHolder.current) {
-            // Открыть фото с штампом (dataUrl)
             const win = window.open();
             win.document.write(`<img src="${fileHolder.current}" style="max-width:100%;">`);
         } else {
@@ -652,7 +681,6 @@ function setupPhotoButton(btn, input, fileHolder) {
             fileHolder.current = file;
 
             applyStampAndGetUrl(file, (dataUrl) => {
-                // Обновляем кнопку: показываем фото со штампом
                 const img = document.createElement('img');
                 img.src = dataUrl;
                 btn.innerHTML = '';
