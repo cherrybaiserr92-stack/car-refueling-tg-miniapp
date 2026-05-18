@@ -88,10 +88,14 @@ const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 
-// Пульт Hardmode
+// Пульт Hardmode (по умолчанию выключен)
 const hardmodeOnBtn = document.getElementById('hardmodeOnBtn');
 const hardmodeOffBtn = document.getElementById('hardmodeOffBtn');
-let hardmode = false;
+let hardmode = false; // выключен
+
+// Устанавливаем класс active на off
+hardmodeOnBtn.classList.remove('active');
+hardmodeOffBtn.classList.add('active');
 
 hardmodeOnBtn.addEventListener('click', () => {
     if (hardmode) return;
@@ -465,13 +469,14 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с фиксированной шириной и переключением
+// Панель действий с разделением свайпа и клика
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
-let routeMode = 'route'; // 'route' — ползунок слева (копирует), 'copy' — ползунок справа (строит маршрут)
+let routeMode = 'route'; // 'route' — ползунок слева (копирование), 'copy' — справа (Яндекс)
+let swiped = false; // флаг свайпа
 
 const slider = document.createElement('div');
 slider.className = 'route-slider';
@@ -482,20 +487,24 @@ function updateRouteButton() {
         slider.style.transform = 'translateX(0)';
         routeBtn.textContent = 'Построить маршрут';
         routeBtn.classList.add('route-yandex');
+        routeBtn.classList.remove('route-copy');
     } else {
         slider.style.transform = 'translateX(100%)';
         routeBtn.textContent = 'Скопировать координаты';
         routeBtn.classList.remove('route-yandex');
+        routeBtn.classList.add('route-copy');
     }
 }
 
 let swipeStartX = 0;
 routeBtn.addEventListener('touchstart', (e) => {
+    swiped = false;
     swipeStartX = e.changedTouches[0].screenX;
 }, { passive: true });
 
 routeBtn.addEventListener('touchmove', (e) => {
     const diff = e.changedTouches[0].screenX - swipeStartX;
+    if (Math.abs(diff) > 5) swiped = true; // начался свайп
     const maxOffset = routeBtn.offsetWidth * 0.5;
     let offset = Math.max(0, Math.min(maxOffset, diff));
     slider.style.transform = `translateX(${offset}px)`;
@@ -513,6 +522,17 @@ routeBtn.addEventListener('touchend', (e) => {
 });
 
 updateRouteButton();
+
+// Обработчик клика (после свайпа не сработает)
+routeBtn.addEventListener('click', (e) => {
+    if (swiped) {
+        e.preventDefault();
+        e.stopPropagation();
+        swiped = false;
+        return;
+    }
+    // Действие при нажатии уже назначено в showActionPanel
+});
 
 function showActionPanel(req, marker) {
     if (currentTaskRequest) { acceptBtn.style.display = 'none'; }

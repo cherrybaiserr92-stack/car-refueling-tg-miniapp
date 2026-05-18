@@ -188,25 +188,35 @@ body {
 }
 .hardmode-remote {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
+}
+.remote-shell {
+    display: flex;
+    gap: 2px;
+    background: rgba(255,255,255,0.08);
+    padding: 4px;
+    border-radius: 14px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
 }
 .hardmode-label {
-    font-size: 12px;
+    font-size: 9px;
     font-weight: 600;
-    color: var(--tg-text);
+    color: var(--tg-hint);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-left: 8px;
+    letter-spacing: 0.5px;
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px;
+    border-radius: 8px;
 }
 .remote-btn {
     border: none;
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06);
     color: var(--tg-hint);
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
@@ -218,8 +228,8 @@ body {
     outline: none;
 }
 .remote-btn:active { transform: scale(0.94); }
-.remote-btn.active.on-btn { background: #34c759; color: white; box-shadow: 0 0 12px rgba(52,199,89,0.4); }
-.remote-btn.active.off-btn { background: #ff3b30; color: white; box-shadow: 0 0 12px rgba(255,59,48,0.4); }
+.remote-btn.active.on-btn { background: #34c759; color: white; box-shadow: 0 0 8px rgba(52,199,89,0.4); }
+.remote-btn.active.off-btn { background: #ff3b30; color: white; box-shadow: 0 0 8px rgba(255,59,48,0.4); }
 
 .settings-wrapper { position: relative; }
 .settings-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: 0.2s; outline: none; }
@@ -283,6 +293,7 @@ body {
 .accept-btn { background: var(--tg-accent); }
 .route-btn { overflow: hidden; }
 .route-btn.route-yandex { background: #FFCC00; color: black; text-shadow: none; }
+.route-btn.route-copy { background: rgba(20,20,22,0.85); } /* темнее для копирования */
 .photo-search-btn { background: rgba(0,0,0,0.55); }
 
 .route-slider {
@@ -390,7 +401,7 @@ body {
 .timer-fill { height: 100%; width: 100%; background: #34c759; border-radius: 5px; transition: width 1s linear; }
 .timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-/* Попап */
+/* Попап с вертикальным индикатором топлива */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
@@ -400,7 +411,7 @@ body {
     backdrop-filter: blur(15px);
     border: 2px solid white;
     border-radius: 8px;
-    padding: 2px 4px 2px 0;          /* слева 0 вместо 1px, уменьшено на 1мм */
+    padding: 1px 4px 2px 0;       /* сверху уменьшено на 1.5мм */
     color: white;
     display: flex;
     flex-direction: column;
@@ -414,7 +425,8 @@ body {
     font-size: 10px;
     text-align: center;
     opacity: 0.9;
-    margin: 1px 0;
+    margin-top: 3px;               /* сдвинуто вниз на 1мм (было 1px, стало 3px) */
+    margin-bottom: 1px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -434,6 +446,7 @@ body {
     font-weight: 800;
     color: #00ff00;
     text-transform: uppercase;
+    margin-top: 2px;               /* сдвинут вниз на 0.5мм */
 }
 .long-rent-icon::before { content: 'Rent'; }
 .popup-main-row { display: flex; align-items: center; gap: 4px; }
@@ -457,9 +470,10 @@ body {
 }
 .plate-flag { font-size: 8px; margin-left: 1px; }
 
+/* Индикатор топлива как вертикальная батарейка */
 .popup-fuel-indicator {
-    width: 24px;
-    height: 23px;                      /* увеличено снизу на 0.2мм (~1px) */
+    width: 12px;
+    height: 28px;                  /* вертикальный */
     background: rgba(0,0,0,0.3);
     border-radius: 4px;
     overflow: hidden;
@@ -467,7 +481,7 @@ body {
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
     margin-top: -2px;
-    margin-left: -2.1mm;               /* сдвинут вправо на 0.4мм относительно предыдущего (-2.5mm -> -2.1mm) */
+    margin-left: -2.1mm;
 }
 .popup-fuel-fill-mini {
     position: absolute;
