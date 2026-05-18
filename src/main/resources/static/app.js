@@ -88,6 +88,28 @@ const views = document.querySelectorAll('.view');
 const workBtn = document.getElementById('workBtn');
 const taskLocationBtn = document.getElementById('taskLocationBtn');
 
+// Пульт Hardmode
+const hardmodeOnBtn = document.getElementById('hardmodeOnBtn');
+const hardmodeOffBtn = document.getElementById('hardmodeOffBtn');
+let hardmode = false;
+
+hardmodeOnBtn.addEventListener('click', () => {
+    if (hardmode) return;
+    hardmode = true;
+    hardmodeOnBtn.classList.add('active');
+    hardmodeOffBtn.classList.remove('active');
+    // Здесь можно добавить логику Hardmode в будущем
+    tg.showAlert('Hardmode включён');
+});
+
+hardmodeOffBtn.addEventListener('click', () => {
+    if (!hardmode) return;
+    hardmode = false;
+    hardmodeOffBtn.classList.add('active');
+    hardmodeOnBtn.classList.remove('active');
+    tg.showAlert('Hardmode выключен');
+});
+
 // Режим сложного маршрута
 let routeBuilderMode = false;
 let routeBuilderPoints = [];
@@ -444,7 +466,7 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с переключением режима (Яндекс-цвет)
+// Панель действий с переключением (Яндекс-цвет + текст)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -459,9 +481,11 @@ routeBtn.appendChild(slider);
 function updateRouteButton() {
     if (routeMode === 'route') {
         slider.style.transform = 'translateX(0)';
+        routeBtn.textContent = 'Построить маршрут';
         routeBtn.classList.add('route-yandex');
     } else {
         slider.style.transform = 'translateX(100%)';
+        routeBtn.textContent = 'Скопировать координаты';
         routeBtn.classList.remove('route-yandex');
     }
 }
@@ -580,7 +604,7 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Штамп: ещё больше (2000x300)
+// Штамп: ещё крупнее и без фона (прозрачный текст с тенью)
 function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -611,25 +635,24 @@ function applyStampAndGetUrl(file, callback) {
                 drawAndFinalize();
             }
             function drawAndFinalize() {
-                const stampWidth = 2000;
-                const stampHeight = 300;
-                const x = size - stampWidth - 10;
+                const stampWidth = size * 0.95;
+                const stampHeight = size * 0.15;
+                const x = (size - stampWidth) / 2;
                 const y = size - stampHeight - 10;
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(x, y, stampWidth, stampHeight);
+                
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 8;
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 56px sans-serif';
-                ctx.textAlign = 'right';
+                ctx.font = `bold ${size * 0.04}px sans-serif`;
+                ctx.textAlign = 'center';
                 const lines = [
-                    `${driverName}`,
-                    `${truck}`,
-                    `${geoText} | Заявка №${taskIdVal}`,
-                    `${taskModel} · ${taskPlateVal}`,
-                    `${timestamp}`
+                    `${driverName}  |  ${truck}`,
+                    `${geoText}  |  Заявка №${taskIdVal}`,
+                    `${taskModel} · ${taskPlateVal}  |  ${timestamp}`
                 ];
-                const lineHeight = 56;
+                const lineHeight = size * 0.045;
                 lines.forEach((line, idx) => {
-                    ctx.fillText(line, size-30, y + 50 + idx * lineHeight);
+                    ctx.fillText(line, size/2, y + 30 + idx * lineHeight);
                 });
                 
                 const dataUrl = canvas.toDataURL('image/jpeg');

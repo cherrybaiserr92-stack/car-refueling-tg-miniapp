@@ -33,28 +33,28 @@
     <!-- Аккаунт -->
     <div id="accountView" class="view">
         <div class="account-container">
-            <!-- Переключатель Hardmode слева, шестерёнка справа -->
+            <!-- Верхний ряд: пульт Hardmode + шестерёнка -->
             <div class="top-controls">
-                <div class="hardmode-toggle">
-                    <label class="switch">
-                        <input type="checkbox" id="hardmodeCheckbox">
-                        <span class="slider round"></span>
-                    </label>
+                <div class="hardmode-remote">
+                    <button id="hardmodeOnBtn" class="remote-btn on-btn active">ON</button>
+                    <button id="hardmodeOffBtn" class="remote-btn off-btn">OFF</button>
                     <span class="hardmode-label">Hardmode</span>
                 </div>
-                <button id="settingsBtn" class="settings-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                </button>
-                <div id="settingsMenu" class="settings-menu hidden">
-                    <div class="menu-item" id="menuDriver">👤 Иван Петров</div>
-                    <div class="menu-item" id="menuTruck">🚛 БелАЗ А123ВС 178</div>
-                    <div class="menu-item" id="menuSupport">📞 Поддержка</div>
-                    <div class="menu-item" id="menuInstructions">📖 Инструкции</div>
-                    <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
-                    <div class="menu-item menu-logout" id="menuLogout">🚪 Завершить смену</div>
+                <div class="settings-wrapper">
+                    <button id="settingsBtn" class="settings-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                        </svg>
+                    </button>
+                    <div id="settingsMenu" class="settings-menu hidden">
+                        <div class="menu-item" id="menuDriver">👤 Иван Петров</div>
+                        <div class="menu-item" id="menuTruck">🚛 БелАЗ А123ВС 178</div>
+                        <div class="menu-item" id="menuSupport">📞 Поддержка</div>
+                        <div class="menu-item" id="menuInstructions">📖 Инструкции</div>
+                        <div class="menu-item menu-sos" id="menuSOS">🆘 SOS</div>
+                        <div class="menu-item menu-logout" id="menuLogout">🚪 Завершить смену</div>
+                    </div>
                 </div>
             </div>
             <div class="tank-carousel" id="tankCarousel">

@@ -179,57 +179,49 @@ body {
 #accountView.active { display: flex; }
 .account-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; position: relative; }
 
-/* Верхний ряд: тогл Hardmode + шестерёнка */
+/* Верхний ряд: пульт Hardmode + шестерёнка */
 .top-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
 }
-.hardmode-toggle {
+.hardmode-remote {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 }
 .hardmode-label {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--tg-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
-/* Современный переключатель */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-}
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-    position: absolute;
+.remote-btn {
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: var(--tg-hint);
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(255,255,255,0.2);
-    transition: .3s;
-    border-radius: 24px;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
 }
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
-input:checked + .slider { background-color: var(--tg-accent); }
-input:checked + .slider:before { transform: translateX(20px); }
+.remote-btn.active.on-btn { background: #34c759; color: white; box-shadow: 0 0 12px rgba(52,199,89,0.4); }
+.remote-btn.active.off-btn { background: #ff3b30; color: white; box-shadow: 0 0 12px rgba(255,59,48,0.4); }
 
-.settings-wrapper { } /* теперь управляется через top-controls */
+.settings-wrapper { position: relative; }
 .settings-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: 0.2s; }
 .settings-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
-.settings-menu { position: absolute; top: 44px; right: 8px; background: rgba(30,30,32,0.9); backdrop-filter: blur(20px); border-radius: 14px; padding: 8px 0; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: flex; flex-direction: column; z-index: 20; transition: opacity 0.2s, transform 0.2s; opacity: 1; transform: translateY(0); }
+.settings-menu { position: absolute; top: 44px; right: 0; background: rgba(30,30,32,0.9); backdrop-filter: blur(20px); border-radius: 14px; padding: 8px 0; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: flex; flex-direction: column; z-index: 20; transition: opacity 0.2s, transform 0.2s; opacity: 1; transform: translateY(0); }
 .settings-menu.hidden { opacity: 0; transform: translateY(-10px); pointer-events: none; }
 .menu-item { padding: 12px 16px; font-size: 14px; color: white; cursor: pointer; transition: background 0.2s; }
 .menu-item:active { background: rgba(255,255,255,0.1); }
@@ -384,7 +376,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 .timer-fill { height: 100%; width: 100%; background: #34c759; border-radius: 5px; transition: width 1s linear; }
 .timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-/* Попап – компактный, элементы плотно */
+/* Попап */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
@@ -394,11 +386,11 @@ input:checked + .slider:before { transform: translateX(20px); }
     backdrop-filter: blur(15px);
     border: 2px solid white;
     border-radius: 8px;
-    padding: 2px 4px;          /* плотнее */
+    padding: 2px 4px;
     color: white;
     display: flex;
     flex-direction: column;
-    gap: 1px;                  /* минимальные отступы */
+    gap: 1px;
     min-width: 100px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
@@ -412,7 +404,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding-left: 4px;
+    padding-left: 6px;               /* сдвинуто вправо на 2мм */
     gap: 3px;
 }
 .long-rent-icon {
@@ -452,16 +444,16 @@ input:checked + .slider:before { transform: translateX(20px); }
 .plate-flag { font-size: 8px; margin-left: 1px; }
 
 .popup-fuel-indicator {
-    width: 24px;               /* уменьшено */
-    height: 22px;              /* уменьшено сверху */
+    width: 24px;
+    height: 22px;
     background: rgba(0,0,0,0.3);
     border-radius: 4px;
     overflow: hidden;
     position: relative;
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
-    margin-top: -2px;          /* опущен на 0.5 мм */
-    margin-left: 1.5mm;        /* сдвинут вправо */
+    margin-top: -2px;
+    margin-left: -2.5mm;             /* сдвинут влево на 2,5мм */
 }
 .popup-fuel-fill-mini {
     position: absolute;
