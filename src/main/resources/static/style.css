@@ -281,11 +281,9 @@ body {
 .refuel-custom .refuel-btn { flex: 0 0 auto; padding: 10px 16px; }
 
 /* Кнопки заправки в стиле киберпанк */
-.refuel-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-}
+.refuel-buttons { display: flex; gap: 10px; }
+.refuel-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; background: var(--tg-accent); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); outline: none; }
+.refuel-btn:active { opacity: 0.8; }
 .refuel-btn {
     flex: 1;
     padding: 12px;
