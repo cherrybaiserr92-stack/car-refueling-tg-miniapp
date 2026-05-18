@@ -444,7 +444,7 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с ползунком
+// Панель действий с переключением режима (Яндекс-цвет)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -452,7 +452,6 @@ const photoSearchBtn = document.getElementById('photoSearchBtn');
 
 let routeMode = 'route';
 
-// Создаём ползунок внутри кнопки
 const slider = document.createElement('div');
 slider.className = 'route-slider';
 routeBtn.appendChild(slider);
@@ -460,8 +459,10 @@ routeBtn.appendChild(slider);
 function updateRouteButton() {
     if (routeMode === 'route') {
         slider.style.transform = 'translateX(0)';
+        routeBtn.classList.add('route-yandex');
     } else {
         slider.style.transform = 'translateX(100%)';
+        routeBtn.classList.remove('route-yandex');
     }
 }
 
@@ -579,7 +580,7 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Штамп: увеличен в 1,5 раза (1500x225)
+// Штамп: ещё больше (2000x300)
 function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -610,14 +611,14 @@ function applyStampAndGetUrl(file, callback) {
                 drawAndFinalize();
             }
             function drawAndFinalize() {
-                const stampWidth = 1500;   // увеличено
-                const stampHeight = 225;
+                const stampWidth = 2000;
+                const stampHeight = 300;
                 const x = size - stampWidth - 10;
                 const y = size - stampHeight - 10;
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillRect(x, y, stampWidth, stampHeight);
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 44px sans-serif';  // крупнее
+                ctx.font = 'bold 56px sans-serif';
                 ctx.textAlign = 'right';
                 const lines = [
                     `${driverName}`,
@@ -626,9 +627,9 @@ function applyStampAndGetUrl(file, callback) {
                     `${taskModel} · ${taskPlateVal}`,
                     `${timestamp}`
                 ];
-                const lineHeight = 44;
+                const lineHeight = 56;
                 lines.forEach((line, idx) => {
-                    ctx.fillText(line, size-30, y + 40 + idx * lineHeight);
+                    ctx.fillText(line, size-30, y + 50 + idx * lineHeight);
                 });
                 
                 const dataUrl = canvas.toDataURL('image/jpeg');
@@ -650,7 +651,6 @@ function applyStampAndGetUrl(file, callback) {
     reader.readAsDataURL(file);
 }
 
-// Современная иконка пересъёмки
 const retakeSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 
 function setupPhotoButton(btn, input, fileHolder) {
