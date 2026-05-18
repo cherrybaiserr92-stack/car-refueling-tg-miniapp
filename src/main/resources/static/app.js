@@ -418,7 +418,7 @@ function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     });
 }
 
-// ===== НОВЫЙ КОМПАКТНЫЙ ПОПАП (БЕЗ ИКОНОК И ФЛАГА) =====
+// ===== НОВЫЙ КОМПАКТНЫЙ ПОПАП (140px, без иконок) =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-dashboard';
@@ -473,7 +473,7 @@ const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
-let routeMode = 'route'; // 'route' = Копировать, 'copy' = В Яндекс
+let routeMode = 'route'; // 'route' = Построить маршрут, 'copy' = Скопировать координаты
 let swiped = false;
 
 const slider = document.createElement('div');
@@ -536,15 +536,20 @@ function showActionPanel(req, marker) {
     updateRouteButton();
     routeBtn.onclick = () => {
         if (routeMode === 'route') {
-            const coords = `${req.lat}, ${req.lng}`;
-            if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-            else tg.showAlert(`Координаты: ${coords}`);
-        } else {
+            // Построить маршрут в Яндекс.Картах
             if (userLocation) {
                 const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${req.lat},${req.lng}`;
                 window.open(url, '_blank');
             } else {
                 tg.showAlert('Местоположение не определено');
+            }
+        } else {
+            // Скопировать координаты
+            const coords = `${req.lat}, ${req.lng}`;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+            } else {
+                tg.showAlert(`Координаты: ${coords}`);
             }
         }
     };
