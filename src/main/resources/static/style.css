@@ -174,12 +174,11 @@ body {
 }
 .panorama-btn:active { transform: scale(0.92) translateY(calc(-50% + 112px)); background: rgba(60,60,64,0.8); }
 
-/* Аккаунт – компактный */
+/* Аккаунт */
 #accountView { background: var(--tg-bg); overflow-y: auto; padding: 12px 20px; display: none; align-items: flex-start; justify-content: center; }
 #accountView.active { display: flex; }
 .account-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; position: relative; }
 
-/* Верхний ряд */
 .top-controls {
     display: flex;
     align-items: center;
@@ -241,7 +240,7 @@ body {
 .menu-sos { color: #ff3b30; font-weight: 700; }
 .menu-logout { color: #ff3b30; }
 
-/* Карусель канистр с анимацией жидкости */
+/* Карусель канистр (без анимации) */
 .tank-carousel { position: relative; width: 100%; height: 160px; overflow: hidden; touch-action: pan-x; margin-top: 16px; }
 .tank-panel { position: absolute; top: 0; left: 50%; transform: translateX(-50%) scale(1); transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1), opacity 0.35s; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: auto; }
 .tank-center { z-index: 2; transform: translateX(-50%) scale(1); opacity: 1; }
@@ -261,22 +260,6 @@ body {
     transition: height 0.5s ease;
     z-index: 0;
     border-radius: 0 0 10px 10px;
-}
-/* Анимация покачивания жидкости */
-.fuel-tank-fill::after {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: -10%;
-    width: 120%;
-    height: 8px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    animation: liquidSwing 2s infinite ease-in-out;
-}
-@keyframes liquidSwing {
-    0%, 100% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
 }
 .fuel-tank-bubbles { position: absolute; bottom: 0; left: 0; width: 100%; pointer-events: none; z-index: 1; }
 .fuel-tank-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 800; color: white; text-shadow: 0 2px 4px black; z-index: 2; }
@@ -316,34 +299,19 @@ body {
 .action-btn { width: 200px; padding: 10px 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 13px; color: white; cursor: pointer; text-shadow: 0 0 4px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; outline: none; transition: background 0.2s, transform 0.1s; }
 .action-btn:active { transform: scale(0.97); }
 .accept-btn { background: var(--tg-accent); }
-.route-btn {
-    background: rgba(0,0,0,0.55);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
+.route-btn { background: rgba(0,0,0,0.55); overflow: hidden; }
 .route-btn.route-yandex { background: #FFCC00; color: black; text-shadow: none; }
 .route-btn.route-copy { background: rgba(20,20,22,0.85); }
-.route-label {
-    position: relative;
-    z-index: 2;
-    font-size: 12px;
-    pointer-events: none;
-}
-.route-label-right { margin-left: auto; }
 .route-slider {
     position: absolute;
     top: 4px;
     left: 4px;
     height: calc(100% - 8px);
-    width: calc(50% - 4px);
+    width: 50%;
     background: rgba(255,255,255,0.3);
     border-radius: 8px;
     transition: transform 0.2s ease;
     pointer-events: none;
-    z-index: 1;
 }
 .photo-search-btn { background: rgba(0,0,0,0.55); }
 
@@ -440,97 +408,109 @@ body {
 .timer-fill { height: 100%; width: 100%; background: #34c759; border-radius: 5px; transition: width 1s linear; }
 .timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-/* Попап с горизонтальным индикатором */
+/* ===== НОВЫЙ ПОПАП (технологичный стеклянный) ===== */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
 
 .popup-plate-card {
-    background: rgba(20,20,22,0.5);
-    backdrop-filter: blur(15px);
-    border: 2px solid white;
-    border-radius: 8px;
-    padding: 2px 4px 0;
+    background: rgba(20,20,22,0.35);
+    backdrop-filter: blur(25px) saturate(150%);
+    -webkit-backdrop-filter: blur(25px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
+    border-radius: 12px;
+    padding: 4px 6px;
     color: white;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    min-width: 100px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    gap: 3px;
+    min-width: 110px;
     position: relative;
+    overflow: hidden;
 }
+/* Декоративная линия сверху */
+.popup-plate-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
 .popup-model-line {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 10px;
     text-align: center;
     opacity: 0.9;
-    margin: 1px 0;
+    margin: 2px 0 0;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding-left: 6px;
-    gap: 3px;
+    justify-content: center;
+    gap: 4px;
 }
 .long-rent-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 12px;
-    border-radius: 6px;
+    width: 22px;
+    height: 14px;
+    border-radius: 7px;
     background: #b366ff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-    font-size: 7px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    font-size: 8px;
     font-weight: 800;
     color: #00ff00;
     text-transform: uppercase;
-    margin-top: 2px;
 }
 .long-rent-icon::before { content: 'Rent'; }
-.popup-main-row { display: flex; align-items: center; gap: 4px; }
+
+.popup-main-row { display: flex; align-items: center; gap: 6px; }
+
 .popup-license-plate {
-    background: transparent;
-    color: white;
-    font-weight: 800;
-    font-size: 12px;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    border-radius: 5px;
+    padding: 2px 6px;
+    font-weight: 700;
+    font-size: 13px;
     letter-spacing: 0.5px;
-    padding: 1px 4px;
-    border: none;
-    box-shadow: none;
-    border-radius: 0;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     flex: 1;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     white-space: nowrap;
 }
-.plate-flag { font-size: 8px; margin-left: 1px; }
+.plate-flag { font-size: 10px; margin-left: 2px; }
 
-/* Горизонтальный индикатор топлива */
+/* Горизонтальная полоса топлива */
 .popup-fuel-indicator {
     width: 100%;
-    height: 8px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 4px;
+    height: 6px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 3px;
     overflow: hidden;
     position: relative;
-    border: 1px solid rgba(255,255,255,0.3);
     margin-top: 2px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
 }
 .popup-fuel-fill-mini {
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     height: 100%;
     background: var(--fuel-color, #34c759);
     transition: width 0.5s ease;
-    z-index: 0;
-    border-radius: 4px;
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
 }
-.popup-fuel-bubbles-mini { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
-.popup-fuel-bubble-mini { position: absolute; background: rgba(255,255,255,0.8); border-radius: 50%; animation: bubbleMiniHoriz 2s infinite ease-in-out; bottom: 2px; }
+.popup-fuel-bubbles-mini { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
+.popup-fuel-bubble-mini { position: absolute; background: rgba(255,255,255,0.9); border-radius: 50%; animation: bubbleMiniHoriz 2s infinite ease-in-out; bottom: 1px; }
 .popup-fuel-bubble-mini:nth-child(1) { width: 3px; height: 3px; left: 20%; animation-delay: 0s; }
 .popup-fuel-bubble-mini:nth-child(2) { width: 2px; height: 2px; left: 50%; animation-delay: 0.5s; }
 .popup-fuel-bubble-mini:nth-child(3) { width: 2.5px; height: 2.5px; left: 75%; animation-delay: 1s; }
@@ -547,6 +527,6 @@ body {
     font-size: 7px;
     font-weight: 800;
     color: white;
-    text-shadow: 0 1px 2px black;
+    text-shadow: 0 1px 3px black;
     z-index: 2;
 }

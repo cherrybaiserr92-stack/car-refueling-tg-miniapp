@@ -308,7 +308,7 @@ document.getElementById('customRefuelBtn').addEventListener('click', () => {
     input.value = '';
 });
 
-// Карусель канистр с анимацией жидкости
+// Карусель (без анимации жидкости)
 const carousel = document.getElementById('tankCarousel');
 let touchStartX = 0, touchEndX = 0;
 carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
@@ -339,13 +339,6 @@ function moveCarousel(direction) {
         }
     });
     currentFuelType = panels[newCenterIndex].dataset.fuel;
-    // Добавляем короткую анимацию жидкости при смене
-    const fillEl = panels[newCenterIndex].querySelector('.fuel-tank-fill');
-    if (fillEl) {
-        fillEl.style.animation = 'none';
-        fillEl.offsetHeight; // reflow
-        fillEl.style.animation = 'liquidSwing 0.5s ease-out';
-    }
 }
 function initCarousel() {
     const panels = carousel.querySelectorAll('.tank-panel');
@@ -473,26 +466,30 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с визуальной шторкой
+// Панель действий (откат к простому переключению свайпом)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
-let routeMode = 'route'; // 'route' = Копировать (слева), 'copy' = В Яндекс (справа)
+let routeMode = 'route'; // 'route' = Копировать, 'copy' = В Яндекс
 let swiped = false;
 
-const slider = routeBtn.querySelector('.route-slider');
+const slider = document.createElement('div');
+slider.className = 'route-slider';
+routeBtn.appendChild(slider);
 
 function updateRouteButton() {
     if (routeMode === 'route') {
         slider.style.transform = 'translateX(0)';
-        routeBtn.classList.add('route-copy');
-        routeBtn.classList.remove('route-yandex');
-    } else {
-        slider.style.transform = 'translateX(100%)';
+        routeBtn.textContent = 'Построить маршрут';
         routeBtn.classList.add('route-yandex');
         routeBtn.classList.remove('route-copy');
+    } else {
+        slider.style.transform = 'translateX(100%)';
+        routeBtn.textContent = 'Скопировать координаты';
+        routeBtn.classList.remove('route-yandex');
+        routeBtn.classList.add('route-copy');
     }
 }
 
@@ -523,7 +520,6 @@ routeBtn.addEventListener('touchend', (e) => {
 
 updateRouteButton();
 
-// Обработчик клика (после свайпа не сработает)
 routeBtn.addEventListener('click', (e) => {
     if (swiped) {
         e.preventDefault();
@@ -539,12 +535,10 @@ function showActionPanel(req, marker) {
     updateRouteButton();
     routeBtn.onclick = () => {
         if (routeMode === 'route') {
-            // Копируем координаты
             const coords = `${req.lat}, ${req.lng}`;
             if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
             else tg.showAlert(`Координаты: ${coords}`);
         } else {
-            // Строим маршрут в Яндексе
             if (userLocation) {
                 const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${req.lat},${req.lng}`;
                 window.open(url, '_blank');
@@ -623,7 +617,6 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Штамп (без изменений)
 function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
