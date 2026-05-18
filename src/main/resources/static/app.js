@@ -444,7 +444,7 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с визуальной шторкой (размер кнопок не меняется)
+// Панель действий с ползунком
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
@@ -463,9 +463,9 @@ function updateRouteButton() {
     } else {
         slider.style.transform = 'translateX(100%)';
     }
-    // Текст на кнопке менять не нужно, чтобы не дёргалось (можно подписать статично)
 }
 
+let swipeStartX = 0;
 routeBtn.addEventListener('touchstart', (e) => {
     swipeStartX = e.changedTouches[0].screenX;
 }, { passive: true });
@@ -579,7 +579,7 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Штамп: уменьшен в 2 раза (1000x150), все поля
+// Штамп: увеличен в 1,5 раза (1500x225)
 function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -610,14 +610,14 @@ function applyStampAndGetUrl(file, callback) {
                 drawAndFinalize();
             }
             function drawAndFinalize() {
-                const stampWidth = 1000;   // уменьшено в 2 раза
-                const stampHeight = 150;
+                const stampWidth = 1500;   // увеличено
+                const stampHeight = 225;
                 const x = size - stampWidth - 10;
                 const y = size - stampHeight - 10;
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillRect(x, y, stampWidth, stampHeight);
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 30px sans-serif';
+                ctx.font = 'bold 44px sans-serif';  // крупнее
                 ctx.textAlign = 'right';
                 const lines = [
                     `${driverName}`,
@@ -626,9 +626,9 @@ function applyStampAndGetUrl(file, callback) {
                     `${taskModel} · ${taskPlateVal}`,
                     `${timestamp}`
                 ];
-                const lineHeight = 30;
+                const lineHeight = 44;
                 lines.forEach((line, idx) => {
-                    ctx.fillText(line, size-20, y + 30 + idx * lineHeight);
+                    ctx.fillText(line, size-30, y + 40 + idx * lineHeight);
                 });
                 
                 const dataUrl = canvas.toDataURL('image/jpeg');
@@ -650,7 +650,7 @@ function applyStampAndGetUrl(file, callback) {
     reader.readAsDataURL(file);
 }
 
-// Современная иконка пересъёмки (SVG)
+// Современная иконка пересъёмки
 const retakeSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 
 function setupPhotoButton(btn, input, fileHolder) {

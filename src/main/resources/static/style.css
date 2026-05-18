@@ -335,22 +335,22 @@ body {
 .timer-fill { height: 100%; width: 100%; background: #34c759; border-radius: 5px; transition: width 1s linear; }
 .timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-/* Попап – прозрачнее, размеры скорректированы */
+/* Попап */
 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
 .leaflet-popup-content { margin: 0 !important; width: auto !important; }
 .leaflet-popup-tip { display: none; }
 
 .popup-plate-card {
-    background: rgba(20,20,22,0.5);    /* прозрачнее */
+    background: rgba(20,20,22,0.5);
     backdrop-filter: blur(15px);
     border: 2px solid white;
     border-radius: 10px;
-    padding: 1px 4px 2px 1px;         /* слева уменьшено на 2мм */
+    padding: 1px 4px 2px 1px;
     color: white;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 108px;                  /* уменьшено справа на 6мм (~6px) */
+    min-width: 108px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     position: relative;
 }
@@ -363,7 +363,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding-left: 5px;                /* сдвинуто правее на 1мм */
+    padding-left: 5px;
     gap: 4px;
 }
 .long-rent-icon {
@@ -403,8 +403,8 @@ body {
 .plate-flag { font-size: 9px; margin-left: 1px; }
 
 .popup-fuel-indicator {
-    width: 28px;
-    height: 26px;               /* уменьшено сверху на 0.5мм (~2px) */
+    width: 26px;               /* уменьшено слева на 2px */
+    height: 24px;              /* уменьшено сверху на 2px */
     background: rgba(0,0,0,0.3);
     border-radius: 5px;
     overflow: hidden;
@@ -412,7 +412,8 @@ body {
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
     margin-top: -4px;
-    margin-left: -5mm;          /* сдвинут влево на 5мм */
+    margin-left: auto;         /* прижимаем вправо */
+    margin-right: 2px;         /* небольшой отступ, чтобы не вылезало */
 }
 .popup-fuel-fill-mini {
     position: absolute;
