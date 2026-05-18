@@ -354,7 +354,7 @@ body {
     justify-content: center;
     gap: 4px;
 }
-/* Значок долгой аренды */
+/* Значок Rent */
 .long-rent-icon {
     display: inline-flex;
     align-items: center;
@@ -362,15 +362,15 @@ body {
     width: 22px;
     height: 14px;
     border-radius: 7px;
-    background: #b366ff; /* насыщенный фиолетовый */
+    background: #b366ff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
     font-size: 8px;
     font-weight: 800;
-    color: #00ff00; /* ярко-зелёный */
+    color: #00ff00;
     text-transform: uppercase;
 }
 .long-rent-icon::before {
-    content: 'Long';
+    content: 'Rent';   /* заменено на Rent */
 }
 .popup-main-row { display: flex; align-items: center; gap: 6px; }
 .popup-license-plate {
@@ -402,7 +402,7 @@ body {
     position: relative;
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
-    margin-top: -4px; /* приподняли на 1 мм */
+    margin-top: -4px;
 }
 .popup-fuel-fill-mini {
     position: absolute;
@@ -421,3 +421,22 @@ body {
 .popup-fuel-bubble-mini:nth-child(3) { width: 2px; height: 2px; left: 45%; bottom: 60%; animation-delay: 1s; }
 @keyframes bubbleMini { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 50% { transform: translateY(-4px) scale(1.2); opacity: 1; } 100% { transform: translateY(-8px) scale(0.9); opacity: 0; } }
 .popup-fuel-percent-mini { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; font-weight: 800; color: white; text-shadow: 0 1px 2px black; z-index: 2; }
+
+/* Подсказка свайпа */
+.swipe-tooltip {
+    position: fixed;
+    bottom: calc(var(--panel-height) + 80px); /* над кнопкой координат */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1002;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+.swipe-tooltip.hidden { opacity: 0; }

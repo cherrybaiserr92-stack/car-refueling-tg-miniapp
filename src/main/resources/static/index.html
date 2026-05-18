@@ -4,15 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Заправки каршеринга</title>
-    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("/sw.js");
-        }
-    </script>
 </head>
 <body>
     <!-- Экран входа -->
@@ -181,6 +175,9 @@
             <button id="photoSearchBtn" class="action-btn photo-search-btn">Найти по фото</button>
         </div>
     </div>
+
+    <!-- Подсказка свайпа (появляется динамически) -->
+    <div id="swipeTooltip" class="swipe-tooltip hidden"></div>
 
     <!-- Нижняя панель -->
     <div class="segmented-panel" id="bottomPanel" style="display: none;">

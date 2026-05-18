@@ -2,12 +2,12 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// --- Авторизация ---
+// --- Авторизация (возвращена) ---
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
 const accountView = document.getElementById('accountView');
 const bottomPanel = document.getElementById('bottomPanel');
-let loggedIn = true;
+let loggedIn = false;
 
 function tryAutoLogin() {
     const stored = localStorage.getItem('refuel_loggedIn');
@@ -150,7 +150,7 @@ function initMap() {
         zoomControl: false,
         attributionControl: false,
         preferCanvas: true,
-        updateWhenIdle: false,      // дополнительная оптимизация
+        updateWhenIdle: false,
         updateWhenZooming: false
     });
     L.tileLayer('https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google' }).addTo(map);
@@ -444,14 +444,14 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий
+// Панель действий с свайпом
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
+const swipeTooltip = document.getElementById('swipeTooltip');
 
-// Свайп на кнопке координат
-let routeMode = 'route'; // 'route' или 'copy'
+let routeMode = 'route';
 let swipeStartX = 0;
 
 function updateRouteButton() {
@@ -462,6 +462,15 @@ function updateRouteButton() {
     }
 }
 
+function showSwipeTooltip(text) {
+    swipeTooltip.textContent = text;
+    swipeTooltip.classList.remove('hidden');
+    clearTimeout(swipeTooltip._timeout);
+    swipeTooltip._timeout = setTimeout(() => {
+        swipeTooltip.classList.add('hidden');
+    }, 1000);
+}
+
 routeBtn.addEventListener('touchstart', (e) => {
     swipeStartX = e.changedTouches[0].screenX;
 }, { passive: true });
@@ -470,12 +479,12 @@ routeBtn.addEventListener('touchend', (e) => {
     const diff = e.changedTouches[0].screenX - swipeStartX;
     if (Math.abs(diff) > 30) {
         if (diff > 0) {
-            routeMode = 'copy'; // свайп вправо – копировать
+            routeMode = 'copy';
         } else {
-            routeMode = 'route'; // свайп влево – маршрут
+            routeMode = 'route';
         }
         updateRouteButton();
-        tg.showAlert(routeMode === 'route' ? 'Режим: построить маршрут' : 'Режим: скопировать координаты');
+        showSwipeTooltip(routeMode === 'route' ? 'Построить маршрут' : 'Скопировать координаты');
     }
 });
 
@@ -568,8 +577,8 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Наложение штампа и сохранение (увеличенный штамп с именем водителя)
-function applyStampAndSave(file) {
+// Штамп: увеличен в 5 раз относительно прошлого (2000x300)
+function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
@@ -589,24 +598,25 @@ function applyStampAndSave(file) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
                     geoText = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
-                    drawAndSave();
-                }, () => { drawAndSave(); });
+                    drawAndFinalize();
+                }, () => { drawAndFinalize(); });
             } else {
-                drawAndSave();
+                drawAndFinalize();
             }
-            function drawAndSave() {
-                // Штамп увеличен в 10 раз (ширина 400px, высота 60px)
-                const stampWidth = 400;
-                const stampHeight = 60;
-                const x = size - stampWidth - 20;
-                const y = size - stampHeight - 20;
+            function drawAndFinalize() {
+                const stampWidth = Math.min(2000, size - 40);
+                const stampHeight = Math.min(300, (size - 40) * 0.3);
+                const x = size - stampWidth - 10;
+                const y = size - stampHeight - 10;
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillRect(x, y, stampWidth, stampHeight);
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 24px sans-serif'; // крупный шрифт
+                ctx.font = `bold ${stampHeight * 0.6}px sans-serif`;
                 ctx.textAlign = 'right';
-                ctx.fillText(`${driverName} | ${geoText} | ${timestamp}`, size-30, y + 40);
+                ctx.fillText(`${driverName} | ${geoText} | ${timestamp}`, size-20, y + stampHeight * 0.7);
                 
+                const dataUrl = canvas.toDataURL('image/jpeg');
+                // Сохраняем также для скачивания
                 canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -616,8 +626,8 @@ function applyStampAndSave(file) {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    tg.showAlert('Фото сохранено с штампом');
                 }, 'image/jpeg');
+                callback(dataUrl);
             }
         };
         img.src = e.target.result;
@@ -628,8 +638,9 @@ function applyStampAndSave(file) {
 function setupPhotoButton(btn, input, fileHolder) {
     btn.addEventListener('click', () => {
         if (fileHolder.current) {
-            const url = URL.createObjectURL(fileHolder.current);
-            window.open(url, '_blank');
+            // Открыть фото с штампом (dataUrl)
+            const win = window.open();
+            win.document.write(`<img src="${fileHolder.current}" style="max-width:100%;">`);
         } else {
             input.click();
         }
@@ -640,21 +651,22 @@ function setupPhotoButton(btn, input, fileHolder) {
             const file = e.target.files[0];
             fileHolder.current = file;
 
-            applyStampAndSave(file);
-            
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-            btn.innerHTML = '';
-            btn.appendChild(img);
-            
-            const retakeIcon = document.createElement('span');
-            retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;z-index:2;';
-            retakeIcon.innerHTML = '🔄';
-            retakeIcon.addEventListener('click', (ev) => {
-                ev.stopPropagation();
-                input.click();
+            applyStampAndGetUrl(file, (dataUrl) => {
+                // Обновляем кнопку: показываем фото со штампом
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                btn.innerHTML = '';
+                btn.appendChild(img);
+                
+                const retakeIcon = document.createElement('span');
+                retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;z-index:2;';
+                retakeIcon.innerHTML = '🔄';
+                retakeIcon.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    input.click();
+                });
+                btn.appendChild(retakeIcon);
             });
-            btn.appendChild(retakeIcon);
         }
     });
 }
