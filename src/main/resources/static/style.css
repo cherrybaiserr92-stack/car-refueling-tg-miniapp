@@ -1,4 +1,4 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
 :root {
     --tg-bg: var(--tg-theme-bg-color, #1c1c1e);
@@ -175,22 +175,22 @@ body {
 .panorama-btn:active { transform: scale(0.92) translateY(calc(-50% + 112px)); background: rgba(60,60,64,0.8); }
 
 /* Аккаунт */
-#accountView { background: var(--tg-bg); overflow-y: auto; padding: 20px; display: none; align-items: flex-start; justify-content: center; }
+#accountView { background: var(--tg-bg); overflow-y: auto; padding: 16px 20px; display: none; align-items: flex-start; justify-content: center; }
 #accountView.active { display: flex; }
-.account-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; position: relative; }
+.account-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; position: relative; margin-top: 4px; }
 
 /* Верхний ряд: пульт Hardmode + шестерёнка */
 .top-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 .hardmode-remote {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 .hardmode-label {
     font-size: 12px;
@@ -198,38 +198,41 @@ body {
     color: var(--tg-text);
     text-transform: uppercase;
     letter-spacing: 1px;
+    margin-left: 8px;
 }
 .remote-btn {
     border: none;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
     color: var(--tg-hint);
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 12px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
     display: flex;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(5px);
+    outline: none;
 }
+.remote-btn:active { transform: scale(0.94); }
 .remote-btn.active.on-btn { background: #34c759; color: white; box-shadow: 0 0 12px rgba(52,199,89,0.4); }
 .remote-btn.active.off-btn { background: #ff3b30; color: white; box-shadow: 0 0 12px rgba(255,59,48,0.4); }
 
 .settings-wrapper { position: relative; }
-.settings-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: 0.2s; }
+.settings-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: 0.2s; outline: none; }
 .settings-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
 .settings-menu { position: absolute; top: 44px; right: 0; background: rgba(30,30,32,0.9); backdrop-filter: blur(20px); border-radius: 14px; padding: 8px 0; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: flex; flex-direction: column; z-index: 20; transition: opacity 0.2s, transform 0.2s; opacity: 1; transform: translateY(0); }
 .settings-menu.hidden { opacity: 0; transform: translateY(-10px); pointer-events: none; }
-.menu-item { padding: 12px 16px; font-size: 14px; color: white; cursor: pointer; transition: background 0.2s; }
+.menu-item { padding: 12px 16px; font-size: 14px; color: white; cursor: pointer; transition: background 0.2s; outline: none; }
 .menu-item:active { background: rgba(255,255,255,0.1); }
 .menu-sos { color: #ff3b30; font-weight: 700; }
 .menu-logout { color: #ff3b30; }
 
 /* Карусель канистр */
-.tank-carousel { position: relative; width: 100%; height: 180px; overflow: hidden; touch-action: pan-x; margin-top: 30px; }
+.tank-carousel { position: relative; width: 100%; height: 170px; overflow: hidden; touch-action: pan-x; margin-top: 24px; }
 .tank-panel { position: absolute; top: 0; left: 50%; transform: translateX(-50%) scale(1); transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1), opacity 0.35s; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: auto; }
 .tank-center { z-index: 2; transform: translateX(-50%) scale(1); opacity: 1; }
 .tank-left { z-index: 1; transform: translateX(calc(-50% - 80px)) scale(0.7); opacity: 0.7; }
@@ -249,10 +252,11 @@ body {
 .refuel-custom .refuel-btn { flex: 0 0 auto; padding: 10px 16px; }
 
 .refuel-buttons { display: flex; gap: 10px; }
-.refuel-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; background: var(--tg-accent); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.refuel-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; background: var(--tg-accent); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); outline: none; }
+.refuel-btn:active { opacity: 0.8; }
 
 .account-stats { display: flex; flex-wrap: wrap; gap: 10px; }
-.stat-item { flex: 1; min-width: 80px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.stat-item { flex: 1; min-width: 80px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); outline: none; }
 .stat-item.clickable { cursor: pointer; }
 .stat-item.clickable:active { background: rgba(255,255,255,0.15); }
 .stat-item span { display: block; font-size: 12px; color: var(--tg-hint); margin-bottom: 4px; }
@@ -273,8 +277,9 @@ body {
 .action-panel { position: fixed; bottom: calc(var(--panel-height) + 12px); left: 0; right: 0; display: flex; justify-content: center; z-index: 999; transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
 .action-panel.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
 .action-panel:not(.hidden) { opacity: 1; transform: translateY(0); pointer-events: auto; }
-.action-buttons { display: flex; flex-direction: column; gap: 6px; }
-.action-btn { padding: 10px 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 13px; color: white; cursor: pointer; text-shadow: 0 0 4px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; }
+.action-buttons { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.action-btn { width: 200px; padding: 10px 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 13px; color: white; cursor: pointer; text-shadow: 0 0 4px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; outline: none; transition: background 0.2s, transform 0.1s; }
+.action-btn:active { transform: scale(0.97); }
 .accept-btn { background: var(--tg-accent); }
 .route-btn { overflow: hidden; }
 .route-btn.route-yandex { background: #FFCC00; color: black; text-shadow: none; }
@@ -308,12 +313,16 @@ body {
     align-items: center;
     justify-content: center;
     gap: 6px;
+    outline: none;
+    transition: background 0.2s, transform 0.1s;
 }
+.door-btn:active { transform: scale(0.96); }
 .door-btn svg { width: 16px; height: 16px; stroke: white; }
 .door-open { background: #34c759; }
 .door-close { background: #ff3b30; }
 .task-photos { display: flex; gap: 8px; }
-.photo-btn-large { flex: 1; aspect-ratio: 1 / 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; overflow: hidden; }
+.photo-btn-large { flex: 1; aspect-ratio: 1 / 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; overflow: hidden; outline: none; transition: background 0.2s, transform 0.1s; }
+.photo-btn-large:active { transform: scale(0.96); background: rgba(255,255,255,0.2); }
 .photo-btn-large img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
 .photo-label { font-size: 12px; opacity: 0.8; }
 .task-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
@@ -345,7 +354,8 @@ body {
     max-width: 120px;
 }
 .plate-display span { overflow: hidden; text-overflow: ellipsis; }
-.copy-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 4px 6px; color: white; cursor: pointer; display: flex; align-items: center; margin-left: 6px; }
+.copy-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 6px; padding: 4px 6px; color: white; cursor: pointer; display: flex; align-items: center; margin-left: 6px; outline: none; transition: background 0.2s; }
+.copy-btn:active { background: rgba(255,255,255,0.3); }
 .copy-btn svg { stroke: white; }
 .task-field { display: flex; flex-direction: column; gap: 6px; }
 .task-field label { font-size: 13px; color: var(--tg-hint); }
@@ -363,12 +373,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
+    outline: none;
 }
+.confirm-liters-btn:active { transform: scale(0.92); }
 .confirm-liters-btn.active { background: #34c759; }
 .comment-input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; color: white; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
-.close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; }
-.cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; }
+.close-task-btn { background: var(--tg-accent); border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; outline: none; transition: background 0.2s, transform 0.1s; }
+.close-task-btn:active { transform: scale(0.97); }
+.cancel-task-btn { background: #ff3b30; border: none; padding: 12px; border-radius: 12px; font-weight: 600; color: white; cursor: pointer; margin-top: 8px; outline: none; transition: background 0.2s, transform 0.1s; }
+.cancel-task-btn:active { transform: scale(0.97); }
 
 /* Таймер */
 .timer-bar-wrapper { margin-bottom: 8px; }
@@ -386,7 +400,7 @@ body {
     backdrop-filter: blur(15px);
     border: 2px solid white;
     border-radius: 8px;
-    padding: 2px 4px;
+    padding: 2px 4px 2px 0;          /* слева 0 вместо 1px, уменьшено на 1мм */
     color: white;
     display: flex;
     flex-direction: column;
@@ -404,7 +418,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding-left: 6px;               /* сдвинуто вправо на 2мм */
+    padding-left: 6px;
     gap: 3px;
 }
 .long-rent-icon {
@@ -445,7 +459,7 @@ body {
 
 .popup-fuel-indicator {
     width: 24px;
-    height: 22px;
+    height: 23px;                      /* увеличено снизу на 0.2мм (~1px) */
     background: rgba(0,0,0,0.3);
     border-radius: 4px;
     overflow: hidden;
@@ -453,7 +467,7 @@ body {
     border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
     margin-top: -2px;
-    margin-left: -2.5mm;             /* сдвинут влево на 2,5мм */
+    margin-left: -2.1mm;               /* сдвинут вправо на 0.4мм относительно предыдущего (-2.5mm -> -2.1mm) */
 }
 .popup-fuel-fill-mini {
     position: absolute;

@@ -98,7 +98,6 @@ hardmodeOnBtn.addEventListener('click', () => {
     hardmode = true;
     hardmodeOnBtn.classList.add('active');
     hardmodeOffBtn.classList.remove('active');
-    // Здесь можно добавить логику Hardmode в будущем
     tg.showAlert('Hardmode включён');
 });
 
@@ -466,13 +465,13 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с переключением (Яндекс-цвет + текст)
+// Панель действий с фиксированной шириной и переключением
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
 
-let routeMode = 'route';
+let routeMode = 'route'; // 'route' — ползунок слева (копирует), 'copy' — ползунок справа (строит маршрут)
 
 const slider = document.createElement('div');
 slider.className = 'route-slider';
@@ -522,16 +521,18 @@ function showActionPanel(req, marker) {
     updateRouteButton();
     routeBtn.onclick = () => {
         if (routeMode === 'route') {
+            // Копируем координаты
+            const coords = `${req.lat}, ${req.lng}`;
+            if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
+            else tg.showAlert(`Координаты: ${coords}`);
+        } else {
+            // Строим маршрут в Яндексе
             if (userLocation) {
                 const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${req.lat},${req.lng}`;
                 window.open(url, '_blank');
             } else {
                 tg.showAlert('Местоположение не определено');
             }
-        } else {
-            const coords = `${req.lat}, ${req.lng}`;
-            if (navigator.clipboard) navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-            else tg.showAlert(`Координаты: ${coords}`);
         }
     };
     photoSearchBtn.onclick = () => tg.showAlert(`Поиск фото "${req.carModel}" появится позже`);
@@ -604,7 +605,7 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Штамп: ещё крупнее и без фона (прозрачный текст с тенью)
+// Штамп: крупный, прозрачный текст с тенью
 function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
