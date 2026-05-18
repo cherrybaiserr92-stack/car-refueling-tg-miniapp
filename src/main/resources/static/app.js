@@ -418,53 +418,63 @@ function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     });
 }
 
+// ===== НОВЫЙ ПОПАП (БЕЗ КНОПОК) =====
 function createPopupContent(req) {
     const container = document.createElement('div');
-    container.className = 'popup-plate-card';
+    container.className = 'popup-dashboard';
 
-    const modelLine = document.createElement('div');
-    modelLine.className = 'popup-model-line';
+    // Строка с моделью и иконкой Rent
+    const modelRow = document.createElement('div');
+    modelRow.className = 'dash-model-row';
+    const carIcon = document.createElement('span');
+    carIcon.className = 'dash-model-icon';
+    carIcon.textContent = '🚗';
+    modelRow.appendChild(carIcon);
+
+    const modelText = document.createElement('span');
+    modelText.textContent = req.carModel;
+    modelRow.appendChild(modelText);
+
     if (req.longRent) {
-        modelLine.innerHTML = `<span class="long-rent-icon"></span> ${req.carModel}`;
-    } else {
-        modelLine.textContent = req.carModel;
+        const rentBadge = document.createElement('span');
+        rentBadge.className = 'dash-rent-badge';
+        rentBadge.textContent = 'Rent';
+        modelRow.appendChild(rentBadge);
     }
 
-    const mainRow = document.createElement('div');
-    mainRow.className = 'popup-main-row';
+    // Номерной знак на белом фоне
+    const plateDiv = document.createElement('div');
+    plateDiv.className = 'dash-plate';
+    const plateText = document.createElement('span');
+    plateText.className = 'dash-plate-text';
+    plateText.textContent = req.licensePlate;
+    const flagSpan = document.createElement('span');
+    flagSpan.className = 'dash-plate-flag';
+    flagSpan.textContent = '🇷🇺';
+    plateDiv.appendChild(plateText);
+    plateDiv.appendChild(flagSpan);
 
-    const plate = document.createElement('div');
-    plate.className = 'popup-license-plate';
-    plate.innerHTML = formatLicensePlate(req.licensePlate);
+    // Индикатор топлива
+    const fuelSection = document.createElement('div');
+    fuelSection.className = 'dash-fuel-section';
+    const fuelBarBg = document.createElement('div');
+    fuelBarBg.className = 'dash-fuel-bar-bg';
+    const fuelBarFill = document.createElement('div');
+    fuelBarFill.className = 'dash-fuel-bar-fill';
+    fuelBarFill.style.width = req.fuelLevel + '%';
+    fuelBarBg.appendChild(fuelBarFill);
+    const fuelPercent = document.createElement('span');
+    fuelPercent.className = 'dash-fuel-percent';
+    fuelPercent.textContent = req.fuelLevel + '%';
+    fuelSection.appendChild(fuelBarBg);
+    fuelSection.appendChild(fuelPercent);
 
-    const fuelBox = document.createElement('div');
-    fuelBox.className = 'popup-fuel-indicator';
-    const fillMini = document.createElement('div');
-    fillMini.className = 'popup-fuel-fill-mini';
-    fillMini.style.width = req.fuelLevel + '%';
-    fillMini.style.setProperty('--fuel-color', markerColor(req.fuelLevel));
-    const bubblesMini = document.createElement('div');
-    bubblesMini.className = 'popup-fuel-bubbles-mini';
-    for (let i = 0; i < 3; i++) {
-        const b = document.createElement('div');
-        b.className = 'popup-fuel-bubble-mini';
-        bubblesMini.appendChild(b);
-    }
-    const percentMini = document.createElement('div');
-    percentMini.className = 'popup-fuel-percent-mini';
-    percentMini.textContent = req.fuelLevel + '%';
-
-    fuelBox.appendChild(fillMini);
-    fuelBox.appendChild(bubblesMini);
-    fuelBox.appendChild(percentMini);
-
-    mainRow.appendChild(plate);
-
-    container.appendChild(modelLine);
-    container.appendChild(mainRow);
-    container.appendChild(fuelBox);
+    container.appendChild(modelRow);
+    container.appendChild(plateDiv);
+    container.appendChild(fuelSection);
     return container;
 }
+// ===== КОНЕЦ ПОПАПА =====
 
 // Панель действий (откат к простому переключению свайпом)
 const actionPanel = document.getElementById('actionPanel');
