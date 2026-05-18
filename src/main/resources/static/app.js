@@ -444,54 +444,37 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий с визуальной шторкой
+// Панель действий с визуальной шторкой (размер кнопок не меняется)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
 const routeBtn = document.getElementById('routeBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
-const swipeTooltip = document.getElementById('swipeTooltip');
 
-let routeMode = 'route'; // 'route' или 'copy'
+let routeMode = 'route';
 
 // Создаём ползунок внутри кнопки
 const slider = document.createElement('div');
 slider.className = 'route-slider';
 routeBtn.appendChild(slider);
 
-function updateRouteButton(animate = false) {
+function updateRouteButton() {
     if (routeMode === 'route') {
         slider.style.transform = 'translateX(0)';
-        if (!animate) routeBtn.textContent = 'Построить маршрут';
     } else {
-        slider.style.transform = 'translateX(calc(100% + 8px))';
-        if (!animate) routeBtn.textContent = 'Скопировать координаты';
+        slider.style.transform = 'translateX(100%)';
     }
+    // Текст на кнопке менять не нужно, чтобы не дёргалось (можно подписать статично)
 }
 
 routeBtn.addEventListener('touchstart', (e) => {
     swipeStartX = e.changedTouches[0].screenX;
-    // показываем подсказку
-    swipeTooltip.classList.remove('hidden');
-    clearTimeout(swipeTooltip._timeout);
 }, { passive: true });
 
 routeBtn.addEventListener('touchmove', (e) => {
     const diff = e.changedTouches[0].screenX - swipeStartX;
-    const maxOffset = routeBtn.offsetWidth * 0.4;
-    let offset = Math.max(-maxOffset, Math.min(maxOffset, diff));
-    if (offset > 0) {
-        // тянем вправо – показываем режим "Скопировать"
-        slider.style.transform = `translateX(${Math.min(offset, routeBtn.offsetWidth - slider.offsetWidth)}px)`;
-        if (offset > maxOffset * 0.8) {
-            routeBtn.textContent = 'Скопировать координаты';
-        } else {
-            routeBtn.textContent = 'Построить маршрут';
-        }
-    } else {
-        // тянем влево – остаёмся в "Построить маршрут"
-        slider.style.transform = 'translateX(0)';
-        routeBtn.textContent = 'Построить маршрут';
-    }
+    const maxOffset = routeBtn.offsetWidth * 0.5;
+    let offset = Math.max(0, Math.min(maxOffset, diff));
+    slider.style.transform = `translateX(${offset}px)`;
 });
 
 routeBtn.addEventListener('touchend', (e) => {
@@ -502,20 +485,9 @@ routeBtn.addEventListener('touchend', (e) => {
     } else {
         routeMode = 'route';
     }
-    updateRouteButton(true);
-    // прячем подсказку через 1 сек
-    swipeTooltip._timeout = setTimeout(() => {
-        swipeTooltip.classList.add('hidden');
-    }, 1000);
-    if (routeMode === 'route') {
-        swipeTooltip.textContent = 'Построить маршрут';
-    } else {
-        swipeTooltip.textContent = 'Скопировать координаты';
-    }
-    swipeTooltip.classList.remove('hidden');
+    updateRouteButton();
 });
 
-// Инициализация
 updateRouteButton();
 
 function showActionPanel(req, marker) {
@@ -607,7 +579,7 @@ const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 const beforeHolder = { current: null };
 const afterHolder = { current: null };
 
-// Штамп: увеличен в 5 раз относительно прошлого (2000x300)
+// Штамп: уменьшен в 2 раза (1000x150), все поля
 function applyStampAndGetUrl(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -622,8 +594,12 @@ function applyStampAndGetUrl(file, callback) {
             const sy = (img.height - size) / 2;
             ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
             
-            const timestamp = new Date().toLocaleString();
+            const timestamp = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const driverName = 'Иван Петров';
+            const truck = 'БелАЗ А123ВС 178';
+            const taskModel = currentTaskRequest ? currentTaskRequest.carModel : '';
+            const taskPlateVal = currentTaskRequest ? currentTaskRequest.licensePlate : '';
+            const taskIdVal = currentTaskRequest ? currentTaskRequest.id : '';
             let geoText = 'Гео: -';
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
@@ -634,19 +610,28 @@ function applyStampAndGetUrl(file, callback) {
                 drawAndFinalize();
             }
             function drawAndFinalize() {
-                const stampWidth = Math.min(2000, size - 40);
-                const stampHeight = Math.min(300, (size - 40) * 0.3);
+                const stampWidth = 1000;   // уменьшено в 2 раза
+                const stampHeight = 150;
                 const x = size - stampWidth - 10;
                 const y = size - stampHeight - 10;
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillRect(x, y, stampWidth, stampHeight);
                 ctx.fillStyle = 'white';
-                ctx.font = `bold ${stampHeight * 0.6}px sans-serif`;
+                ctx.font = 'bold 30px sans-serif';
                 ctx.textAlign = 'right';
-                ctx.fillText(`${driverName} | ${geoText} | ${timestamp}`, size-20, y + stampHeight * 0.7);
+                const lines = [
+                    `${driverName}`,
+                    `${truck}`,
+                    `${geoText} | Заявка №${taskIdVal}`,
+                    `${taskModel} · ${taskPlateVal}`,
+                    `${timestamp}`
+                ];
+                const lineHeight = 30;
+                lines.forEach((line, idx) => {
+                    ctx.fillText(line, size-20, y + 30 + idx * lineHeight);
+                });
                 
                 const dataUrl = canvas.toDataURL('image/jpeg');
-                // Сохраняем также для скачивания
                 canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -664,6 +649,9 @@ function applyStampAndGetUrl(file, callback) {
     };
     reader.readAsDataURL(file);
 }
+
+// Современная иконка пересъёмки (SVG)
+const retakeSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 
 function setupPhotoButton(btn, input, fileHolder) {
     btn.addEventListener('click', () => {
@@ -687,8 +675,8 @@ function setupPhotoButton(btn, input, fileHolder) {
                 btn.appendChild(img);
                 
                 const retakeIcon = document.createElement('span');
-                retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:2px;cursor:pointer;z-index:2;';
-                retakeIcon.innerHTML = '🔄';
+                retakeIcon.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);border-radius:50%;padding:4px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;';
+                retakeIcon.innerHTML = retakeSVG;
                 retakeIcon.addEventListener('click', (ev) => {
                     ev.stopPropagation();
                     input.click();
