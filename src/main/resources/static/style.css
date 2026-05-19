@@ -422,6 +422,7 @@ body {
 .details-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
 
 .segmented-panel { position: fixed; bottom: 0; left: 0; right: 0; height: var(--panel-height); background: transparent; display: flex; justify-content: center; align-items: center; padding: 0 16px; z-index: 1000; }
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 .segmented-control { display: flex; width: 100%; max-width: 400px; background: rgba(30,30,32,0.35); backdrop-filter: blur(20px); border-radius: 20px; padding: 6px; box-shadow: 0 -4px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08); }
 .seg-btn { flex: 1; height: 54px; border: none; background: transparent; color: rgba(255,255,255,0.7); font-size: 15px; font-weight: 700; letter-spacing: -0.3px; border-radius: 16px; transition: all 0.25s ease; outline: none; }
 .seg-btn.active { background: rgba(255,255,255,0.15); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(15px); }
