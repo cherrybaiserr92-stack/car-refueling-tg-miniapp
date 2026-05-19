@@ -15,7 +15,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
         deferredPrompt = null;
       });
     }
-  }, 10000); // Показать через 10 секунд
+  }, 10000);
 });
 
 // --- Авторизация ---
@@ -40,7 +40,6 @@ function tryAutoLogin() {
         document.querySelector('.seg-btn[data-view="accountView"]').classList.add('active');
         if (!map) initMap();
         loadRequests();
-        // Инициализация начала смены
         const savedShift = localStorage.getItem('shiftStart');
         if (savedShift) {
             shiftStart = parseInt(savedShift);
@@ -49,7 +48,7 @@ function tryAutoLogin() {
             localStorage.setItem('shiftStart', shiftStart);
         }
         updateXgStats();
-        setInterval(updateXgStats, 60000); // обновление каждую минуту
+        setInterval(updateXgStats, 60000);
     } else {
         loginView.classList.add('active');
         mapView.classList.remove('active');
@@ -307,7 +306,7 @@ function updateAccountStats() {
     document.getElementById('litersDispensed').textContent = litersDispensed + ' л';
     const totalNeeded = allRequests.filter(r => r.status !== 'done').reduce((sum, r) => sum + ((100 - r.fuelLevel) / 100) * 50, 0);
     document.getElementById('totalNeeded').textContent = totalNeeded.toFixed(1) + ' л';
-    updateXgStats(); // обновляем XG при каждом изменении
+    updateXgStats();
 }
 
 function updateTank(type) {
@@ -364,7 +363,7 @@ function getShiftInfo() {
         shiftEnd.setHours(19, 0, 0, 0);
     } else {
         shiftEnd.setHours(7, 0, 0, 0);
-        if (hour >= 19) shiftEnd.setDate(shiftEnd.getDate() + 1); // если уже после 19, то завтра 7 утра
+        if (hour >= 19) shiftEnd.setDate(shiftEnd.getDate() + 1);
     }
     const timeLeftMs = shiftEnd - now;
     const hoursLeft = Math.max(0, timeLeftMs / 3600000);
@@ -398,7 +397,7 @@ function updateXgStats() {
     const totalLiters = litersDispensed;
     const cars = carsRefueled;
     const elapsedHours = Math.max(0.1, (Date.now() - shiftStart) / 3600000);
-    const pace = totalLiters / elapsedHours; // л/ч
+    const pace = totalLiters / elapsedHours;
     const forecast = pace * hoursLeft;
     const { currentRate, nextLevel } = getCurrentRateInfo(totalLiters, isDay);
 
@@ -412,7 +411,6 @@ function updateXgStats() {
     document.getElementById('xgCurrentRate').textContent = currentRate.toFixed(2) + ' ₽/л';
     document.getElementById('xgForecast').textContent = forecast.toFixed(0) + ' л';
 
-    // Следующий уровень
     if (nextLevel) {
         document.getElementById('xgNextLevel').textContent = `${nextLevel.from}-${nextLevel.to} л (${nextLevel.rate} ₽/л)`;
         document.getElementById('xgToNext').textContent = `${nextLevel.need} л`;
@@ -421,7 +419,6 @@ function updateXgStats() {
         document.getElementById('xgToNext').textContent = '-';
     }
 
-    // Прогресс-бар: процент от верхней границы текущей ставки или от 2000/2600
     const rates = isDay ? RATES_DAY : RATES_NIGHT;
     const maxTarget = isDay ? 2000 : 2600;
     const progress = Math.min(100, (totalLiters / maxTarget) * 100);
@@ -429,7 +426,6 @@ function updateXgStats() {
     document.getElementById('xgProgressText').textContent = progress.toFixed(1) + '%';
     document.getElementById('xgTarget').textContent = `${maxTarget} л (макс. ставка)`;
 
-    // Таблица ставок
     const tableContainer = document.getElementById('xgRatesTable');
     let html = '<table><tr><th>Объём, л</th><th>Ставка, ₽/л</th></tr>';
     rates.forEach((r, i) => {
@@ -440,7 +436,6 @@ function updateXgStats() {
     html += '</table>';
     tableContainer.innerHTML = html;
 
-    // Обновление значения в аккаунте
     const xgValueEl = document.getElementById('xgValue');
     if (xgValueEl) {
         xgValueEl.textContent = progress.toFixed(0) + '%';
