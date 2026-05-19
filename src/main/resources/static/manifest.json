@@ -1,12 +1,12 @@
 {
   "name": "Заправки каршеринга",
   "short_name": "Заправки",
-  "description": "Приложение для заправки каршеринга",
+  "description": "Учёт заправок каршеринга с картой и статистикой",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1c1c1e",
-  "theme_color": "#007aff",
-  "orientation": "portrait-primary",
+  "theme_color": "#1c1c1e",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
