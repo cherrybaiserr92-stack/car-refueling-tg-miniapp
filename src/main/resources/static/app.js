@@ -373,33 +373,26 @@ function getShiftInfo() {
 function getCurrentRateInfo(totalLiters, isDay) {
     const rates = isDay ? RATES_DAY : RATES_NIGHT;
     let currentRate = rates[0].rate;
-    let nextLevel = null;
     for (let i = 0; i < rates.length; i++) {
         if (totalLiters <= rates[i].max) {
             currentRate = rates[i].rate;
-            if (i < rates.length - 1) {
-                nextLevel = {
-                    from: rates[i].max + 1,
-                    to: rates[i+1].max === Infinity ? '∞' : rates[i+1].max,
-                    rate: rates[i+1].rate,
-                    need: (rates[i].max + 1) - totalLiters
-                };
-            }
             break;
         }
     }
-    return { currentRate, nextLevel };
+    return { currentRate };
 }
 
 function updateXgStats() {
     if (!shiftStart) return;
-    const { isDay, hoursLeft, timeLeftMs } = getShiftInfo();
+    const { isDay, hoursLeft } = getShiftInfo();
     const totalLiters = litersDispensed;
     const cars = carsRefueled;
     const elapsedHours = Math.max(0.1, (Date.now() - shiftStart) / 3600000);
     const pace = totalLiters / elapsedHours;
     const forecast = pace * hoursLeft;
-    const { currentRate, nextLevel } = getCurrentRateInfo(totalLiters, isDay);
+    const { currentRate } = getCurrentRateInfo(totalLiters, isDay);
+    const currentEarnings = totalLiters * currentRate;
+    const forecastEarnings = forecast * currentRate;
 
     document.getElementById('xgShiftType').textContent = isDay ? 'Дневная (07-19)' : 'Ночная (19-07)';
     const h = Math.floor(hoursLeft);
@@ -409,15 +402,9 @@ function updateXgStats() {
     document.getElementById('xgCars').textContent = cars;
     document.getElementById('xgPace').textContent = pace.toFixed(1) + ' л/ч';
     document.getElementById('xgCurrentRate').textContent = currentRate.toFixed(2) + ' ₽/л';
+    document.getElementById('xgCurrentEarnings').textContent = currentEarnings.toFixed(0) + ' ₽';
     document.getElementById('xgForecast').textContent = forecast.toFixed(0) + ' л';
-
-    if (nextLevel) {
-        document.getElementById('xgNextLevel').textContent = `${nextLevel.from}-${nextLevel.to} л (${nextLevel.rate} ₽/л)`;
-        document.getElementById('xgToNext').textContent = `${nextLevel.need} л`;
-    } else {
-        document.getElementById('xgNextLevel').textContent = 'Максимум';
-        document.getElementById('xgToNext').textContent = '-';
-    }
+    document.getElementById('xgForecastEarnings').textContent = forecastEarnings.toFixed(0) + ' ₽';
 
     const rates = isDay ? RATES_DAY : RATES_NIGHT;
     const maxTarget = isDay ? 2000 : 2600;
@@ -575,7 +562,7 @@ function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     });
 }
 
-// ===== ПОПАП 130px =====
+// ===== ПОПАП 110px =====
 function createPopupContent(req) {
     const container = document.createElement('div');
     container.className = 'popup-dashboard';
@@ -620,32 +607,11 @@ function createPopupContent(req) {
     return container;
 }
 
-// Панель действий
+// Панель действий (только копирование координат)
 const actionPanel = document.getElementById('actionPanel');
 const acceptBtn = document.getElementById('acceptBtn');
-const routeBtn = document.getElementById('routeBtn');
+const copyCoordsActionBtn = document.getElementById('copyCoordsActionBtn');
 const photoSearchBtn = document.getElementById('photoSearchBtn');
-
-let routeMode = 'route';
-let swiped = false;
-
-const slider = document.createElement('div');
-slider.className = 'route-slider';
-routeBtn.appendChild(slider);
-
-function updateRouteButton() {
-    if (routeMode === 'route') {
-        slider.style.transform = 'translateX(0)';
-        routeBtn.textContent = 'Построить маршрут';
-        routeBtn.classList.add('route-yandex');
-        routeBtn.classList.remove('route-copy');
-    } else {
-        slider.style.transform = 'translateX(100%)';
-        routeBtn.textContent = 'Скопировать координаты';
-        routeBtn.classList.remove('route-yandex');
-        routeBtn.classList.add('route-copy');
-    }
-}
 
 acceptBtn.addEventListener('click', () => {
     if (!currentPopupRequest || !currentPopupMarker) return;
@@ -653,28 +619,13 @@ acceptBtn.addEventListener('click', () => {
     hideActionPanel();
 });
 
-routeBtn.addEventListener('click', (e) => {
-    if (swiped) {
-        e.preventDefault();
-        e.stopPropagation();
-        swiped = false;
-        return;
-    }
+copyCoordsActionBtn.addEventListener('click', () => {
     if (!currentPopupRequest) return;
-    if (routeMode === 'route') {
-        if (userLocation) {
-            const url = `https://yandex.ru/maps/?rtt=auto&rtext=${userLocation.lat},${userLocation.lng}~${currentPopupRequest.lat},${currentPopupRequest.lng}`;
-            window.open(url, '_blank');
-        } else {
-            tg.showAlert('Местоположение не определено');
-        }
+    const coords = `${currentPopupRequest.lat}, ${currentPopupRequest.lng}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
     } else {
-        const coords = `${currentPopupRequest.lat}, ${currentPopupRequest.lng}`;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(coords).then(() => tg.showAlert('Координаты скопированы'));
-        } else {
-            tg.showAlert(`Координаты: ${coords}`);
-        }
+        tg.showAlert(`Координаты: ${coords}`);
     }
 });
 
@@ -683,33 +634,6 @@ photoSearchBtn.addEventListener('click', () => {
         tg.showAlert(`Поиск фото "${currentPopupRequest.carModel}" появится позже`);
     }
 });
-
-let swipeStartX = 0;
-routeBtn.addEventListener('touchstart', (e) => {
-    swiped = false;
-    swipeStartX = e.changedTouches[0].screenX;
-}, { passive: true });
-
-routeBtn.addEventListener('touchmove', (e) => {
-    const diff = e.changedTouches[0].screenX - swipeStartX;
-    if (Math.abs(diff) > 5) swiped = true;
-    const maxOffset = routeBtn.offsetWidth * 0.5;
-    let offset = Math.max(0, Math.min(maxOffset, diff));
-    slider.style.transform = `translateX(${offset}px)`;
-});
-
-routeBtn.addEventListener('touchend', (e) => {
-    const diff = e.changedTouches[0].screenX - swipeStartX;
-    const threshold = routeBtn.offsetWidth * 0.3;
-    if (diff > threshold) {
-        routeMode = 'copy';
-    } else {
-        routeMode = 'route';
-    }
-    updateRouteButton();
-});
-
-updateRouteButton();
 
 function showActionPanel(req, marker) {
     currentPopupRequest = req;
@@ -721,6 +645,19 @@ function hideActionPanel() {
     actionPanel.classList.add('hidden');
     currentPopupRequest = null;
     currentPopupMarker = null;
+}
+
+// Вспышка при взятии заявки
+function triggerFlash() {
+    const flash = document.createElement('div');
+    flash.className = 'flash-overlay';
+    document.body.appendChild(flash);
+    // Принудительный reflow
+    flash.offsetHeight;
+    flash.classList.add('fade-out');
+    setTimeout(() => {
+        if (flash.parentNode) flash.parentNode.removeChild(flash);
+    }, 1000);
 }
 
 // Таймер
@@ -765,6 +702,15 @@ function stopTimer() {
         timerInterval = null;
     }
     timerWrapper.style.display = 'none';
+}
+
+// Эффект на кнопках открыть/закрыть
+function runButtonEffect(btn) {
+    if (btn.classList.contains('running')) return;
+    btn.classList.add('running');
+    setTimeout(() => {
+        btn.classList.remove('running');
+    }, 600);
 }
 
 // Окно выполнения
@@ -885,8 +831,14 @@ function setupPhotoButton(btn, input, fileHolder) {
 setupPhotoButton(photoBeforeBtn, photoBeforeInput, beforeHolder);
 setupPhotoButton(photoAfterBtn, photoAfterInput, afterHolder);
 
-openDoorsBtn.addEventListener('click', () => tg.showAlert('Двери открыты'));
-closeDoorsBtn.addEventListener('click', () => tg.showAlert('Двери закрыты'));
+openDoorsBtn.addEventListener('click', () => {
+    runButtonEffect(openDoorsBtn);
+    tg.showAlert('Двери открыты');
+});
+closeDoorsBtn.addEventListener('click', () => {
+    runButtonEffect(closeDoorsBtn);
+    tg.showAlert('Двери закрыты');
+});
 copyPlateBtn.addEventListener('click', () => { if (currentTaskRequest) navigator.clipboard.writeText(currentTaskRequest.licensePlate).then(() => tg.showAlert('Номер скопирован')); });
 copyCoordsBtn.addEventListener('click', () => { if (currentTaskRequest) { const c = `${currentTaskRequest.lat}, ${currentTaskRequest.lng}`; navigator.clipboard.writeText(c).then(() => tg.showAlert('Координаты скопированы')); } });
 
@@ -973,6 +925,7 @@ function startTask(req, marker) {
     marker.setIcon(createMarkerIcon(req, true));
     map.closePopup();
     startTimer();
+    triggerFlash(); // Вспышка
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 

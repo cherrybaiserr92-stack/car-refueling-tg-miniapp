@@ -413,20 +413,7 @@ body {
 .action-btn { width: 200px; padding: 10px 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 13px; color: white; cursor: pointer; text-shadow: 0 0 4px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; outline: none; transition: background 0.2s, transform 0.1s; }
 .action-btn:active { transform: scale(0.97); }
 .accept-btn { background: var(--tg-accent); }
-.route-btn { background: rgba(0,0,0,0.55); overflow: hidden; }
-.route-btn.route-yandex { background: #FFCC00; color: black; text-shadow: none; }
-.route-btn.route-copy { background: rgba(20,20,22,0.85); }
-.route-slider {
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    height: calc(100% - 8px);
-    width: 50%;
-    background: rgba(255,255,255,0.3);
-    border-radius: 8px;
-    transition: transform 0.2s ease;
-    pointer-events: none;
-}
+.copy-coords-btn { background: rgba(20,20,22,0.85); }
 .photo-search-btn { background: rgba(0,0,0,0.55); }
 
 #workView { background: var(--tg-bg); display: none; align-items: center; justify-content: center; padding: 20px 20px 100px 20px; overflow-y: auto; }
@@ -447,6 +434,25 @@ body {
     gap: 6px;
     outline: none;
     transition: background 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+}
+.door-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    pointer-events: none;
+    transition: border-color 0.3s;
+}
+.door-btn.running::after {
+    animation: border-run 0.6s linear;
+}
+@keyframes border-run {
+    0% { border-color: #0ff; clip-path: inset(0 100% 0 0); }
+    50% { border-color: #0ff; clip-path: inset(0 0 0 0); }
+    100% { border-color: transparent; clip-path: inset(0 0 0 0); }
 }
 .door-btn:active { transform: scale(0.96); }
 .door-btn svg { width: 16px; height: 16px; stroke: white; }
@@ -522,7 +528,7 @@ body {
 .timer-fill { height: 100%; width: 100%; background: #2ecc71; border-radius: 5px; transition: width 1s linear; }
 .timer-text { text-align: center; font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-/* ===== СУПЕРКОМПАКТНЫЙ ПОПАП (130px) ===== */
+/* ===== СУПЕРКОМПАКТНЫЙ ПОПАП (110px) ===== */
 .leaflet-popup-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
@@ -540,32 +546,32 @@ body {
 }
 
 .popup-dashboard {
-    width: 130px;
+    width: 110px;
     background: rgba(18, 18, 20, 0.8);
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    border-radius: 8px;
-    padding: 4px 6px;
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+    border-radius: 6px;
+    padding: 2px 4px;
     color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
 }
 
 .dash-model-row {
     display: flex;
     align-items: center;
-    gap: 3px;
-    font-size: 10px;
+    gap: 2px;
+    font-size: 9px;
     font-weight: 600;
     opacity: 0.9;
 }
 .dash-rent-badge {
     background: #b366ff;
     color: #00ff00;
-    font-size: 6px;
+    font-size: 5px;
     font-weight: 800;
     padding: 1px 2px;
     border-radius: 2px;
@@ -576,14 +582,14 @@ body {
     background: #fff;
     color: #000;
     border-radius: 3px;
-    padding: 1px 4px;
+    padding: 1px 3px;
     font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.3px;
+    font-size: 10px;
+    letter-spacing: 0.2px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
     border: 1px solid rgba(0,0,0,0.2);
 }
 .dash-plate-text {
@@ -595,15 +601,15 @@ body {
 
 .dash-fuel-section {
     background: rgba(0,0,0,0.25);
-    border-radius: 4px;
-    padding: 2px 4px;
+    border-radius: 3px;
+    padding: 1px 3px;
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
 }
 .dash-fuel-bar-bg {
     flex: 1;
-    height: 3px;
+    height: 2px;
     background: rgba(255,255,255,0.15);
     border-radius: 1px;
     overflow: hidden;
@@ -612,12 +618,27 @@ body {
     height: 100%;
     border-radius: 1px;
     background: linear-gradient(90deg, #2ecc71, #a8e6cf);
-    box-shadow: 0 0 4px rgba(46,204,113,0.5);
+    box-shadow: 0 0 3px rgba(46,204,113,0.5);
     transition: width 0.5s ease;
 }
 .dash-fuel-percent {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
-    min-width: 24px;
+    min-width: 22px;
     text-align: right;
+}
+
+/* Вспышка по краям экрана */
+.flash-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 4px solid #007aff;
+    box-shadow: 0 0 30px #007aff, inset 0 0 30px #007aff;
+    pointer-events: none;
+    z-index: 2001;
+    opacity: 1;
+    transition: opacity 0.8s;
+}
+.flash-overlay.fade-out {
+    opacity: 0;
 }
