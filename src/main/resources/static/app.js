@@ -2,6 +2,22 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
+// PWA Install Prompt
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((result) => {
+        console.log("PWA install:", result.outcome);
+        deferredPrompt = null;
+      });
+    }
+  }, 10000); // Показать через 10 секунд
+});
+
 // --- Авторизация ---
 const loginView = document.getElementById('loginView');
 const mapView = document.getElementById('mapView');
