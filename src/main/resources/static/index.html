@@ -107,7 +107,21 @@
                 <div class="stat-item clickable" id="xgBlock"><span>XG водителя</span><strong id="xgValue">-</strong></div>
                 <div class="stat-item clickable" id="litersDispensedBlock"><span>Слито литров</span><strong id="litersDispensed">0 л</strong></div>
                 <div class="stat-item clickable" id="totalNeededBlock"><span>На зоне требуется</span><strong id="totalNeeded">0 л</strong></div>
+                <div class="stat-item clickable" id="zonesBlock"><span>Зоны</span><strong id="zonesActiveCount">Все</strong></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора зон -->
+    <div id="zonesModal" class="zones-modal hidden">
+        <div class="zones-modal-content">
+            <h3>Выбор зон</h3>
+            <div id="zonesList" class="zones-list"></div>
+            <div class="zones-actions">
+                <button id="zonesSelectAll" class="zones-action-btn">Выбрать все</button>
+                <button id="zonesDeselectAll" class="zones-action-btn">Сбросить</button>
+            </div>
+            <button id="zonesCloseBtn" class="zones-close-btn">Закрыть</button>
         </div>
     </div>
 

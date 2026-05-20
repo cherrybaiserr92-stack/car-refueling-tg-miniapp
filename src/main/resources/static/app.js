@@ -562,6 +562,130 @@ function createMarkerIcon(req, isActive = false, isRoutePoint = false) {
     });
 }
 
+// ===== ЗОНЫ =====
+let zonesData = [];
+let selectedZoneNames = new Set(); // пустой = все зоны активны
+let zoneLayers = [];
+
+async function loadZones() {
+    try {
+        const res = await fetch('/zones.geojson');
+        const data = await res.json();
+        zonesData = data.features.map((f, idx) => {
+            let polygon;
+            if (f.geometry.type === 'Polygon') {
+                polygon = f.geometry.coordinates[0];
+            } else if (f.geometry.type === 'LineString') {
+                const coords = f.geometry.coordinates;
+                if (coords.length > 2) {
+                    // замыкаем линию
+                    polygon = coords.concat([coords[0]]);
+                } else {
+                    polygon = null;
+                }
+            }
+            const name = f.properties.description || `Зона ${idx+1}`;
+            return { id: idx, name, polygon };
+        }).filter(z => z.polygon);
+        buildZonesUI();
+    } catch(e) { console.error('Ошибка загрузки зон', e); }
+}
+
+function pointInPolygon(point, polygon) {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i][0], yi = polygon[i][1];
+        const xj = polygon[j][0], yj = polygon[j][1];
+        const intersect = ((yi > point[1]) !== (yj > point[1]))
+            && (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+function filterRequestsByZones(requests) {
+    if (selectedZoneNames.size === 0) return requests; // без фильтра
+    const activeZones = zonesData.filter(z => selectedZoneNames.has(z.name));
+    return requests.filter(r => {
+        const pt = [r.lng, r.lat];
+        return activeZones.some(z => pointInPolygon(pt, z.polygon));
+    });
+}
+
+function updateZoneLayers() {
+    if (!map) return;
+    // удаляем старые слои
+    zoneLayers.forEach(l => map.removeLayer(l));
+    zoneLayers = [];
+
+    if (selectedZoneNames.size === 0) return; // без фильтра не показываем туман
+
+    zonesData.forEach(z => {
+        if (!selectedZoneNames.has(z.name)) {
+            // неактивная зона — туман
+            const layer = L.polygon(z.polygon.map(c => [c[1], c[0]]), {
+                color: 'transparent',
+                fillColor: '#000',
+                fillOpacity: 0.5,
+                className: 'zone-inactive'
+            }).addTo(map);
+            zoneLayers.push(layer);
+        }
+    });
+}
+
+function buildZonesUI() {
+    const list = document.getElementById('zonesList');
+    list.innerHTML = '';
+    zonesData.forEach(z => {
+        const div = document.createElement('div');
+        div.className = 'zone-checkbox-item';
+        const checked = selectedZoneNames.has(z.name);
+        div.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''}> <span>${z.name}</span>`;
+        div.addEventListener('click', () => {
+            const cb = div.querySelector('input[type="checkbox"]');
+            cb.checked = !cb.checked;
+            if (cb.checked) {
+                selectedZoneNames.add(z.name);
+            } else {
+                selectedZoneNames.delete(z.name);
+            }
+            applyZoneFilter();
+        });
+        list.appendChild(div);
+    });
+}
+
+function applyZoneFilter() {
+    updateZoneLayers();
+    // перерисовываем маркеры с фильтром
+    const filtered = filterRequestsByZones(allRequests);
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+    renderMarkers(filtered);
+    // обновляем счётчик активных зон
+    const count = selectedZoneNames.size === 0 ? 'Все' : selectedZoneNames.size;
+    document.getElementById('zonesActiveCount').textContent = count;
+}
+
+// Обработчики модального окна зон
+document.getElementById('zonesBlock').addEventListener('click', () => {
+    document.getElementById('zonesModal').classList.remove('hidden');
+});
+document.getElementById('zonesCloseBtn').addEventListener('click', () => {
+    document.getElementById('zonesModal').classList.add('hidden');
+});
+document.getElementById('zonesSelectAll').addEventListener('click', () => {
+    zonesData.forEach(z => selectedZoneNames.add(z.name));
+    buildZonesUI();
+    applyZoneFilter();
+});
+document.getElementById('zonesDeselectAll').addEventListener('click', () => {
+    selectedZoneNames.clear();
+    buildZonesUI();
+    applyZoneFilter();
+});
+
 // ===== ПОПАП 110px =====
 function createPopupContent(req) {
     const container = document.createElement('div');
@@ -652,7 +776,6 @@ function triggerFlash() {
     const flash = document.createElement('div');
     flash.className = 'flash-overlay';
     document.body.appendChild(flash);
-    // Принудительный reflow
     flash.offsetHeight;
     flash.classList.add('fade-out');
     setTimeout(() => {
@@ -704,7 +827,6 @@ function stopTimer() {
     timerWrapper.style.display = 'none';
 }
 
-// Эффект на кнопках открыть/закрыть
 function runButtonEffect(btn) {
     if (btn.classList.contains('running')) return;
     btn.classList.add('running');
@@ -925,7 +1047,7 @@ function startTask(req, marker) {
     marker.setIcon(createMarkerIcon(req, true));
     map.closePopup();
     startTimer();
-    triggerFlash(); // Вспышка
+    triggerFlash();
     tg.showAlert(`Заявка #${req.id} принята в работу`);
 }
 
@@ -988,9 +1110,11 @@ const style = document.createElement('style');
 style.textContent = `.leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; } .leaflet-popup-tip { display: none; }`;
 document.head.appendChild(style);
 
+// Старт
 tryAutoLogin();
 if (loggedIn) {
     if (!map) initMap();
     loadRequests();
+    loadZones();
 }
 map && map.on('click', () => hideActionPanel());
